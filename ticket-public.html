@@ -560,7 +560,7 @@
             }
 
             try {
-                const response = await fetch(`/api/tickets/${encodeURIComponent(ticketId)}`);
+                const response = await fetch(`/api/public/tickets/${encodeURIComponent(ticketId)}`);
                 const payload = await response.json();
 
                 if (!response.ok || !payload.ok || !payload.ticket) {

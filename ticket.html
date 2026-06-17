@@ -1027,20 +1027,33 @@
 
         async function loadTickets() {
             const ticketIds = getTicketIds();
-            if (!ticketIds.length) {
+            const tokensMap = getTicketTokens();
+            const resolvedIds = ticketIds.length ? ticketIds : Object.keys(tokensMap);
+            const ticketRequests = resolvedIds
+                .map(ticketId => ({
+                    ticketId,
+                    token: tokensMap[ticketId] || '',
+                }))
+                .filter(item => item.ticketId && item.token);
+
+            if (!ticketRequests.length) {
                 stateEl.textContent = 'No encontramos boletos recientes. Completa una compra o abre esta página con ?ticketIds=...';
                 return;
             }
 
             try {
-                const response = await fetch(`/api/tickets?ids=${encodeURIComponent(ticketIds.join(','))}`);
+                const response = await fetch('/api/tickets/private', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tickets: ticketRequests }),
+                });
                 const payload = await response.json();
 
                 if (!response.ok || !payload.ok || !Array.isArray(payload.tickets) || !payload.tickets.length) {
                     throw new Error(payload.message || 'No se pudieron cargar los boletos.');
                 }
 
-                const orderedTickets = ticketIds
+                const orderedTickets = resolvedIds
                     .map(id => payload.tickets.find(ticket => ticket.ticketId === id))
                     .filter(Boolean);
 

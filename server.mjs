@@ -551,6 +551,18 @@ function serializeTicketPublic(ticket) {
   return serializeTicketForPublic(ticket, { buildPublicTicketPath });
 }
 
+function serializeTicketPublicView(ticket = {}) {
+  return {
+    ticketId: ticket.ticketId,
+    eventName: ticket.eventName,
+    date: ticket.date,
+    venue: ticket.venue,
+    status: ticket.status,
+    usedAt: ticket.usedAt || null,
+    publicPath: ticket.publicPath || buildPublicTicketPath(ticket.ticketId),
+  };
+}
+
 function buildSeatLabel(seat = {}) {
   if (seat.tableSize > 1) {
     return `${seat.zone} · Fila ${seat.fila} · Mesa ${seat.mesa} · Lugar ${seat.seatInMesa}`;
@@ -1392,17 +1404,71 @@ app.post('/api/tickets', purchaseLimiter, async (req, res) => {
 });
 
 app.get('/api/tickets', ticketQueryLimiter, async (req, res) => {
-  const ids = String(req.query.ids || '')
-    .split(',')
-    .map(id => id.trim())
-    .filter(Boolean);
+  return res.status(410).json({
+    ok: false,
+    message: 'Este endpoint requiere autenticacion privada. Usa POST /api/tickets/private.',
+  });
+});
 
-  if (!ids.length) {
+app.get('/api/public/tickets/:ticketId', ticketQueryLimiter, async (req, res) => {
+  const ticketId = String(req.params.ticketId || '').trim();
+  if (!ticketId) {
     return res.status(400).json({
       ok: false,
-      message: 'Debes indicar al menos un ticketId.',
+      message: 'ticketId requerido.',
     });
   }
+
+  try {
+    const ticket = await getTicketByIdFromStorage({
+      ticketId,
+      mode: TICKETS_STORAGE_MODE,
+      readJsonTickets: readTickets,
+      logger: console,
+    });
+
+    if (!ticket) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Boleto no encontrado.',
+      });
+    }
+
+    return res.json({
+      ok: true,
+      ticket: serializeTicketPublicView(ticket),
+    });
+  } catch (error) {
+    console.error('BoletaMax Tickets: storage read failed', {
+      ticketId,
+      mode: TICKETS_STORAGE_MODE,
+      message: error?.message || 'Error desconocido',
+    });
+    return res.status(500).json({
+      ok: false,
+      message: 'No fue posible consultar los boletos en este momento.',
+    });
+  }
+});
+
+app.post('/api/tickets/private', ticketQueryLimiter, async (req, res) => {
+  const requestedTickets = Array.isArray(req.body?.tickets) ? req.body.tickets : [];
+  const ticketRequests = requestedTickets
+    .map(item => ({
+      ticketId: String(item?.ticketId || '').trim(),
+      token: String(item?.token || '').trim(),
+    }))
+    .filter(item => item.ticketId && item.token)
+    .slice(0, 50);
+
+  if (!ticketRequests.length) {
+    return res.status(400).json({
+      ok: false,
+      message: 'Debes enviar al menos un ticketId con token.',
+    });
+  }
+
+  const ids = [...new Set(ticketRequests.map(item => item.ticketId))];
 
   try {
     const tickets = await getTicketsByIdsFromStorage({
@@ -1411,13 +1477,24 @@ app.get('/api/tickets', ticketQueryLimiter, async (req, res) => {
       readJsonTickets: readTickets,
       logger: console,
     });
+    const ticketsById = new Map(tickets.map(ticket => [ticket.ticketId, ticket]));
+    const validTickets = [];
+    const returnedIds = new Set();
+
+    for (const request of ticketRequests) {
+      const ticket = ticketsById.get(request.ticketId);
+      if (!ticket || returnedIds.has(request.ticketId)) continue;
+      if (!verifyTicketPrivateToken(ticket, request.token)) continue;
+      validTickets.push(serializeTicketPublic(ticket));
+      returnedIds.add(request.ticketId);
+    }
 
     return res.json({
       ok: true,
-      tickets: tickets.map(serializeTicketPublic),
+      tickets: validTickets,
     });
   } catch (error) {
-    console.error('BoletaMax Tickets: storage read failed', {
+    console.error('BoletaMax Tickets: private storage read failed', {
       mode: TICKETS_STORAGE_MODE,
       message: error?.message || 'Error desconocido',
     });
@@ -1513,9 +1590,12 @@ app.get('/api/tickets/:ticketId/dynamic-qr', ticketQueryLimiter, async (req, res
 });
 
 app.get('/api/tickets/:ticketId', ticketQueryLimiter, async (req, res) => {
+  const ticketId = String(req.params.ticketId || '').trim();
+  const token = String(req.headers['x-ticket-token'] || '').trim();
+
   try {
     const ticket = await getTicketByIdFromStorage({
-      ticketId: req.params.ticketId,
+      ticketId,
       mode: TICKETS_STORAGE_MODE,
       readJsonTickets: readTickets,
       logger: console,
@@ -1528,13 +1608,21 @@ app.get('/api/tickets/:ticketId', ticketQueryLimiter, async (req, res) => {
       });
     }
 
+    if (!verifyTicketPrivateToken(ticket, token)) {
+      console.warn('BoletaMax Tickets: unauthorized private detail access attempt', { ticketId });
+      return res.status(403).json({
+        ok: false,
+        message: 'Acceso no autorizado al detalle del boleto.',
+      });
+    }
+
     return res.json({
       ok: true,
       ticket: serializeTicketPublic(ticket),
     });
   } catch (error) {
     console.error('BoletaMax Tickets: storage read failed', {
-      ticketId: req.params.ticketId,
+      ticketId,
       mode: TICKETS_STORAGE_MODE,
       message: error?.message || 'Error desconocido',
     });

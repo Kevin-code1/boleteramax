@@ -162,12 +162,67 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.ok(ticket.ticketId);
     assert.ok(ticket.token);
 
-    const readResult = await requestJson(baseUrl, `/api/tickets/${encodeURIComponent(ticket.ticketId)}`);
-    assert.equal(readResult.response.status, 200);
-    assert.equal(readResult.payload.ok, true);
-    assert.equal(readResult.payload.ticket.ticketId, ticket.ticketId);
-    assert.equal(Object.hasOwn(readResult.payload.ticket, 'token'), false);
-    assert.equal(Object.hasOwn(readResult.payload.ticket, 'privateViewTokenHash'), false);
+    const privateReadWithoutToken = await requestJson(
+      baseUrl,
+      `/api/tickets/${encodeURIComponent(ticket.ticketId)}`,
+    );
+    assert.equal(privateReadWithoutToken.response.status, 403);
+    assert.equal(privateReadWithoutToken.payload.ok, false);
+
+    const privateReadWithToken = await requestJson(
+      baseUrl,
+      `/api/tickets/${encodeURIComponent(ticket.ticketId)}`,
+      {
+        headers: { 'x-ticket-token': ticket.token },
+      },
+    );
+    assert.equal(privateReadWithToken.response.status, 200);
+    assert.equal(privateReadWithToken.payload.ok, true);
+    assert.equal(privateReadWithToken.payload.ticket.ticketId, ticket.ticketId);
+    assert.equal(Object.hasOwn(privateReadWithToken.payload.ticket, 'token'), false);
+    assert.equal(Object.hasOwn(privateReadWithToken.payload.ticket, 'privateViewTokenHash'), false);
+
+    const publicReadResult = await requestJson(
+      baseUrl,
+      `/api/public/tickets/${encodeURIComponent(ticket.ticketId)}`,
+    );
+    assert.equal(publicReadResult.response.status, 200);
+    assert.equal(publicReadResult.payload.ok, true);
+    assert.equal(publicReadResult.payload.ticket.ticketId, ticket.ticketId);
+    assert.equal(publicReadResult.payload.ticket.eventName, event.name);
+    for (const privateField of [
+      'totalPaid',
+      'paymentMethod',
+      'orderId',
+      'orderSeatCount',
+      'token',
+      'privateViewTokenHash',
+      'dynamicSecret',
+      'qrPayload',
+      'qrDataUrl',
+    ]) {
+      assert.equal(Object.hasOwn(publicReadResult.payload.ticket, privateField), false);
+    }
+
+    const legacyListResult = await requestJson(
+      baseUrl,
+      `/api/tickets?ids=${encodeURIComponent(ticket.ticketId)}`,
+    );
+    assert.equal(legacyListResult.response.status, 410);
+    assert.equal(legacyListResult.payload.ok, false);
+
+    const privateListResult = await requestJson(baseUrl, '/api/tickets/private', {
+      method: 'POST',
+      body: JSON.stringify({
+        tickets: [{ ticketId: ticket.ticketId, token: ticket.token }],
+      }),
+    });
+    assert.equal(privateListResult.response.status, 200);
+    assert.equal(privateListResult.payload.ok, true);
+    assert.equal(Array.isArray(privateListResult.payload.tickets), true);
+    assert.equal(privateListResult.payload.tickets.length, 1);
+    assert.equal(privateListResult.payload.tickets[0].ticketId, ticket.ticketId);
+    assert.equal(Object.hasOwn(privateListResult.payload.tickets[0], 'token'), false);
 
     const qrResult = await requestJson(
       baseUrl,
