@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BoletaMax – Método de Pago</title>
+    <meta name="description" content="Selecciona tu método de pago y completa tu compra de boletos en BoletaMax." />
+    <meta name="theme-color" content="#16181B" />
+    <style>
+        html,
+        body {
+            background: #060d18;
+            color: #e2e8f0;
+        }
+    </style>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        /* ---- Variables ---- */
+        :root {
+            --primary: #16181b;
+            --primary-light: #1f2328;
+            --accent: #c4a06a;
+            --accent-hover: #af8953;
+            --green: #2f6a57;
+            --red: #8e4f44;
+            --white: #fff;
+            --font-main: 'Manrope', sans-serif;
+            --font-display: 'Cormorant Garamond', serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: #0d1829;
+            color: #e2e8f0;
+            min-height: 100vh;
+            opacity: 0;
+            animation: checkoutEnter 0.42s ease forwards;
+        }
+
+        @keyframes checkoutEnter {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ---- Header ---- */
+        .co-header {
+            background: rgba(11, 31, 58, 0.98);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(16px);
+        }
+
+        .co-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .co-logo strong {
+            color: var(--accent);
+        }
+
+        .co-logo-icon {
+            font-size: 1.5rem;
+        }
+
+        .co-header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .co-header-secure {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #22c55e;
+        }
+
+        /* ---- Steps bar ---- */
+        .co-steps {
+            background: #0f172a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            opacity: 0.38;
+            flex-shrink: 0;
+        }
+
+        .step-item.active {
+            opacity: 1;
+        }
+
+        .step-item.done {
+            opacity: 0.7;
+        }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            color: #94a3b8;
+        }
+
+        .step-item.active .step-circle {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+            box-shadow: 0 0 14px rgba(245, 166, 35, 0.4);
+        }
+
+        .step-item.done .step-circle {
+            background: var(--green);
+            border-color: var(--green);
+            color: #fff;
+        }
+
+        .step-item span {
+            font-size: 0.66rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.45);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            white-space: nowrap;
+        }
+
+        .step-item.active span {
+            color: var(--accent);
+        }
+
+        .step-line {
+            flex: 1;
+            max-width: 70px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 6px 14px;
+        }
+
+        /* ---- Main layout ---- */
+        .co-main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px 20px 60px;
+        }
+
+        /* ---- Timer banner ---- */
+        .timer-banner {
+            background: linear-gradient(90deg, rgba(245, 166, 35, 0.12), rgba(245, 166, 35, 0.05));
+            border: 1px solid rgba(245, 166, 35, 0.3);
+            border-radius: 10px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .timer-banner i {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        #timer-countdown {
+            font-weight: 800;
+            color: var(--accent);
+            font-size: 1rem;
+            font-family: var(--font-display);
+            margin-left: 6px;
+        }
+
+        .timer-banner .timer-warning {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        /* ---- Order summary box ---- */
+        .order-summary {
+            background: #1a2744;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+        }
+
+        .co-alert {
+            display: none;
+            margin-bottom: 24px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            background: rgba(127, 29, 29, 0.25);
+            color: #fecaca;
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+
+        .co-alert.show {
+            display: block;
+        }
+
+        .security-verify-card {
+            margin: 0 0 24px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            align-items: center;
+            padding: 18px 20px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(255, 255, 255, 0.035));
+            border: 1px solid rgba(212, 175, 55, 0.16);
+        }
+
+        .security-verify-card strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #fff7eb;
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+        }
+
+        .security-verify-card p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: .84rem;
+            line-height: 1.6;
+        }
+
+        .security-status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            color: #f2d57a;
+            background: rgba(212, 175, 55, 0.09);
+            border: 1px solid rgba(212, 175, 55, 0.22);
+            font-size: .76rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .security-status-pill.ready {
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.28);
+        }
+
+        .security-status-pill.warning {
+            color: #fde68a;
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.28);
+        }
+
+        .security-status-pill.danger {
+            color: #fecaca;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.28);
+        }
+
+        #turnstile-container {
+            margin-top: 12px;
+        }
+
+        #turnstile-container:empty {
+            display: none;
+        }
+
+        .os-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.45);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 14px;
+        }
+
+        .os-event {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .os-event-name {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .os-event-meta {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 4px;
+        }
+
+        .os-event-meta i {
+            color: var(--accent);
+            margin-right: 4px;
+        }
+
+        .os-seats {
+            width: 100%;
+            margin-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            padding-top: 12px;
+        }
+
+        .os-seat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.83rem;
+            padding: 5px 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .os-seat-row .seat-zone {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .seat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .os-seat-price {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .os-totals {
+            width: 100%;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        .os-total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.83rem;
+            color: rgba(255, 255, 255, 0.55);
+            padding: 2px 0;
+        }
+
+        .os-total-row.grand {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: var(--font-display);
+        }
+
+        .os-total-row.grand span:first-child {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* ---- Payment methods grid ---- */
+        .payment-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .payment-subtitle {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 4px;
+        }
+
+        .payment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .pm-card {
+            background: #111827;
+            border: 2px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pm-card:hover {
+            border-color: rgba(245, 166, 35, 0.4);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+            transform: translateY(-2px);
+        }
+
+        .pm-card.selected {
+            border-color: var(--accent) !important;
+            box-shadow: 0 8px 36px rgba(245, 166, 35, 0.2) !important;
+        }
+
+        .pm-card:focus-visible {
+            outline: 3px solid rgba(245, 166, 35, 0.7);
+            outline-offset: 4px;
+        }
+
+        .pm-card.featured {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .pm-card.featured::before {
+            content: 'AHORRA $' attr(data-savings);
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #15803d, #22c55e);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 99px;
+            letter-spacing: .4px;
+        }
+
+        .pm-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin: 0 auto 4px;
+        }
+
+        .pm-card:nth-child(1) .pm-icon {
+            background: rgba(30, 64, 175, 0.15);
+            border-color: rgba(30, 64, 175, 0.3);
+        }
+
+        .pm-card:nth-child(2) .pm-icon {
+            background: rgba(5, 150, 105, 0.15);
+            border-color: rgba(5, 150, 105, 0.3);
+        }
+
+        .pm-card:nth-child(3) .pm-icon {
+            background: rgba(234, 88, 12, 0.15);
+            border-color: rgba(234, 88, 12, 0.3);
+        }
+
+        .pm-name {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .pm-subtitle {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            margin-top: -8px;
+        }
+
+        .pm-amount {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .pm-amount span {
+            font-size: 1rem;
+            vertical-align: super;
+            margin-right: 2px;
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 500;
+        }
+
+        /* Restrictions list */
+        .pm-restrictions {
+            flex: 1;
+        }
+
+        .pm-restrictions h4 {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 8px;
+        }
+
+        .pm-restrictions ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .pm-restrictions ul li {
+            font-size: 0.73rem;
+            color: rgba(255, 255, 255, 0.55);
+            display: flex;
+            gap: 6px;
+            line-height: 1.4;
+        }
+
+        .pm-restrictions ul li::before {
+            content: '•';
+            color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .pm-restrictions ul li.highlight {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .pm-restrictions ul li.highlight::before {
+            color: #22c55e;
+        }
+
+        .pm-btn {
+            background: var(--accent);
+            color: var(--primary);
+            font-size: 0.82rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            letter-spacing: .3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            font-family: var(--font-main);
+        }
+
+        .pm-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(245, 166, 35, 0.35);
+        }
+
+        .pm-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ---- Back link ---- */
+        .co-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s;
+            margin-top: 10px;
+        }
+
+        .co-back:hover {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* ---- CONFIRMATION OVERLAY ---- */
+        .confirmation-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 24, 41, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-overlay.show {
+            display: flex;
+        }
+
+        .confirm-card {
+            background: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 36px;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .confirm-icon {
+            font-size: 3rem;
+            margin-bottom: 18px;
+        }
+
+        .confirm-card h2 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .confirm-card p {
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.65;
+            margin-bottom: 20px;
+        }
+
+        .confirm-method-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 99px;
+            padding: 6px 16px;
+            font-size: 0.82rem;
+            color: #22c55e;
+            font-weight: 600;
+            margin-bottom: 22px;
+        }
+
+        .confirm-total {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 22px;
+        }
+
+        .btn-confirm-ok {
+            background: linear-gradient(135deg, #15803d, #22c55e);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 14px 32px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-family: var(--font-main);
+            transition: all .2s;
+        }
+
+        .btn-confirm-ok:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* ---- Footer ---- */
+        .co-footer {
+            margin-top: 48px;
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .co-footer-brand {
+            font-family: var(--font-display);
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.85rem;
+        }
+
+        .co-footer-icons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .co-footer-icons i {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .oxxo-ft {
+            font-size: 0.6rem;
+            font-weight: 900;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.2);
+            padding: 3px 7px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        .co-footer-links {
+            display: flex;
+            gap: 18px;
+        }
+
+        .co-footer-links a {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.3);
+            text-decoration: none;
+        }
+
+        .co-footer-links a:hover {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 700px) {
+            .security-verify-card {
+                grid-template-columns: 1fr;
+            }
+
+            .security-status-pill {
+                justify-self: start;
+            }
+
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .co-steps .step-item span {
+                display: none;
+            }
+
+            .co-steps .step-line {
+                max-width: 28px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .co-header-right {
+                display: none;
+            }
+        }
+
+        /* ---- Premium refinement ---- */
+        body {
+            background:
+                radial-gradient(circle at top, rgba(196, 160, 106, 0.12), transparent 24%),
+                linear-gradient(180deg, #111315 0%, #17191c 100%);
+            color: #ece4d8;
+        }
+
+        .co-header {
+            background: rgba(17, 19, 21, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+            height: 72px;
+        }
+
+        .co-logo {
+            font-size: 1.55rem;
+            letter-spacing: .02em;
+        }
+
+        .co-steps {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 16px 24px;
+        }
+
+        .step-circle {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .co-main {
+            max-width: 1080px;
+            padding: 40px 24px 72px;
+        }
+
+        .timer-banner,
+        .order-summary,
+        .pm-card,
+        .confirm-card {
+            border-radius: 22px;
+        }
+
+        .timer-banner {
+            background: linear-gradient(90deg, rgba(196, 160, 106, 0.12), rgba(196, 160, 106, 0.04));
+            border-color: rgba(196, 160, 106, 0.22);
+            color: rgba(255, 255, 255, 0.74);
+        }
+
+        .order-summary,
+        .confirm-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 22px 48px rgba(0, 0, 0, 0.18);
+        }
+
+        .os-event-name,
+        .payment-title,
+        .confirm-card h2 {
+            letter-spacing: .01em;
+        }
+
+        .payment-title {
+            font-size: 2rem;
+            color: #fff7eb;
+        }
+
+        .payment-subtitle,
+        .os-event-meta,
+        .pm-subtitle,
+        .pm-restrictions ul li,
+        .confirm-card p {
+            color: rgba(255, 255, 255, 0.54);
+        }
+
+        .payment-grid {
+            gap: 22px;
+        }
+
+        .pm-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.08);
+            padding: 28px 22px;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
+        }
+
+        .pm-card:hover {
+            border-color: rgba(196, 160, 106, 0.28);
+            box-shadow: 0 22px 42px rgba(0, 0, 0, 0.18);
+        }
+
+        .pm-card.selected {
+            box-shadow: 0 22px 42px rgba(196, 160, 106, 0.14) !important;
+        }
+
+        .pm-card.featured::before {
+            background: linear-gradient(135deg, #9e7a47, #c4a06a);
+        }
+
+        .pm-name,
+        .pm-amount,
+        .confirm-total {
+            color: #fff8ee;
+        }
+
+        .pm-btn,
+        .btn-confirm-ok {
+            background: #f4efe7;
+            color: #16181b;
+            border-radius: 14px;
+            box-shadow: none;
+        }
+
+        .pm-btn:hover,
+        .btn-confirm-ok:hover {
+            background: #fff8ee;
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.16);
+        }
+
+        .co-back,
+        .co-footer-links a,
+        .co-footer-brand {
+            color: rgba(255, 255, 255, 0.46);
+        }
+
+        .co-footer {
+            margin-top: 64px;
+        }
+
+        /* ===================================================
+           BoletaMax Enterprise Checkout Refresh
+           Visual-only: keeps sessionStorage, IDs and payment flow intact.
+           =================================================== */
+        :root {
+            --bm-bg: #050B12;
+            --bm-bg-2: #071018;
+            --bm-card: #0D1724;
+            --bm-card-2: #101D2D;
+            --bm-text: #E8EEF8;
+            --bm-muted: #96A5BB;
+            --bm-gold: #D4AF37;
+            --bm-gold-2: #ECD27A;
+            --bm-line: rgba(255,255,255,0.08);
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 12% 0%, rgba(212, 175, 55, 0.12), transparent 24%),
+                radial-gradient(circle at 88% 10%, rgba(58, 109, 179, 0.14), transparent 26%),
+                linear-gradient(180deg, var(--bm-bg), var(--bm-bg-2) 52%, #05080d);
+            color: var(--bm-text);
+        }
+
+        .co-header {
+            background: rgba(5, 11, 18, 0.88);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.14);
+            backdrop-filter: blur(22px) saturate(145%);
+        }
+
+        .co-logo {
+            color: #fff7eb;
+        }
+
+        .co-logo-icon {
+            color: #ffd179;
+            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.28));
+        }
+
+        .co-steps {
+            position: sticky;
+            top: 72px;
+            z-index: 20;
+            background: rgba(7, 16, 24, 0.82);
+            border-bottom: 1px solid var(--bm-line);
+            backdrop-filter: blur(18px);
+        }
+
+        .step-circle {
+            background: rgba(16, 29, 45, 0.9);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .step-item.active .step-circle,
+        .step-item.done .step-circle {
+            color: #071018;
+            background: linear-gradient(135deg, var(--bm-gold-2), var(--bm-gold));
+            box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.08);
+        }
+
+        .co-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(330px, 0.75fr);
+            gap: 24px;
+            max-width: 1240px;
+            align-items: start;
+        }
+
+        .timer-banner {
+            grid-column: 1 / -1;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.14), rgba(16, 29, 45, 0.72));
+            border: 1px solid rgba(212, 175, 55, 0.24);
+            box-shadow: 0 24px 54px rgba(0, 0, 0, 0.24);
+        }
+
+        .order-summary {
+            grid-column: 2;
+            grid-row: 2 / span 8;
+            position: sticky;
+            top: 154px;
+            background:
+                radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 28%),
+                linear-gradient(180deg, rgba(16, 29, 45, 0.96), rgba(8, 15, 25, 0.96));
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+        }
+
+        .co-alert,
+        .security-verify-card,
+        .payment-title,
+        .payment-grid,
+        .co-back {
+            grid-column: 1;
+        }
+
+        .security-verify-card,
+        .pm-card,
+        .confirm-card {
+            background: linear-gradient(180deg, rgba(16, 29, 45, 0.94), rgba(8, 15, 25, 0.94));
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
+        }
+
+        .payment-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pm-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 16px;
+            text-align: left;
+            padding: 22px;
+        }
+
+        .pm-card .pm-icon {
+            margin: 0;
+        }
+
+        .pm-card .pm-amount {
+            justify-self: end;
+            margin: 0;
+            color: var(--bm-gold-2);
+        }
+
+        .pm-card .pm-restrictions,
+        .pm-card .pm-btn {
+            grid-column: 2 / -1;
+        }
+
+        .pm-card.selected {
+            background:
+                radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 32%),
+                linear-gradient(180deg, rgba(16, 29, 45, 0.98), rgba(8, 15, 25, 0.98));
+            border-color: rgba(236, 210, 122, 0.42) !important;
+        }
+
+        .pm-btn,
+        .btn-confirm-ok {
+            background: linear-gradient(135deg, var(--bm-gold-2), var(--bm-gold) 50%, #b98523);
+            color: #071018;
+            box-shadow: 0 18px 44px rgba(212, 175, 55, 0.2);
+        }
+
+        .os-total-row.grand,
+        .confirm-total {
+            color: var(--bm-gold-2);
+        }
+
+        .payment-subtitle,
+        .pm-subtitle,
+        .pm-restrictions li,
+        .os-event-meta,
+        .os-title {
+            color: var(--bm-muted);
+        }
+
+        @media (max-width: 920px) {
+            .co-steps {
+                top: 64px;
+            }
+
+            .co-main {
+                grid-template-columns: 1fr;
+            }
+
+            .timer-banner,
+            .order-summary,
+            .co-alert,
+            .security-verify-card,
+            .payment-title,
+            .payment-grid,
+            .co-back {
+                grid-column: 1;
+            }
+
+            .order-summary {
+                grid-row: auto;
+                position: static;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .co-main {
+                padding-inline: 16px;
+            }
+
+            .timer-banner {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .timer-banner .timer-warning {
+                margin-left: 0;
+            }
+
+            .pm-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .pm-card .pm-icon,
+            .pm-card .pm-amount {
+                justify-self: center;
+            }
+
+            .pm-card .pm-restrictions,
+            .pm-card .pm-btn {
+                grid-column: 1;
+            }
+        }
+
+        /* Editorial checkout pass: compact payment list, subtle timer, summary remains the main card. */
+        .co-steps {
+            background: rgba(5, 11, 18, 0.7);
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+            box-shadow: none;
+        }
+
+        .step-line {
+            opacity: .34;
+        }
+
+        .timer-banner {
+            padding: 12px 2px 16px;
+            border: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            color: rgba(232, 238, 248, 0.72);
+        }
+
+        .timer-banner i,
+        .timer-banner span {
+            color: rgba(236, 210, 122, 0.9);
+        }
+
+        .timer-warning {
+            color: rgba(150, 165, 187, 0.75);
+        }
+
+        .security-verify-card {
+            padding: 8px 0 18px;
+            border: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .payment-grid {
+            gap: 0;
+            overflow: hidden;
+            border-top: 1px solid rgba(255, 255, 255, 0.075);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+            border-radius: 0;
+        }
+
+        .pm-card {
+            grid-template-columns: 46px minmax(0, 1fr) auto;
+            gap: 14px;
+            padding: 18px 4px;
+            border: 0;
+            border-radius: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .pm-card:last-child {
+            border-bottom: 0;
+        }
+
+        .pm-card:hover {
+            transform: none;
+            background: rgba(255, 255, 255, 0.026);
+            box-shadow: none;
+        }
+
+        .pm-card.selected {
+            background: rgba(212, 175, 55, 0.075);
+            border-color: rgba(255, 255, 255, 0.07) !important;
+            box-shadow: none;
+        }
+
+        .pm-card .pm-icon {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            width: 42px;
+            height: 42px;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+        }
+
+        .pm-card .pm-name {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .pm-card .pm-subtitle {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .pm-card .pm-amount {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .pm-card .pm-btn {
+            grid-column: 3;
+            grid-row: 2;
+            justify-self: end;
+            min-width: 132px;
+            box-shadow: none;
+        }
+
+        .pm-card .pm-restrictions {
+            display: none;
+        }
+
+        .confirm-card {
+            box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
+        }
+
+        @media (max-width: 620px) {
+            .pm-card {
+                grid-template-columns: 42px minmax(0, 1fr);
+                text-align: left;
+            }
+
+            .pm-card .pm-icon {
+                grid-row: 1 / span 2;
+                justify-self: start;
+            }
+
+            .pm-card .pm-name,
+            .pm-card .pm-subtitle {
+                grid-column: 2;
+            }
+
+            .pm-card .pm-amount,
+            .pm-card .pm-btn {
+                grid-column: 2;
+                grid-row: auto;
+                justify-self: start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="co-header">
+        <a href="index.html" class="co-logo">
+            <span class="co-logo-icon">⚡</span>
+            Boleta<strong>Max</strong>
+        </a>
+        <div class="co-header-right">
+            <div class="co-header-secure"><i class="fas fa-lock"></i> Pago 100% Seguro · SSL 256-bit</div>
+        </div>
+    </header>
+
+    <!-- ===== STEPS BAR ===== -->
+    <div class="co-steps">
+        <div class="step-item done">
+            <div class="step-circle"><i class="fas fa-check"></i></div>
+            <span>Selecciona asientos</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item active">
+            <div class="step-circle"><i class="fas fa-credit-card"></i></div>
+            <span>Método de pago</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item">
+            <div class="step-circle"><i class="fas fa-file-alt"></i></div>
+            <span>Confirmar</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item">
+            <div class="step-circle"><i class="fas fa-check-circle"></i></div>
+            <span>Finalizar</span>
+        </div>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <main class="co-main">
+
+        <!-- Timer -->
+        <div class="timer-banner">
+            <i class="fas fa-clock"></i>
+            Boletos reservados por
+            <span id="timer-countdown">9:55</span>
+            <span class="timer-warning">⚠️ El tiempo agotado libera los asientos automáticamente</span>
+        </div>
+
+        <!-- Order summary -->
+        <div class="order-summary">
+            <div class="os-title"><i class="fas fa-ticket" style="margin-right:6px;color:var(--accent)"></i>Resumen de
+                tu Pedido</div>
+            <div class="os-event">
+                <div>
+                    <div class="os-event-name" id="co-event-name">—</div>
+                    <div class="os-event-meta">
+                        <i class="fas fa-calendar"></i><span id="co-event-date">—</span>
+                        &nbsp;&nbsp;
+                        <i class="fas fa-map-marker-alt"></i><span id="co-event-venue">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="os-seats" id="co-seats-list">
+                <div style="color:rgba(255,255,255,0.35); font-size:.8rem">Cargando asientos...</div>
+            </div>
+            <div class="os-totals">
+                <div class="os-total-row"><span>Subtotal:</span><span id="co-subtotal">—</span></div>
+                <div class="os-total-row"><span>Cargo por servicio (14%):</span><span id="co-fee">—</span></div>
+                <div class="os-total-row grand"><span>TOTAL:</span><span id="co-total">—</span></div>
+            </div>
+        </div>
+
+        <div class="co-alert" id="checkout-alert" role="alert" aria-live="assertive"></div>
+
+        <section class="security-verify-card" id="security-verify-card" aria-live="polite">
+            <div>
+                <strong>Precio protegido por servidor</strong>
+                <p id="pricing-security-copy">Calculando cotizacion segura antes de habilitar el pago...</p>
+                <div id="turnstile-container"></div>
+            </div>
+            <div class="security-status-pill warning" id="security-status-pill">
+                <i class="fas fa-shield-halved"></i> Verificando
+            </div>
+        </section>
+
+        <!-- Payment methods -->
+        <div class="payment-title">
+            Selecciona tu Método de Pago
+            <div class="payment-subtitle">Elige la opción que más te convenga</div>
+        </div>
+
+        <div class="payment-grid">
+
+            <!-- Tarjeta -->
+            <div class="pm-card" onclick="selectPayment('tarjeta',this)" data-payment-method="tarjeta" role="button"
+                tabindex="0" aria-pressed="false">
+                <div class="pm-icon"><i class="fas fa-credit-card" style="color:#60a5fa"></i></div>
+                <div class="pm-name">Tarjeta de Crédito / Débito</div>
+                <div class="pm-subtitle">Pago digital seguro</div>
+                <div class="pm-amount"><span>$</span><span id="amt-tarjeta">0</span></div>
+                <div class="pm-restrictions">
+                    <h4>Restricciones</h4>
+                    <ul>
+                        <li>Solo el titular puede recoger los boletos</li>
+                        <li>Máximo 10 boletos por persona por evento</li>
+                        <li>Servicio las 24 horas</li>
+                        <li>Recuerda usar tarjeta digital para evitar rechazos</li>
+                    </ul>
+                </div>
+                <button class="pm-btn" type="button" onclick="selectPayment('tarjeta',this.closest('.pm-card'))">
+                    <i class="fas fa-circle-check"></i> Seleccionar este método
+                </button>
+            </div>
+
+            <!-- SPEI -->
+            <div class="pm-card featured" data-savings="0" onclick="selectPayment('spei',this)"
+                data-payment-method="spei" role="button" tabindex="0" aria-pressed="false">
+                <div class="pm-icon">
+                    <svg viewBox="0 0 80 80" width="38" height="38">
+                        <circle cx="40" cy="40" r="38" fill="#065f46" /><text x="40" y="47" text-anchor="middle"
+                            fill="#fff" font-size="18" font-family="Arial" font-weight="900">SPEI</text>
+                    </svg>
+                </div>
+                <div class="pm-name">Transferencia SPEI</div>
+                <div class="pm-subtitle">Desde tu banca móvil</div>
+                <div class="pm-amount"><span>$</span><span id="amt-spei">0</span></div>
+                <div class="pm-restrictions">
+                    <h4>Restricciones</h4>
+                    <ul>
+                        <li>Máximo 10 boletos por persona por evento</li>
+                        <li>Tienes <strong>1 hora</strong> para realizar el pago</li>
+                        <li>Si excedes el tiempo, se pierden los boletos</li>
+                        <li>Disponible hasta 48 hrs antes del evento</li>
+                        <li class="highlight"><i class="fas fa-tag"></i> Al usar este método ahorras en comisión</li>
+                    </ul>
+                </div>
+                <button class="pm-btn" type="button" onclick="selectPayment('spei',this.closest('.pm-card'))">
+                    <i class="fas fa-circle-check"></i> Seleccionar este método
+                </button>
+            </div>
+
+            <!-- OXXO -->
+            <div class="pm-card" onclick="selectPayment('oxxo',this)" data-payment-method="oxxo" role="button"
+                tabindex="0" aria-pressed="false">
+                <div class="pm-icon">
+                    <svg viewBox="0 0 80 80" width="38" height="38">
+                        <circle cx="40" cy="40" r="38" fill="#7c2d12" /><text x="40" y="47" text-anchor="middle"
+                            fill="#fbbf24" font-size="14" font-family="Arial" font-weight="900">OXXO</text>
+                    </svg>
+                </div>
+                <div class="pm-name">OXXO Pay</div>
+                <div class="pm-subtitle">Paga en cualquier OXXO del país</div>
+                <div class="pm-amount"><span>$</span><span id="amt-oxxo">0</span></div>
+                <div class="pm-restrictions">
+                    <h4>Restricciones</h4>
+                    <ul>
+                        <li>Máximo 10 boletos por persona por evento</li>
+                        <li>Servicio de 8:00am a 7:45pm</li>
+                        <li>Solo pago en efectivo</li>
+                        <li>Comisión de OXXO de $17 pesos</li>
+                        <li>Tienes <strong>5 horas</strong> para acudir a pagar</li>
+                        <li>Máximo $10,000 por compra</li>
+                    </ul>
+                </div>
+                <button class="pm-btn" type="button" onclick="selectPayment('oxxo',this.closest('.pm-card'))">
+                    <i class="fas fa-circle-check"></i> Seleccionar este método
+                </button>
+            </div>
+
+        </div><!-- /payment-grid -->
+
+        <!-- Back link -->
+        <a class="co-back" href="index.html">
+            <i class="fas fa-arrow-left"></i> Volver a selección de asientos
+        </a>
+
+    </main><!-- /co-main -->
+
+    <!-- ===== CONFIRMATION OVERLAY ===== -->
+    <div class="confirmation-overlay" id="confirm-overlay">
+        <div class="confirm-card">
+            <div class="confirm-icon">🎟️</div>
+            <h2>¡Pago Iniciado!</h2>
+            <div class="confirm-method-badge" id="confirm-method-badge">
+                <i class="fas fa-check-circle"></i> <span id="confirm-method-name">—</span>
+            </div>
+            <p id="confirm-instructions">—</p>
+            <div class="confirm-total" id="confirm-total-display">—</div>
+            <button class="btn-confirm-ok" id="confirm-action-btn" type="button" onclick="finishCheckout()">
+                <i class="fas fa-check"></i> Entendido – Proceder
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="co-footer">
+        <div class="co-footer-brand">© 2026 BoletaMax · Todos los derechos reservados</div>
+        <div class="co-footer-icons">
+            <i class="fab fa-cc-visa"></i>
+            <i class="fab fa-cc-mastercard"></i>
+            <i class="fab fa-cc-amex"></i>
+            <i class="fab fa-cc-paypal"></i>
+            <span class="oxxo-ft">OXXO</span>
+        </div>
+        <div class="co-footer-links">
+            <a href="#">Aviso de Privacidad</a>
+            <a href="#">Términos de Uso</a>
+            <a href="#">Soporte</a>
+        </div>
+    </footer>
+
+    <script>
+        /* ============================================================
+           checkout.js – BoletaMax payment page logic
+           ============================================================ */
+
+        function safeParse(json, fallback) {
+            try {
+                return JSON.parse(json);
+            } catch (_) {
+                return fallback;
+            }
+        }
+
+        const cart = safeParse(sessionStorage.getItem('bm_cart') || '{}', {});
+        const eventData = cart.event || {};
+        let seats = Array.isArray(cart.seats) ? cart.seats : [];
+        let subtotal = Number.isFinite(cart.subtotal) ? cart.subtotal : 0;
+        let fee = Number.isFinite(cart.fee) ? cart.fee : 0;
+        let total = Number.isFinite(cart.total) ? cart.total : 0;
+        let speiTotal = Math.round(total * 0.955);
+        let hasValidCart = seats.length > 0 && Boolean(eventData.name);
+        let checkoutQuote = null;
+        let turnstileToken = '';
+        let turnstileWidgetId = null;
+        let turnstileRequired = false;
+
+        const alertEl = document.getElementById('checkout-alert');
+        const seatsList = document.getElementById('co-seats-list');
+        const timerEl = document.getElementById('timer-countdown');
+        const paymentCards = Array.from(document.querySelectorAll('.pm-card'));
+        const paymentButtons = Array.from(document.querySelectorAll('.pm-btn'));
+        const confirmOverlay = document.getElementById('confirm-overlay');
+        const confirmActionBtn = document.getElementById('confirm-action-btn');
+        const speiCard = document.querySelector('.pm-card.featured');
+        const securityStatusPill = document.getElementById('security-status-pill');
+        const pricingSecurityCopy = document.getElementById('pricing-security-copy');
+        const turnstileContainer = document.getElementById('turnstile-container');
+
+        const ZONE_COLORS = {
+            fan: '#8da2c4', vip5: '#d4af37', oro5: '#5f7fa8',
+            oro: '#415674', gen: '#2d3b52',
+        };
+
+        function zoneColor(zoneLabel) {
+            const map = {
+                'FAN': '#f59e0b', 'VIP': '#ef4444', 'ORO 5': '#38bdf8', 'RINGSIDE': '#f59e0b', 'ORQUESTA': '#f59e0b',
+                'ORO': '#f97316', 'GENERAL': '#6366f1', 'GALERÍA': '#6366f1', 'PLATINO': '#38bdf8', 'LUNETA': '#ef4444',
+                'MEZZANINE': '#38bdf8', 'PALCO': '#f97316'
+            };
+            return map[zoneLabel] || '#94a3b8';
+        }
+
+        function showCheckoutAlert(message) {
+            alertEl.textContent = message;
+            alertEl.classList.add('show');
+        }
+
+        function setPaymentEnabled(enabled) {
+            paymentCards.forEach(card => {
+                card.setAttribute('aria-disabled', String(!enabled));
+                card.tabIndex = enabled ? 0 : -1;
+            });
+            paymentButtons.forEach(button => {
+                button.disabled = !enabled;
+            });
+        }
+
+        function formatCurrency(value, options = {}) {
+            const amount = Number(value || 0);
+            return `$${amount.toLocaleString('es-MX', {
+                minimumFractionDigits: options.decimals ?? 2,
+                maximumFractionDigits: options.decimals ?? 2,
+            })} MXN`;
+        }
+
+        function setSecurityStatus(label, tone = 'warning', icon = 'fa-shield-halved') {
+            if (!securityStatusPill) return;
+            securityStatusPill.classList.remove('ready', 'warning', 'danger');
+            securityStatusPill.classList.add(tone);
+            securityStatusPill.innerHTML = `<i class="fas ${icon}"></i> ${label}`;
+        }
+
+        function syncPricingDisplay() {
+            if (!checkoutQuote) {
+                document.getElementById('co-subtotal').textContent = 'Verificando';
+                document.getElementById('co-fee').textContent = '-';
+                document.getElementById('co-total').textContent = 'Servidor';
+                document.getElementById('amt-tarjeta').textContent = '0.00';
+                document.getElementById('amt-spei').textContent = '0.00';
+                document.getElementById('amt-oxxo').textContent = '0.00';
+                return;
+            }
+
+            document.getElementById('co-subtotal').textContent = formatCurrency(subtotal, { decimals: 0 });
+            document.getElementById('co-fee').textContent = formatCurrency(fee, { decimals: 0 });
+            document.getElementById('co-total').textContent = formatCurrency(total, { decimals: 0 });
+            document.getElementById('amt-tarjeta').textContent = Number(total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+            document.getElementById('amt-spei').textContent = Number(speiTotal || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+            document.getElementById('amt-oxxo').textContent = Number((checkoutQuote?.paymentTotals?.oxxo) || (total + 17)).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+            if (speiCard) {
+                speiCard.dataset.savings = Math.max(total - speiTotal, 0).toLocaleString('es-MX', { maximumFractionDigits: 0 });
+            }
+        }
+
+        function loadExternalScript(src) {
+            const existing = document.querySelector(`script[src="${src}"]`);
+            if (existing) return Promise.resolve();
+
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+                script.defer = true;
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('No fue posible cargar la proteccion Cloudflare.'));
+                document.head.appendChild(script);
+            });
+        }
+
+        async function loadCloudflareSecurity() {
+            if (!pricingSecurityCopy) return;
+
+            try {
+                const response = await fetch('/api/security-config');
+                const payload = await response.json();
+                const cloudflare = payload?.cloudflare || {};
+
+                if (!cloudflare.turnstileEnabled || !cloudflare.siteKey) {
+                    turnstileRequired = false;
+                    pricingSecurityCopy.textContent = 'Modo demo: el backend ya recalcula y firma precios. Para produccion, configura TURNSTILE_SITE_KEY y TURNSTILE_SECRET_KEY.';
+                    return;
+                }
+
+                turnstileRequired = true;
+                pricingSecurityCopy.textContent = 'Valida la proteccion Cloudflare para continuar con el pago seguro.';
+                await loadExternalScript('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit');
+
+                if (!window.turnstile || !turnstileContainer || turnstileWidgetId !== null) return;
+                turnstileWidgetId = window.turnstile.render(turnstileContainer, {
+                    sitekey: cloudflare.siteKey,
+                    callback: token => {
+                        turnstileToken = token || '';
+                        setSecurityStatus(checkoutQuote ? 'Protegido' : 'Cloudflare listo', 'ready', 'fa-cloud');
+                    },
+                    'expired-callback': () => {
+                        turnstileToken = '';
+                        setSecurityStatus('Verifica otra vez', 'warning', 'fa-triangle-exclamation');
+                    },
+                    'error-callback': () => {
+                        turnstileToken = '';
+                        setSecurityStatus('Cloudflare error', 'danger', 'fa-triangle-exclamation');
+                    },
+                });
+            } catch (error) {
+                console.warn('BoletaMax Checkout: Cloudflare no disponible', error);
+                pricingSecurityCopy.textContent = 'No se pudo cargar Cloudflare en este momento; el precio sigue protegido por el servidor.';
+            }
+        }
+
+        async function loadServerQuote() {
+            setSecurityStatus('Verificando', 'warning', 'fa-shield-halved');
+            setPaymentEnabled(false);
+
+            const response = await fetch('/api/checkout/quote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event: eventData, seats }),
+            });
+            const payload = await response.json();
+
+            if (!response.ok || !payload.ok || !payload.quote) {
+                throw new Error(payload.message || 'No fue posible validar precios con el servidor.');
+            }
+
+            checkoutQuote = payload.quote;
+            seats = Array.isArray(checkoutQuote.seats) ? checkoutQuote.seats : seats;
+            subtotal = Number(checkoutQuote.subtotal || 0);
+            fee = Number(checkoutQuote.fee || 0);
+            total = Number(checkoutQuote.paymentTotals?.tarjeta || checkoutQuote.total || 0);
+            speiTotal = Number(checkoutQuote.paymentTotals?.spei || Math.round(total * 0.955));
+            hasValidCart = seats.length > 0 && total > 0 && Boolean(checkoutQuote.event?.name);
+            renderSeatList();
+            syncPricingDisplay();
+            setSecurityStatus('Precio verificado', 'ready', 'fa-circle-check');
+            if (pricingSecurityCopy) {
+                pricingSecurityCopy.textContent = `Cotizacion ${checkoutQuote.quoteId} firmada por el servidor. Aunque el navegador cambie precios, el backend cobra el importe autorizado.`;
+            }
+        }
+
+        function renderSeatList() {
+            seatsList.replaceChildren();
+
+            if (!seats.length) {
+                const empty = document.createElement('div');
+                empty.style.color = 'rgba(255,255,255,0.35)';
+                empty.style.fontSize = '.8rem';
+                empty.textContent = 'No hay asientos seleccionados.';
+                seatsList.appendChild(empty);
+                return;
+            }
+
+            seats.forEach(seat => {
+                const row = document.createElement('div');
+                row.className = 'os-seat-row';
+
+                const zone = document.createElement('span');
+                zone.className = 'seat-zone';
+                const dot = document.createElement('span');
+                dot.className = 'seat-dot';
+                dot.style.background = zoneColor(seat.zone);
+                const label = document.createElement('span');
+                label.textContent = seat.tableSize > 1
+                    ? `${seat.zone} · Fila ${seat.fila} · Mesa ${seat.mesa} · Lugar ${seat.seatInMesa}`
+                    : `${seat.zone} · Fila ${seat.fila} · Asiento ${seat.asiento}`;
+                zone.append(dot, label);
+
+                const price = document.createElement('span');
+                price.className = 'os-seat-price';
+                price.textContent = `$${seat.price.toLocaleString('es-MX')} MXN`;
+
+                row.append(zone, price);
+                seatsList.appendChild(row);
+            });
+        }
+
+        function renderSuccessScreen() {
+            const wrapper = document.createElement('div');
+            wrapper.style.minHeight = '100vh';
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.justifyContent = 'center';
+            wrapper.style.background = '#0d1829';
+            wrapper.style.fontFamily = "'Inter',sans-serif";
+            wrapper.style.padding = '24px';
+
+            const card = document.createElement('div');
+            card.style.textAlign = 'center';
+            card.style.padding = '48px 32px';
+            card.style.background = '#111827';
+            card.style.borderRadius = '24px';
+            card.style.maxWidth = '480px';
+            card.style.width = '100%';
+            card.style.border = '1px solid rgba(255,255,255,0.08)';
+
+            const icon = document.createElement('div');
+            icon.style.fontSize = '4rem';
+            icon.style.marginBottom = '16px';
+            icon.textContent = '🎉';
+
+            const title = document.createElement('h1');
+            title.style.fontFamily = "'Space Grotesk',sans-serif";
+            title.style.fontSize = '1.6rem';
+            title.style.color = '#fff';
+            title.style.fontWeight = '800';
+            title.style.marginBottom = '10px';
+            title.textContent = '¡Compra Exitosa!';
+
+            const description = document.createElement('p');
+            description.style.color = 'rgba(255,255,255,0.5)';
+            description.style.marginBottom = '24px';
+            description.style.lineHeight = '1.65';
+            description.style.fontSize = '.9rem';
+            description.textContent = 'Tu pedido ha sido procesado correctamente. Recibirás tus boletos digitales con código QR en tu correo electrónico en los próximos minutos.';
+
+            const summary = document.createElement('div');
+            summary.style.background = 'rgba(34,197,94,0.08)';
+            summary.style.border = '1px solid rgba(34,197,94,0.2)';
+            summary.style.borderRadius = '12px';
+            summary.style.padding = '16px 20px';
+            summary.style.marginBottom = '28px';
+            summary.style.textAlign = 'left';
+
+            const summaryLabel = document.createElement('div');
+            summaryLabel.style.fontSize = '.75rem';
+            summaryLabel.style.color = 'rgba(255,255,255,0.35)';
+            summaryLabel.style.textTransform = 'uppercase';
+            summaryLabel.style.letterSpacing = '.5px';
+            summaryLabel.style.marginBottom = '8px';
+            summaryLabel.textContent = 'Resumen';
+
+            const summaryName = document.createElement('div');
+            summaryName.style.fontSize = '.9rem';
+            summaryName.style.color = 'rgba(255,255,255,0.75)';
+            const summaryStrong = document.createElement('strong');
+            summaryStrong.style.color = '#fff';
+            summaryStrong.textContent = eventData.name || 'Evento';
+            summaryName.appendChild(summaryStrong);
+
+            const summaryMeta = document.createElement('div');
+            summaryMeta.style.fontSize = '.8rem';
+            summaryMeta.style.color = 'rgba(255,255,255,0.45)';
+            summaryMeta.style.marginTop = '4px';
+            summaryMeta.textContent = `Fecha: ${eventData.date || 'Por confirmar'} · Venue: ${eventData.venue || 'Por confirmar'}`;
+
+            summary.append(summaryLabel, summaryName, summaryMeta);
+
+            const homeLink = document.createElement('a');
+            homeLink.href = 'index.html';
+            homeLink.style.display = 'inline-flex';
+            homeLink.style.alignItems = 'center';
+            homeLink.style.gap = '8px';
+            homeLink.style.background = '#f59e0b';
+            homeLink.style.color = '#0B1F3A';
+            homeLink.style.fontWeight = '800';
+            homeLink.style.padding = '14px 32px';
+            homeLink.style.borderRadius = '12px';
+            homeLink.style.textDecoration = 'none';
+            homeLink.style.fontSize = '1rem';
+            homeLink.textContent = 'Volver al Inicio';
+
+            card.append(icon, title, description, summary, homeLink);
+            wrapper.appendChild(card);
+            document.body.replaceChildren(wrapper);
+        }
+
+        function setConfirmActionState(isLoading) {
+            if (!confirmActionBtn) return;
+            confirmActionBtn.disabled = isLoading;
+            confirmActionBtn.innerHTML = isLoading
+                ? '<i class="fas fa-spinner fa-spin"></i> Generando boleto...'
+                : '<i class="fas fa-check"></i> Entendido – Proceder';
+        }
+
+        async function createTicketsFromCheckout() {
+            const info = PM_INFO[selectedMethod];
+            const response = await fetch('/api/tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event: eventData,
+                    seats,
+                    totalPaid: info.totalFn(),
+                    paymentMethod: selectedMethod,
+                    quote: checkoutQuote,
+                    turnstileToken,
+                }),
+            });
+
+            const payload = await response.json();
+            if (!response.ok || !payload.ok || !Array.isArray(payload.tickets) || !payload.tickets.length) {
+                throw new Error(payload.message || 'No se pudieron generar los boletos.');
+            }
+
+            return payload;
+        }
+
+        document.getElementById('co-event-name').textContent = eventData.name || 'Evento';
+        document.getElementById('co-event-date').textContent = eventData.date || '—';
+        document.getElementById('co-event-venue').textContent = eventData.venue || '—';
+        renderSeatList();
+
+        document.getElementById('co-subtotal').textContent = `$${subtotal.toLocaleString('es-MX')} MXN`;
+        document.getElementById('co-fee').textContent = `$${fee.toLocaleString('es-MX')} MXN`;
+        document.getElementById('co-total').textContent = `$${total.toLocaleString('es-MX')} MXN`;
+        document.getElementById('amt-tarjeta').textContent = total.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        document.getElementById('amt-spei').textContent = speiTotal.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        document.getElementById('amt-oxxo').textContent = (total + 17).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        if (speiCard) speiCard.dataset.savings = Math.max(total - speiTotal, 0).toLocaleString('es-MX', { maximumFractionDigits: 0 });
+        syncPricingDisplay();
+
+        const PM_INFO = {
+            tarjeta: {
+                name: 'Tarjeta de Crédito / Débito',
+                instructions: 'Serás redirigido al portal de pago seguro. Ten a la mano tu tarjeta digital. La confirmación llegará a tu correo en los próximos minutos.',
+                totalFn: () => total,
+            },
+            spei: {
+                name: 'Transferencia SPEI',
+                instructions: 'Recibirás los datos bancarios por correo. Tienes 1 hora para realizar tu transferencia desde cualquier banco. CLABE y referencia en tu cuenta de BoletaMax.',
+                totalFn: () => speiTotal,
+            },
+            oxxo: {
+                name: 'OXXO Pay',
+                instructions: 'Recibirás una ficha de pago por correo y en la app. Preséntala en cualquier OXXO para pagar en efectivo. Vigencia 5 horas. Se agrega comisión de $17 del establecimiento.',
+                totalFn: () => total + 17,
+            },
+        };
+
+        let selectedMethod = null;
+        let timerSecs = 9 * 60 + 55;
+        let timerInterval = null;
+
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            return `${m}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            timerEl.textContent = formatTime(timerSecs);
+            timerInterval = setInterval(() => {
+                timerSecs--;
+                timerEl.textContent = formatTime(timerSecs);
+                if (timerSecs <= 60) timerEl.style.color = '#ef4444';
+                if (timerSecs <= 0) {
+                    clearInterval(timerInterval);
+                    timerEl.textContent = '0:00';
+                    sessionStorage.removeItem('bm_cart');
+                    sessionStorage.removeItem('bm_event');
+                    confirmOverlay.classList.remove('show');
+                    showCheckoutAlert('El tiempo de reserva expiró. Tus asientos fueron liberados y te llevaremos al inicio.');
+                    setPaymentEnabled(false);
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1800);
+                }
+            }, 1000);
+        }
+
+        async function initializeCheckout() {
+            if (!hasValidCart) {
+                timerEl.textContent = '--:--';
+                showCheckoutAlert('Tu carrito ya no esta disponible o se abrio el checkout sin asientos. Vuelve al inicio para seleccionar lugares.');
+                setSecurityStatus('Sin reserva', 'danger', 'fa-circle-xmark');
+                setPaymentEnabled(false);
+                return;
+            }
+
+            try {
+                await loadServerQuote();
+                await loadCloudflareSecurity();
+                setPaymentEnabled(true);
+                startTimer();
+            } catch (error) {
+                console.error('BoletaMax Checkout: cotizacion segura fallida', error);
+                showCheckoutAlert(error.message || 'No fue posible validar tu compra con el servidor.');
+                setSecurityStatus('No validado', 'danger', 'fa-triangle-exclamation');
+                if (pricingSecurityCopy) {
+                    pricingSecurityCopy.textContent = 'No habilitamos el pago porque el servidor no pudo confirmar precios y disponibilidad.';
+                }
+                setPaymentEnabled(false);
+            }
+        }
+
+        function syncPaymentSelection(activeCard) {
+            paymentCards.forEach(card => {
+                const isActive = card === activeCard;
+                card.classList.toggle('selected', isActive);
+                card.setAttribute('aria-pressed', String(isActive));
+            });
+        }
+
+        function selectPayment(method, card) {
+            if (!hasValidCart) {
+                showCheckoutAlert('No encontramos una reservación activa. Regresa a la selección de asientos para continuar.');
+                return;
+            }
+
+            if (!checkoutQuote) {
+                showCheckoutAlert('Aun estamos verificando precios con el servidor. Intenta de nuevo en un momento.');
+                return;
+            }
+
+            if (turnstileRequired && !turnstileToken) {
+                showCheckoutAlert('Completa la verificacion Cloudflare antes de seleccionar el metodo de pago.');
+                return;
+            }
+
+            const info = PM_INFO[method];
+            if (!info) return;
+
+            selectedMethod = method;
+            syncPaymentSelection(card || null);
+            const payableTotal = info.totalFn();
+
+            document.getElementById('confirm-method-name').textContent = info.name;
+            document.getElementById('confirm-instructions').textContent = info.instructions;
+            document.getElementById('confirm-total-display').textContent = `$${payableTotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
+            confirmOverlay.classList.add('show');
+        }
+
+        async function finishCheckout() {
+            if (!hasValidCart || !selectedMethod) {
+                showCheckoutAlert('Selecciona primero una reservación y un método de pago válido.');
+                confirmOverlay.classList.remove('show');
+                return;
+            }
+
+            if (!checkoutQuote) {
+                showCheckoutAlert('La cotizacion segura aun no esta lista. Espera unos segundos y vuelve a intentar.');
+                confirmOverlay.classList.remove('show');
+                return;
+            }
+
+            if (turnstileRequired && !turnstileToken) {
+                showCheckoutAlert('Completa la verificacion Cloudflare para continuar con el pago.');
+                confirmOverlay.classList.remove('show');
+                return;
+            }
+
+            try {
+                setConfirmActionState(true);
+                const payload = await createTicketsFromCheckout();
+                const ticketIds = payload.tickets.map(ticket => ticket.ticketId);
+
+                if (timerInterval) clearInterval(timerInterval);
+
+                // Guardamos los tickets con sus tokens criptográficos en sesión
+                const ticketsData = payload.tickets.map(t => ({ ticketId: t.ticketId, token: t.token }));
+                sessionStorage.setItem('bm_last_tickets', JSON.stringify(ticketsData));
+                sessionStorage.setItem('bm_last_ticket_ids', JSON.stringify(ticketIds));
+
+                sessionStorage.removeItem('bm_cart');
+                sessionStorage.removeItem('bm_event');
+                confirmOverlay.classList.remove('show');
+                window.location.href = `ticket.html?ticketIds=${encodeURIComponent(ticketIds.join(','))}`;
+            } catch (error) {
+                showCheckoutAlert(error.message || 'No fue posible generar los boletos. Intenta nuevamente.');
+            } finally {
+                setConfirmActionState(false);
+            }
+        }
+
+        paymentCards.forEach(card => {
+            card.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectPayment(card.dataset.paymentMethod, card);
+                }
+            });
+        });
+
+        if (!hasValidCart) {
+            timerEl.textContent = '--:--';
+            showCheckoutAlert('Tu carrito ya no está disponible o se abrió el checkout sin asientos. Vuelve al inicio para seleccionar lugares.');
+            setPaymentEnabled(false);
+        } else {
+            initializeCheckout();
+        }
+
+        window.selectPayment = selectPayment;
+        window.finishCheckout = finishCheckout;
+    </script>
+</body>
+
+</html>

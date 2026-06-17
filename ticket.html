@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BoletaMax · Tus Boletos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #071018;
+            --panel: #0d1724;
+            --panel-2: #101d2d;
+            --text: #e8eef8;
+            --muted: #96a5bb;
+            --line: rgba(255, 255, 255, 0.08);
+            --gold: #d4af37;
+            --gold-soft: rgba(212, 175, 55, 0.14);
+            --blue-soft: rgba(84, 110, 148, 0.18);
+            --success: #25c46b;
+            --danger: #ef5d63;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Manrope', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(84, 110, 148, 0.12), transparent 26%),
+                linear-gradient(180deg, #09111a 0%, #050b12 100%);
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .page {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 42px 24px 56px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            letter-spacing: 0.02em;
+        }
+
+        .brand strong { color: var(--gold); }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-weight: 700;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+            transition: transform .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(212, 175, 55, 0.26);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #c79e2d 0%, #ecd27a 100%);
+            color: #08111f;
+            border-color: rgba(236, 210, 122, 0.4);
+            box-shadow: 0 14px 30px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(135deg, #d4af37 0%, #f0dc9e 100%);
+        }
+
+        .hero {
+            background: linear-gradient(180deg, rgba(16, 29, 45, 0.96), rgba(11, 19, 30, 0.92));
+            border: 1px solid rgba(84, 110, 148, 0.18);
+            border-radius: 30px;
+            padding: 28px;
+            box-shadow: 0 28px 60px rgba(0, 0, 0, 0.28);
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: var(--gold);
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            font-size: .72rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .hero h1 {
+            margin: 0 0 12px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.3rem, 5vw, 3.8rem);
+            line-height: .96;
+            font-weight: 700;
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 760px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 16px 18px;
+        }
+
+        .summary-card span {
+            display: block;
+            color: var(--muted);
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin-bottom: 6px;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .state,
+        .empty {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 24px;
+            color: var(--muted);
+        }
+
+        .tickets-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 26px;
+        }
+
+        .ticket-card {
+            background: linear-gradient(180deg, rgba(15, 26, 40, 0.96), rgba(11, 19, 30, 0.94));
+            border: 1px solid rgba(84, 110, 148, 0.18);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 30px 64px rgba(0, 0, 0, 0.34);
+            position: relative;
+            transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+        }
+
+        .ticket-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 36px 76px rgba(0, 0, 0, 0.4);
+            border-color: rgba(212, 175, 55, 0.18);
+        }
+
+        .ticket-card::after {
+            content: '';
+            position: absolute;
+            top: 78px;
+            bottom: 24px;
+            right: min(360px, 35%);
+            border-left: 1px dashed rgba(212, 175, 55, 0.24);
+            pointer-events: none;
+        }
+
+        .ticket-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .ticket-head strong {
+            font-size: .94rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .status-pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+            backdrop-filter: blur(8px);
+        }
+
+        .status-pill.active {
+            color: #f3d983;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02));
+            border-color: rgba(212, 175, 55, 0.24);
+        }
+
+        .status-pill.used {
+            color: #7de0a6;
+            background: rgba(37, 196, 107, 0.12);
+            border-color: rgba(37, 196, 107, 0.2);
+        }
+
+        .status-pill.cancelled {
+            color: #ff9ea3;
+            background: rgba(239, 93, 99, 0.12);
+            border-color: rgba(239, 93, 99, 0.2);
+        }
+
+        .ticket-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+            gap: 28px;
+            padding: 26px;
+            align-items: stretch;
+        }
+
+        .ticket-info h2 {
+            margin: 0 0 12px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 4vw, 3.25rem);
+            line-height: .92;
+            max-width: 620px;
+        }
+
+        .meta-list {
+            display: grid;
+            gap: 12px;
+            margin: 0 0 18px;
+        }
+
+        .meta-row {
+            display: grid;
+            gap: 4px;
+        }
+
+        .meta-row span {
+            color: var(--muted);
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+        }
+
+        .meta-row strong {
+            color: var(--text);
+            font-size: .95rem;
+            line-height: 1.55;
+        }
+
+        .ticket-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .ticket-meta-card {
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 14px;
+        }
+
+        .ticket-meta-card span {
+            display: block;
+            color: var(--muted);
+            font-size: .68rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin-bottom: 6px;
+        }
+
+        .ticket-meta-card strong {
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .ticket-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: .92rem;
+            letter-spacing: .04em;
+        }
+
+        .ticket-meta-card.price-card strong {
+            color: #f2d57a;
+            font-size: 1.34rem;
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: .01em;
+        }
+
+        .qr-panel {
+            border-radius: 22px;
+            border: 1px solid rgba(212, 175, 55, 0.16);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            min-height: 100%;
+            transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease, background .24s ease;
+        }
+
+        .qr-panel:hover {
+            transform: translateY(-3px);
+            border-color: rgba(212, 175, 55, 0.24);
+            box-shadow: 0 20px 46px rgba(0, 0, 0, 0.22);
+        }
+
+        .qr-panel.is-warning {
+            border-color: rgba(212, 175, 55, 0.34);
+            box-shadow: 0 18px 40px rgba(212, 175, 55, 0.08);
+        }
+
+        .qr-panel.is-blocked {
+            border-color: rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+        }
+
+        .qr-status-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .qr-box {
+            position: relative;
+            width: min(100%, 250px);
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 16px;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+            overflow: hidden;
+            transition: transform .24s ease, box-shadow .24s ease, filter .24s ease;
+        }
+
+        .qr-panel:hover .qr-box {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 42px rgba(0, 0, 0, 0.22);
+        }
+
+        .qr-box.is-blocked {
+            background: linear-gradient(180deg, #eef1f7, #d7dde8);
+        }
+
+        .qr-box.is-blocked img {
+            opacity: 0.14;
+            filter: grayscale(1) blur(1px);
+        }
+
+        .qr-box img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 14px;
+        }
+
+        .qr-loading {
+            position: absolute;
+            inset: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(244, 247, 252, 0.98), rgba(233, 238, 247, 0.96));
+            color: #0b1220;
+            text-align: center;
+            padding: 22px 18px;
+        }
+
+        .qr-loading[hidden] {
+            display: none;
+        }
+
+        .qr-skeleton {
+            width: min(100%, 190px);
+            aspect-ratio: 1 / 1;
+            border-radius: 16px;
+            background:
+                linear-gradient(90deg, rgba(11, 18, 32, 0.08) 25%, rgba(11, 18, 32, 0.16) 50%, rgba(11, 18, 32, 0.08) 75%);
+            background-size: 220% 100%;
+            animation: qrPulse 1.35s ease-in-out infinite;
+            box-shadow: inset 0 0 0 1px rgba(11, 18, 32, 0.06);
+        }
+
+        .qr-loading-text {
+            font-size: .84rem;
+            font-weight: 700;
+            letter-spacing: .01em;
+            color: rgba(11, 18, 32, 0.8);
+        }
+
+        .qr-blocked {
+            position: absolute;
+            inset: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(11, 18, 32, 0.82), rgba(11, 18, 32, 0.9));
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .qr-blocked[hidden] {
+            display: none;
+        }
+
+        .qr-blocked-label {
+            font-size: .72rem;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.74);
+        }
+
+        .qr-blocked-status {
+            font-size: 1.02rem;
+            font-weight: 800;
+            letter-spacing: .01em;
+        }
+
+        .qr-timer-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .qr-timer-fill {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, rgba(212, 175, 55, 0.9), rgba(248, 223, 142, 0.98));
+            box-shadow: 0 0 14px rgba(212, 175, 55, 0.22);
+            transform-origin: left center;
+            transition: transform .7s linear, background .2s ease, box-shadow .2s ease;
+        }
+
+        .qr-note {
+            text-align: center;
+            color: var(--muted);
+            font-size: .8rem;
+            line-height: 1.6;
+        }
+
+        .qr-note strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text);
+            font-size: .9rem;
+            font-weight: 800;
+        }
+
+        .qr-dynamic-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.18);
+            color: #f0d47d;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .qr-dynamic-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d4af37;
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.52);
+        }
+
+        .qr-refresh {
+            min-width: 142px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(212, 175, 55, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            font-size: .82rem;
+            color: var(--text);
+            font-weight: 700;
+            transition: border-color .2s ease, background .2s ease, color .2s ease, box-shadow .2s ease;
+        }
+
+        .qr-refresh-label {
+            font-size: .68rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .qr-refresh strong {
+            color: var(--gold);
+            font-size: 1rem;
+            letter-spacing: .02em;
+        }
+
+        .qr-refresh.is-warning {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.3);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.08);
+        }
+
+        .qr-refresh.is-warning .qr-refresh-label {
+            color: rgba(248, 223, 142, 0.9);
+        }
+
+        .qr-refresh.is-warning strong {
+            color: #ffe59c;
+        }
+
+        .qr-error {
+            color: #ffb0b4;
+            font-size: .82rem;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        @keyframes qrPulse {
+            0% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: -100% 50%;
+            }
+        }
+
+        .ticket-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .ticket-actions .btn {
+            flex: 1 1 190px;
+        }
+
+        @media (max-width: 1040px) {
+            .ticket-card::after {
+                display: none;
+            }
+
+            .ticket-body {
+                grid-template-columns: 1fr;
+            }
+
+            .ticket-meta-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .qr-panel {
+                min-height: auto;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 560px) {
+            .page {
+                padding: 28px 16px 42px;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .ticket-meta-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .qr-status-row {
+                align-items: stretch;
+            }
+
+            .qr-refresh {
+                width: 100%;
+            }
+        }
+
+        /* Enterprise ticket polish: visual-only layer, QR logic untouched. */
+        body {
+            background:
+                radial-gradient(circle at 12% 0%, rgba(212, 175, 55, 0.12), transparent 24%),
+                radial-gradient(circle at 86% 8%, rgba(51, 103, 175, 0.16), transparent 28%),
+                linear-gradient(180deg, #050B12 0%, #071018 52%, #05080d 100%);
+        }
+
+        .topbar {
+            position: sticky;
+            top: 16px;
+            z-index: 20;
+            padding: 12px;
+            border-radius: 999px;
+            background: rgba(7, 16, 24, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+        }
+
+        .brand {
+            color: #fff7eb;
+            letter-spacing: .01em;
+        }
+
+        .brand strong,
+        .eyebrow,
+        .ticket-code,
+        .price-card strong {
+            color: #ECD27A;
+        }
+
+        .btn,
+        .copy-qr-btn {
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(16, 29, 45, 0.78);
+            color: #E8EEF8;
+            transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
+        }
+
+        .btn:hover,
+        .copy-qr-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: rgba(212, 175, 55, 0.28);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+        }
+
+        .btn.primary {
+            color: #071018;
+            background: linear-gradient(135deg, #ECD27A, #D4AF37 52%, #B98523);
+            border-color: rgba(236, 210, 122, 0.48);
+        }
+
+        .hero {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background:
+                radial-gradient(circle at top left, rgba(212, 175, 55, 0.11), transparent 28%),
+                linear-gradient(180deg, rgba(16, 29, 45, 0.92), rgba(8, 15, 25, 0.92));
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32);
+        }
+
+        .hero h1,
+        .ticket-info h2 {
+            color: #fff7eb;
+            text-shadow: 0 20px 50px rgba(0, 0, 0, 0.34);
+        }
+
+        .hero p,
+        .meta-row span,
+        .ticket-meta-card span,
+        .qr-note,
+        .state {
+            color: #96A5BB;
+        }
+
+        .ticket-card {
+            background:
+                radial-gradient(circle at top left, rgba(212, 175, 55, 0.1), transparent 28%),
+                linear-gradient(180deg, rgba(16, 29, 45, 0.98), rgba(7, 16, 24, 0.98));
+            border-color: rgba(255, 255, 255, 0.09);
+            box-shadow: 0 30px 78px rgba(0, 0, 0, 0.38);
+        }
+
+        .ticket-head {
+            background: rgba(5, 11, 18, 0.42);
+            border-bottom: 1px dashed rgba(212, 175, 55, 0.22);
+        }
+
+        .ticket-meta-card,
+        .meta-row {
+            background: rgba(5, 11, 18, 0.36);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .status-pill.active {
+            color: #ECD27A;
+            background: rgba(212, 175, 55, 0.1);
+            border-color: rgba(212, 175, 55, 0.28);
+        }
+
+        .status-pill.used {
+            color: #FDBA74;
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.28);
+        }
+
+        .qr-panel {
+            background:
+                linear-gradient(180deg, rgba(16, 29, 45, 0.95), rgba(7, 16, 24, 0.95));
+            border-color: rgba(212, 175, 55, 0.18);
+        }
+
+        .qr-box {
+            margin-inline: auto;
+            box-shadow: 0 24px 54px rgba(0, 0, 0, 0.28);
+        }
+
+        .qr-dynamic-badge,
+        .qr-refresh {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.22);
+        }
+
+        /* Editorial ticket pass: one premium ticket card, fewer mini-cards inside it. */
+        .topbar {
+            box-shadow: none;
+        }
+
+        .hero {
+            border-color: rgba(255, 255, 255, 0.065);
+            box-shadow: 0 22px 56px rgba(0, 0, 0, 0.24);
+        }
+
+        .ticket-card {
+            box-shadow: 0 26px 68px rgba(0, 0, 0, 0.34);
+        }
+
+        .ticket-head {
+            background: transparent;
+        }
+
+        .ticket-meta-grid {
+            gap: 0 24px;
+        }
+
+        .ticket-meta-card,
+        .meta-row {
+            padding: 12px 0;
+            border: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .ticket-meta-card:last-child,
+        .meta-row:last-child {
+            border-bottom-color: transparent;
+        }
+
+        .price-card {
+            padding-block: 16px;
+        }
+
+        .qr-panel {
+            background: transparent;
+            border-color: rgba(212, 175, 55, 0.14);
+            box-shadow: none;
+        }
+
+        .qr-box {
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+        }
+
+        .ticket-actions .btn,
+        .copy-qr-btn {
+            box-shadow: none;
+        }
+
+        .ticket-actions .btn:hover,
+        .copy-qr-btn:hover:not(:disabled) {
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+        }
+
+        @media (max-width: 620px) {
+            .topbar {
+                align-items: stretch;
+                border-radius: 24px;
+                flex-direction: column;
+            }
+
+            .actions {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="topbar">
+            <div class="brand">Boleta<strong>Max</strong></div>
+            <div class="actions">
+                <a class="btn" href="index.html">Volver al inicio</a>
+                <a class="btn primary" href="validate.html">Validar boletos</a>
+            </div>
+        </div>
+
+        <section class="hero" id="hero-block">
+            <div class="eyebrow">Boletos Digitales</div>
+            <h1>Tus tickets con QR ya están listos.</h1>
+            <p>Guarda esta página para tu demo o validación. Cada boleto incluye su identificador único, QR y estado actual.</p>
+            <div class="summary" id="summary-grid"></div>
+        </section>
+
+        <section class="tickets-grid" id="tickets-grid"></section>
+        <div class="state" id="page-state">Cargando boletos...</div>
+    </main>
+
+    <script>
+        const stateEl = document.getElementById('page-state');
+        const ticketsGrid = document.getElementById('tickets-grid');
+        const summaryGrid = document.getElementById('summary-grid');
+
+        function esc(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getTicketIds() {
+            const params = new URLSearchParams(window.location.search);
+            const fromQuery = (params.get('ticketIds') || '')
+                .split(',')
+                .map(id => id.trim())
+                .filter(Boolean);
+
+            if (fromQuery.length) return fromQuery;
+
+            try {
+                const fromSession = JSON.parse(sessionStorage.getItem('bm_last_ticket_ids') || '[]');
+                return Array.isArray(fromSession) ? fromSession.filter(Boolean) : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function getTicketTokens() {
+            try {
+                const fromSession = JSON.parse(sessionStorage.getItem('bm_last_tickets') || '[]');
+                const map = {};
+                if (Array.isArray(fromSession)) {
+                    fromSession.forEach(item => {
+                        if (item && item.ticketId && item.token) {
+                            map[item.ticketId] = item.token;
+                        }
+                    });
+                }
+                return map;
+            } catch (_) {
+                return {};
+            }
+        }
+
+        function statusLabel(status) {
+            return ({
+                active: 'Activo',
+                used: 'Usado',
+                cancelled: 'Cancelado',
+            })[status] || status;
+        }
+
+        function statusClass(status) {
+            return ['active', 'used', 'cancelled'].includes(status) ? status : 'cancelled';
+        }
+
+        function formatMoney(value) {
+            return `$${Number(value || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
+        }
+
+        function renderSummary(tickets) {
+            const first = tickets[0];
+            const uniqueSeats = tickets.length;
+            const summaryItems = [
+                { label: 'Evento', value: first.eventName },
+                { label: 'Fecha', value: first.date },
+                { label: 'Venue', value: first.venue },
+                { label: 'Boletos', value: `${uniqueSeats} ticket${uniqueSeats !== 1 ? 's' : ''}` },
+            ];
+
+            summaryGrid.replaceChildren();
+            summaryItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                card.innerHTML = `<span>${esc(item.label)}</span><strong>${esc(item.value)}</strong>`;
+                summaryGrid.appendChild(card);
+            });
+        }
+
+        function renderTicket(ticket) {
+            const card = document.createElement('article');
+            card.className = 'ticket-card';
+
+            const usedMeta = ticket.usedAt
+                ? `<div class="meta-row"><span>Usado el</span><strong>${esc(new Date(ticket.usedAt).toLocaleString('es-MX'))}</strong></div>`
+                : '';
+            const ticketId = String(ticket.ticketId || '');
+            const eventId = String(ticket.eventId || '');
+
+            card.innerHTML = `
+                <div class="ticket-head">
+                    <strong>Ticket ${esc(ticketId)}</strong>
+                    <span class="status-pill ${statusClass(ticket.status)}">${esc(statusLabel(ticket.status))}</span>
+                </div>
+                <div class="ticket-body">
+                    <div class="ticket-info">
+                        <h2>${esc(ticket.eventName)}</h2>
+                        <div class="meta-list">
+                            <div class="meta-row"><span>Fecha</span><strong>${esc(ticket.date)}</strong></div>
+                            <div class="meta-row"><span>Venue</span><strong>${esc(ticket.venue)}</strong></div>
+                            <div class="meta-row"><span>Zona / Asiento</span><strong>${esc(ticket.seatLabel)}</strong></div>
+                            ${usedMeta}
+                        </div>
+                        <div class="ticket-meta-grid">
+                            <div class="ticket-meta-card">
+                                <span>Ticket ID</span>
+                                <strong class="ticket-code">${esc(ticketId)}</strong>
+                            </div>
+                            <div class="ticket-meta-card">
+                                <span>Event ID</span>
+                                <strong>${esc(eventId)}</strong>
+                            </div>
+                            <div class="ticket-meta-card price-card">
+                                <span>Total Pagado</span>
+                                <strong>${esc(formatMoney(ticket.totalPaid))}</strong>
+                            </div>
+                            <div class="ticket-meta-card">
+                                <span>Estado</span>
+                                <strong>${esc(statusLabel(ticket.status))}</strong>
+                            </div>
+                        </div>
+                        <div class="ticket-actions">
+                            <a class="btn" href="validate.html?ticketId=${encodeURIComponent(ticketId)}&eventId=${encodeURIComponent(eventId)}">Abrir validador</a>
+                            <button class="btn copy-qr-btn" type="button" data-ticket-id="${esc(ticketId)}" data-event-id="${esc(eventId)}" disabled>Copiar contenido QR</button>
+                        </div>
+                    </div>
+                    <div class="qr-panel" data-ticket-id="${esc(ticketId)}" data-event-id="${esc(eventId)}">
+                        <div class="qr-status-row">
+                            <div class="qr-dynamic-badge">QR dinámico activo</div>
+                            <div class="qr-refresh">
+                                <span class="qr-refresh-label">Renovación</span>
+                                <strong class="qr-countdown">30s</strong>
+                            </div>
+                        </div>
+                        <div class="qr-box">
+                            <img class="qr-image" alt="QR del boleto ${esc(ticketId)}" />
+                            <div class="qr-loading" hidden>
+                                <div class="qr-skeleton" aria-hidden="true"></div>
+                                <div class="qr-loading-text">Generando código seguro...</div>
+                            </div>
+                            <div class="qr-blocked" hidden>
+                                <span class="qr-blocked-label">Estado del QR</span>
+                                <strong class="qr-blocked-status">No disponible</strong>
+                            </div>
+                        </div>
+                        <div class="qr-timer-track" aria-hidden="true">
+                            <span class="qr-timer-fill"></span>
+                        </div>
+                        <div class="qr-note">
+                            <strong>Presenta este codigo en el acceso</strong>
+                            Si el staff tarda en escanear, espera la renovacion y vuelve a mostrar el QR actualizado.
+                        </div>
+                        <div class="qr-error" hidden></div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        async function loadTickets() {
+            const ticketIds = getTicketIds();
+            if (!ticketIds.length) {
+                stateEl.textContent = 'No encontramos boletos recientes. Completa una compra o abre esta página con ?ticketIds=...';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tickets?ids=${encodeURIComponent(ticketIds.join(','))}`);
+                const payload = await response.json();
+
+                if (!response.ok || !payload.ok || !Array.isArray(payload.tickets) || !payload.tickets.length) {
+                    throw new Error(payload.message || 'No se pudieron cargar los boletos.');
+                }
+
+                const orderedTickets = ticketIds
+                    .map(id => payload.tickets.find(ticket => ticket.ticketId === id))
+                    .filter(Boolean);
+
+                renderSummary(orderedTickets);
+                ticketsGrid.replaceChildren(...orderedTickets.map(renderTicket));
+                stateEl.remove();
+                startDynamicQrLoop();
+            } catch (error) {
+                stateEl.textContent = error.message || 'No se pudieron cargar los boletos.';
+            }
+        }
+
+        function setQrLoadingState(panel, message = 'Generando código seguro...') {
+            const image = panel.querySelector('.qr-image');
+            const loading = panel.querySelector('.qr-loading');
+            const loadingText = panel.querySelector('.qr-loading-text');
+            const countdown = panel.querySelector('.qr-countdown');
+            const badge = panel.querySelector('.qr-dynamic-badge');
+            const refresh = panel.querySelector('.qr-refresh');
+            const note = panel.querySelector('.qr-note');
+            const error = panel.querySelector('.qr-error');
+            const box = panel.querySelector('.qr-box');
+            const blocked = panel.querySelector('.qr-blocked');
+            const timerFill = panel.querySelector('.qr-timer-fill');
+            updateCopyButtonState(panel, {
+                disabled: true,
+                label: 'Preparando QR...',
+            });
+
+            panel.dataset.active = 'loading';
+            panel.dataset.expiresIn = '30';
+            panel.classList.remove('is-warning', 'is-blocked');
+            if (refresh) refresh.classList.remove('is-warning');
+            if (box) box.classList.remove('is-blocked');
+            if (image) image.removeAttribute('src');
+            if (loadingText) loadingText.textContent = message;
+            if (loading) loading.hidden = false;
+            if (blocked) blocked.hidden = true;
+            if (countdown) countdown.textContent = '--';
+            if (badge) badge.textContent = 'QR dinámico activo';
+            if (note) note.innerHTML = '<strong>Presenta este codigo en el acceso</strong><span>Si el staff tarda en escanear, espera la renovacion y vuelve a mostrar el QR actualizado.</span>';
+            if (error) {
+                error.hidden = true;
+                error.textContent = '';
+            }
+            if (timerFill) timerFill.style.transform = 'scaleX(1)';
+        }
+
+        function updateCopyButtonState(panel, { disabled, label }) {
+            const ticketId = panel.dataset.ticketId;
+            if (!ticketId) return;
+
+            const button = document.querySelector(`.copy-qr-btn[data-ticket-id="${ticketId}"]`);
+            if (!button) return;
+
+            button.disabled = disabled;
+            button.textContent = label;
+        }
+
+        async function writeTextToClipboard(text) {
+            if (navigator.clipboard?.writeText && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (error) {
+                    console.warn('BoletaMax QR: Clipboard API fallback', {
+                        message: error?.message || 'Clipboard API bloqueada',
+                    });
+                }
+            }
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '0';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+
+            try {
+                return document.execCommand('copy');
+            } finally {
+                textarea.remove();
+            }
+        }
+
+        function updateQrPanelState(panel, { state = 'active', active, message, qrImage, qrDataUrl, dynamicToken, window, expiresInSec, ticket }) {
+            const image = panel.querySelector('.qr-image');
+            const countdown = panel.querySelector('.qr-countdown');
+            const badge = panel.querySelector('.qr-dynamic-badge');
+            const refresh = panel.querySelector('.qr-refresh');
+            const note = panel.querySelector('.qr-note');
+            const error = panel.querySelector('.qr-error');
+            const box = panel.querySelector('.qr-box');
+            const loading = panel.querySelector('.qr-loading');
+            const blocked = panel.querySelector('.qr-blocked');
+            const blockedStatus = panel.querySelector('.qr-blocked-status');
+            const timerFill = panel.querySelector('.qr-timer-fill');
+            const imageSrc = qrImage || qrDataUrl || '';
+            const resolvedState = state === 'blocked'
+                ? 'blocked'
+                : state === 'error'
+                    ? 'error'
+                    : active === false
+                        ? 'blocked'
+                        : 'active';
+
+            panel.dataset.active = resolvedState === 'active' ? 'true' : 'false';
+            panel.classList.remove('is-warning', 'is-blocked');
+            if (refresh) refresh.classList.remove('is-warning');
+            if (loading) loading.hidden = true;
+
+            if (resolvedState === 'blocked') {
+                if (image) image.removeAttribute('src');
+                panel.dataset.expiresIn = '0';
+                panel.dataset.dynamicToken = '';
+                panel.dataset.window = '';
+                panel.dataset.qrPayload = '';
+                if (countdown) countdown.textContent = '0s';
+                if (badge) badge.textContent = ticket?.status === 'used' ? 'QR no disponible' : 'QR inactivo';
+                if (refresh) refresh.classList.add('is-warning');
+                panel.classList.add('is-blocked');
+                if (box) box.classList.add('is-blocked');
+                if (blockedStatus) blockedStatus.textContent = ticket?.status === 'used' ? 'Boleto ya utilizado' : ticket?.status === 'cancelled' ? 'Boleto cancelado' : 'QR no disponible';
+                if (blocked) blocked.hidden = false;
+                if (timerFill) timerFill.style.transform = 'scaleX(0)';
+                if (note) note.innerHTML = `<strong>Estado del boleto</strong><span>${esc(message || 'Este boleto ya no puede generar un QR válido.')}</span>`;
+                if (error) {
+                    error.hidden = false;
+                    error.textContent = message || 'No se pudo generar el QR dinámico.';
+                }
+                updateCopyButtonState(panel, {
+                    disabled: true,
+                    label: 'QR no disponible',
+                });
+                return;
+            }
+
+            if (resolvedState === 'error') {
+                if (image) image.removeAttribute('src');
+                panel.dataset.expiresIn = '0';
+                panel.dataset.dynamicToken = '';
+                panel.dataset.window = '';
+                panel.dataset.qrPayload = '';
+                if (countdown) countdown.textContent = '--';
+                if (badge) badge.textContent = 'Error QR';
+                if (box) box.classList.remove('is-blocked');
+                if (blocked) blocked.hidden = true;
+                if (note) note.innerHTML = `<strong>No se pudo cargar el código</strong><span>${esc(message || 'Intenta nuevamente en unos segundos.')}</span>`;
+                if (error) {
+                    error.hidden = false;
+                    error.textContent = message || 'No se pudo generar el QR dinámico.';
+                }
+                if (timerFill) timerFill.style.transform = 'scaleX(0)';
+                updateCopyButtonState(panel, {
+                    disabled: true,
+                    label: 'Error de QR',
+                });
+                return;
+            }
+
+            if (image && imageSrc) image.src = imageSrc;
+            if (countdown) countdown.textContent = `${expiresInSec || 30}s`;
+            if (badge) badge.textContent = 'QR dinámico activo';
+            if (box) box.classList.remove('is-blocked');
+            if (blocked) blocked.hidden = true;
+            if (note) note.innerHTML = '<strong>Presenta este codigo en el acceso</strong><span>Si el staff tarda en escanear, espera la renovacion y vuelve a mostrar el QR actualizado.</span>';
+            if (error) {
+                error.hidden = true;
+                error.textContent = '';
+            }
+            panel.dataset.dynamicToken = dynamicToken || '';
+            panel.dataset.window = window !== undefined && window !== null ? String(window) : '';
+            panel.dataset.qrPayload = JSON.stringify({
+                ticketId: panel.dataset.ticketId || '',
+                eventId: panel.dataset.eventId || '',
+                dynamicToken: dynamicToken || '',
+                window: Number(window),
+            }, null, 2);
+            updateCopyButtonState(panel, {
+                disabled: false,
+                label: 'Copiar contenido QR',
+            });
+            updateQrCountdownVisual(panel, Number(expiresInSec || 30));
+        }
+
+        function updateQrCountdownVisual(panel, seconds) {
+            const refresh = panel.querySelector('.qr-refresh');
+            const timerFill = panel.querySelector('.qr-timer-fill');
+            const next = Math.max(0, Number(seconds || 0));
+            const progress = Math.min(1, Math.max(0, next / 30));
+
+            if (timerFill) {
+                timerFill.style.transform = `scaleX(${progress})`;
+                timerFill.style.background = next < 5
+                    ? 'linear-gradient(90deg, rgba(255, 213, 122, 0.95), rgba(255, 239, 188, 1))'
+                    : 'linear-gradient(90deg, rgba(212, 175, 55, 0.9), rgba(248, 223, 142, 0.98))';
+            }
+
+            const isWarning = next > 0 && next < 5;
+            panel.classList.toggle('is-warning', isWarning);
+            if (refresh) refresh.classList.toggle('is-warning', isWarning);
+        }
+
+        async function refreshDynamicQr(panel) {
+            const ticketId = panel.dataset.ticketId;
+            if (!ticketId) return;
+            if (document.hidden || panel.dataset.inViewport === 'false') return;
+
+            const tokensMap = getTicketTokens();
+            const token = tokensMap[ticketId] || '';
+
+            console.log('BoletaMax QR: frontend request', { ticketId });
+            setQrLoadingState(panel);
+
+            try {
+                const response = await fetch(`/api/tickets/${encodeURIComponent(ticketId)}/dynamic-qr`, {
+                    headers: {
+                        'x-ticket-token': token,
+                    },
+                });
+                const payload = await response.json();
+
+                if (!response.ok || !payload.ok) {
+                    throw new Error(payload.message || 'No se pudo actualizar el QR.');
+                }
+
+                if (payload.active === true) {
+                    if (!(payload.qrImage || payload.qrDataUrl) || !payload.dynamicToken || payload.window === undefined || payload.window === null) {
+                        throw new Error('Respuesta incompleta del QR dinámico.');
+                    }
+
+                    console.log('BoletaMax QR: frontend success', {
+                        ticketId,
+                        window: payload.window,
+                        expiresInSec: payload.expiresInSec,
+                    });
+                    updateQrPanelState(panel, payload);
+                } else {
+                    console.log('BoletaMax QR: frontend unavailable', {
+                        ticketId,
+                        status: payload.ticket?.status,
+                        message: payload.message,
+                    });
+                    updateQrPanelState(panel, {
+                        state: 'blocked',
+                        ...payload,
+                    });
+                }
+                panel.dataset.expiresIn = String(payload.active ? (payload.expiresInSec || 30) : 0);
+            } catch (error) {
+                console.error('BoletaMax QR: frontend failed', {
+                    ticketId,
+                    message: error.message || 'No se pudo actualizar el QR.',
+                });
+                updateQrPanelState(panel, {
+                    state: 'error',
+                    message: error.message || 'No se pudo actualizar el QR.',
+                });
+            }
+        }
+
+        function startDynamicQrLoop() {
+            const panels = Array.from(document.querySelectorAll('.qr-panel[data-ticket-id]'));
+            if (!panels.length) return;
+
+            const viewportObserver = 'IntersectionObserver' in window
+                ? new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        entry.target.dataset.inViewport = entry.isIntersecting ? 'true' : 'false';
+                        if (entry.isIntersecting && !document.hidden && entry.target.dataset.active !== 'false') {
+                            refreshDynamicQr(entry.target);
+                        }
+                    });
+                }, { threshold: 0.2 })
+                : null;
+
+            panels.forEach(panel => {
+                panel.dataset.inViewport = 'true';
+                panel.dataset.expiresIn = '30';
+                if (viewportObserver) viewportObserver.observe(panel);
+                refreshDynamicQr(panel);
+            });
+
+            if (window.dynamicQrInterval) clearInterval(window.dynamicQrInterval);
+            window.dynamicQrInterval = setInterval(() => {
+                if (document.hidden) return;
+                panels.forEach(panel => {
+                    if (panel.dataset.active === 'false' || panel.dataset.inViewport === 'false') return;
+                    const next = Math.max(0, Number(panel.dataset.expiresIn || '0') - 1);
+                    panel.dataset.expiresIn = String(next);
+                    const countdown = panel.querySelector('.qr-countdown');
+                    if (countdown) countdown.textContent = `${next}s`;
+                    updateQrCountdownVisual(panel, next);
+                    if (next <= 0) refreshDynamicQr(panel);
+                });
+            }, 1000);
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) return;
+                panels.forEach(panel => {
+                    if (panel.dataset.inViewport !== 'false' && panel.dataset.active !== 'false') {
+                        refreshDynamicQr(panel);
+                    }
+                });
+            });
+        }
+
+        async function copyQrPayload(button) {
+            const ticketId = button.dataset.ticketId;
+            const panel = document.querySelector(`.qr-panel[data-ticket-id="${ticketId}"]`);
+            if (!panel) return;
+
+            const dynamicToken = panel.dataset.dynamicToken || '';
+            const windowValue = panel.dataset.window || '';
+            const eventId = panel.dataset.eventId || button.dataset.eventId || '';
+            const readyPayload = panel.dataset.qrPayload || '';
+
+            if ((!readyPayload && (!dynamicToken || !windowValue)) || panel.dataset.active !== 'true') {
+                button.textContent = 'QR no listo';
+                window.setTimeout(() => {
+                    button.textContent = button.disabled ? 'QR no disponible' : 'Copiar contenido QR';
+                }, 1400);
+                return;
+            }
+
+            const payload = readyPayload || JSON.stringify({
+                ticketId,
+                eventId,
+                dynamicToken,
+                window: Number(windowValue),
+            }, null, 2);
+
+            const originalLabel = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Copiando...';
+
+            try {
+                const copied = await writeTextToClipboard(payload);
+                if (!copied) throw new Error('El navegador bloqueo la copia.');
+                button.textContent = 'Contenido copiado';
+                window.setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = 'Copiar contenido QR';
+                }, 1600);
+            } catch (error) {
+                console.error('BoletaMax QR: copy failed', {
+                    ticketId,
+                    message: error?.message || 'No se pudo copiar',
+                });
+                button.textContent = 'No se pudo copiar';
+                window.setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = originalLabel === 'Copiando...' ? 'Copiar contenido QR' : originalLabel;
+                }, 1600);
+            }
+        }
+
+        ticketsGrid.addEventListener('click', event => {
+            const button = event.target.closest('.copy-qr-btn');
+            if (!button) return;
+            copyQrPayload(button);
+        });
+
+        loadTickets();
+    </script>
+</body>
+</html>

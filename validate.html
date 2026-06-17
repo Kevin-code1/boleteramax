@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BoletaMax · Validacion de Boletos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #071018;
+            --panel: #0d1724;
+            --panel-2: #101d2d;
+            --text: #e8eef8;
+            --muted: #96a5bb;
+            --line: rgba(255, 255, 255, 0.08);
+            --gold: #d4af37;
+            --success: #22c55e;
+            --danger: #ef5d63;
+            --warning: #f5b949;
+            --neutral: #7c8ea8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Manrope', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(84, 110, 148, 0.12), transparent 26%),
+                linear-gradient(180deg, #09111a 0%, #050b12 100%);
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 40px 24px 56px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+        }
+
+        .brand strong {
+            color: var(--gold);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+            transition: transform .22s ease, box-shadow .22s ease, background .22s ease, border-color .22s ease;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn.primary {
+            border: 1px solid rgba(236, 210, 122, 0.4);
+            background: linear-gradient(135deg, #c79e2d 0%, #ecd27a 100%);
+            color: #08111f;
+            box-shadow: 0 14px 30px rgba(212, 175, 55, 0.18);
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(135deg, #d4af37 0%, #f0dc9e 100%);
+        }
+
+        .btn:disabled {
+            cursor: wait;
+            opacity: .7;
+            transform: none;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(16, 29, 45, 0.96), rgba(11, 19, 30, 0.94));
+            border: 1px solid rgba(84, 110, 148, 0.18);
+            border-radius: 28px;
+            padding: 26px;
+            box-shadow: 0 24px 52px rgba(0, 0, 0, 0.26);
+        }
+
+        .eyebrow {
+            color: var(--gold);
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            font-size: .72rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        h1, h2 {
+            margin: 0 0 12px;
+            font-family: 'Cormorant Garamond', serif;
+            line-height: .98;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: clamp(2.1rem, 4vw, 3.6rem);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 3vw, 2.6rem);
+        }
+
+        p {
+            margin: 0 0 16px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .intake-card {
+            border-radius: 24px;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+            border: 1px solid var(--line);
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-label span {
+            color: #d8e2f1;
+            font-size: .84rem;
+            font-weight: 700;
+        }
+
+        .hint-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.18);
+            color: #f0d47d;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        textarea, input {
+            width: 100%;
+            border-radius: 18px;
+            border: 1px solid rgba(84, 110, 148, 0.18);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            padding: 14px 16px;
+            font: inherit;
+            outline: none;
+            transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
+        }
+
+        textarea:focus,
+        input:focus {
+            background: rgba(255, 255, 255, 0.045);
+            border-color: rgba(212, 175, 55, 0.28);
+            box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.18), 0 0 0 6px rgba(212, 175, 55, 0.06);
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .ops-steps {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .ops-step {
+            border-radius: 18px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+        }
+
+        .ops-step strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: .76rem;
+            color: #f0d47d;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .ops-step span {
+            display: block;
+            color: var(--text);
+            font-size: .9rem;
+            line-height: 1.5;
+        }
+
+        .advanced-panel {
+            margin-top: 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--line);
+            overflow: hidden;
+        }
+
+        .advanced-panel summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: #dfe8f6;
+            font-weight: 700;
+        }
+
+        .advanced-panel summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .advanced-panel summary::after {
+            content: '+';
+            font-size: 1.1rem;
+            color: var(--gold);
+        }
+
+        .advanced-panel[open] summary::after {
+            content: '−';
+        }
+
+        .advanced-content {
+            padding: 0 18px 18px;
+        }
+
+        .advanced-copy {
+            margin: 0 0 14px;
+            font-size: .84rem;
+            color: var(--muted);
+        }
+
+        .fields {
+            display: grid;
+            gap: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #c8d4e6;
+            font-size: .78rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .helper {
+            margin-top: 16px;
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: .86rem;
+            line-height: 1.7;
+        }
+
+        .result-panel {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .result-shell {
+            flex: 1;
+            border-radius: 32px;
+            padding: 24px;
+            background:
+                radial-gradient(circle at top right, rgba(212, 175, 55, 0.08), transparent 28%),
+                linear-gradient(180deg, rgba(7, 14, 24, 0.88), rgba(7, 14, 24, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 22px 50px rgba(0, 0, 0, 0.24);
+        }
+
+        .result-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            padding: 28px;
+            border: 1px solid transparent;
+            box-shadow: 0 22px 46px rgba(0, 0, 0, 0.2);
+            animation: resultPop .28s ease;
+        }
+
+        .result-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 36%);
+            opacity: .7;
+        }
+
+        .result-card.neutral {
+            background: linear-gradient(180deg, rgba(124, 142, 168, 0.12), rgba(124, 142, 168, 0.05));
+            border-color: rgba(124, 142, 168, 0.2);
+        }
+
+        .result-card.success {
+            background: linear-gradient(180deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.08));
+            border-color: rgba(34, 197, 94, 0.34);
+        }
+
+        .result-card.duplicate {
+            background: linear-gradient(180deg, rgba(239, 93, 99, 0.22), rgba(239, 93, 99, 0.08));
+            border-color: rgba(239, 93, 99, 0.38);
+        }
+
+        .result-card.invalid {
+            background: linear-gradient(180deg, rgba(245, 185, 73, 0.18), rgba(239, 93, 99, 0.08));
+            border-color: rgba(245, 185, 73, 0.28);
+        }
+
+        .result-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 22px;
+        }
+
+        .result-icon {
+            width: 92px;
+            height: 92px;
+            border-radius: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            font-weight: 800;
+            flex: 0 0 auto;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 30px rgba(0, 0, 0, 0.14);
+        }
+
+        .result-card.neutral .result-icon {
+            background: rgba(124, 142, 168, 0.18);
+            color: #d9e2ef;
+        }
+
+        .result-card.success .result-icon {
+            background: rgba(34, 197, 94, 0.18);
+            color: #8ef1af;
+        }
+
+        .result-card.duplicate .result-icon {
+            background: rgba(239, 93, 99, 0.18);
+            color: #ffb4b7;
+        }
+
+        .result-card.invalid .result-icon {
+            background: rgba(245, 185, 73, 0.18);
+            color: #ffd690;
+        }
+
+        .result-copy h3 {
+            margin: 0 0 8px;
+            font-size: clamp(2.2rem, 3.4vw, 3.3rem);
+            font-family: 'Cormorant Garamond', serif;
+            line-height: .95;
+        }
+
+        .result-copy p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .result-details {
+            margin-top: 18px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .result-detail-grid {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .result-detail {
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+
+        .result-detail span {
+            display: block;
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .result-detail strong {
+            color: var(--text);
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .detail-wide {
+            grid-column: 1 / -1;
+        }
+
+        .used-highlight {
+            border-color: rgba(239, 93, 99, 0.22);
+            background: linear-gradient(180deg, rgba(239, 93, 99, 0.12), rgba(255, 255, 255, 0.03));
+        }
+
+        .success-pulse {
+            animation: successPulse .7s ease;
+        }
+
+        @keyframes successPulse {
+            0% {
+                transform: scale(.985);
+                box-shadow: 0 0 0 rgba(34, 197, 94, 0);
+            }
+            55% {
+                transform: scale(1.01);
+                box-shadow: 0 0 0 12px rgba(34, 197, 94, 0.08);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 22px 46px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: .92rem;
+        }
+
+        @keyframes resultPop {
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @media (max-width: 960px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .ops-steps,
+            .result-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-head {
+                flex-direction: column;
+            }
+        }
+
+        /* Staff validator premium refresh, visual-only. */
+        body {
+            background:
+                radial-gradient(circle at 12% 0%, rgba(212, 175, 55, 0.12), transparent 24%),
+                radial-gradient(circle at 86% 8%, rgba(51, 103, 175, 0.16), transparent 28%),
+                linear-gradient(180deg, #050B12 0%, #071018 52%, #05080d 100%);
+        }
+
+        .topbar {
+            position: sticky;
+            top: 16px;
+            z-index: 20;
+            padding: 12px;
+            border-radius: 999px;
+            background: rgba(7, 16, 24, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+        }
+
+        .brand {
+            color: #fff7eb;
+        }
+
+        .brand strong,
+        .eyebrow,
+        .hint-chip {
+            color: #ECD27A;
+        }
+
+        .panel,
+        .intake-card,
+        .advanced-panel,
+        .result-shell {
+            background:
+                linear-gradient(180deg, rgba(16, 29, 45, 0.95), rgba(7, 16, 24, 0.95));
+            border-color: rgba(255, 255, 255, 0.09);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32);
+        }
+
+        .panel h1,
+        .panel h2,
+        .result-copy h3 {
+            color: #fff7eb;
+            text-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+        }
+
+        .panel p,
+        .helper,
+        .advanced-copy,
+        .ops-step span,
+        .result-detail span {
+            color: #96A5BB;
+        }
+
+        textarea,
+        input {
+            background: rgba(5, 11, 18, 0.56);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #E8EEF8;
+        }
+
+        textarea:focus,
+        input:focus {
+            border-color: rgba(236, 210, 122, 0.48);
+            box-shadow: 0 0 0 1px rgba(236, 210, 122, 0.24), 0 0 0 6px rgba(212, 175, 55, 0.08);
+        }
+
+        .btn.primary {
+            color: #071018;
+            background: linear-gradient(135deg, #ECD27A, #D4AF37 52%, #B98523);
+            box-shadow: 0 18px 44px rgba(212, 175, 55, 0.22);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .ops-step,
+        .result-detail {
+            background: rgba(5, 11, 18, 0.42);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .result-card.success {
+            background: linear-gradient(180deg, rgba(34, 197, 94, 0.22), rgba(34, 197, 94, 0.08));
+        }
+
+        .result-card.duplicate {
+            background: linear-gradient(180deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.08));
+            border-color: rgba(245, 158, 11, 0.34);
+        }
+
+        .result-card.invalid {
+            background: linear-gradient(180deg, rgba(239, 68, 68, 0.18), rgba(245, 158, 11, 0.08));
+            border-color: rgba(239, 68, 68, 0.28);
+        }
+
+        /* Editorial validator pass: result stays protagonist, controls become cleaner. */
+        .topbar {
+            box-shadow: none;
+        }
+
+        .panel,
+        .intake-card,
+        .advanced-panel,
+        .result-shell {
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .panel {
+            padding-inline: 0;
+        }
+
+        .intake-card {
+            padding: 18px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 0;
+        }
+
+        .advanced-panel {
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 0;
+        }
+
+        .ops-step,
+        .result-detail {
+            background: transparent;
+            border: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .ops-step {
+            padding-inline: 0;
+        }
+
+        .result-shell {
+            padding: 0;
+        }
+
+        .result-card {
+            box-shadow: 0 26px 70px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-card.neutral {
+            background: rgba(16, 29, 45, 0.72);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: none;
+        }
+
+        .history-list,
+        .history-card {
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        @media (max-width: 620px) {
+            .topbar {
+                align-items: stretch;
+                border-radius: 24px;
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="topbar">
+            <div class="brand">Boleta<strong>Max</strong></div>
+            <a class="btn" href="index.html">Volver al inicio</a>
+        </div>
+
+        <div class="layout">
+            <section class="panel">
+                <div class="eyebrow">Acceso Staff</div>
+                <h1>Validacion operativa de boletos</h1>
+                <p>Pega o escanea el contenido completo del QR y valida el acceso en un solo paso. Los datos tecnicos quedan disponibles solo cuando los necesites.</p>
+
+                <div class="intake-card">
+                    <div class="input-label">
+                        <span>Contenido del QR</span>
+                        <div class="hint-chip">QR dinamico</div>
+                    </div>
+                    <textarea id="scan-input" placeholder='{"ticketId":"BM-TKT-...","eventId":"evento-...","dynamicToken":"...","window":12345678}'></textarea>
+
+                    <div class="actions">
+                        <button class="btn primary" id="validate-btn" type="button">Validar boleto</button>
+                    </div>
+                </div>
+
+                <div class="ops-steps">
+                    <div class="ops-step">
+                        <strong>1. Escanear</strong>
+                        <span>Pega el QR completo o el JSON actualizado del ticket.</span>
+                    </div>
+                    <div class="ops-step">
+                        <strong>2. Validar</strong>
+                        <span>El sistema revisa vigencia, uso previo y evento correcto.</span>
+                    </div>
+                    <div class="ops-step">
+                        <strong>3. Permitir acceso</strong>
+                        <span>Recibe una respuesta clara para operación en puerta.</span>
+                    </div>
+                </div>
+
+                <details class="advanced-panel" id="advanced-panel">
+                    <summary>Opciones avanzadas</summary>
+                    <div class="advanced-content">
+                        <p class="advanced-copy">Estos campos se rellenan automaticamente cuando pegas un QR valido. Solo usalos si necesitas revisar o capturar datos manualmente.</p>
+                        <div class="fields">
+                            <div>
+                                <label for="ticket-id">Ticket ID</label>
+                                <input id="ticket-id" type="text" placeholder="BM-TKT-..." />
+                            </div>
+                            <div>
+                                <label for="event-id">Event ID</label>
+                                <input id="event-id" type="text" placeholder="evento-..." />
+                            </div>
+                            <div>
+                                <label for="token">Token base</label>
+                                <input id="token" type="text" placeholder="token unico del QR" />
+                            </div>
+                            <div>
+                                <label for="dynamic-token">Dynamic Token</label>
+                                <input id="dynamic-token" type="text" placeholder="token dinamico del QR" />
+                            </div>
+                            <div>
+                                <label for="qr-window">Ventana</label>
+                                <input id="qr-window" type="text" inputmode="numeric" placeholder="window del QR dinamico" />
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <div class="helper">
+                    Flujo recomendado:
+                    <br />1. Escanea o pega el JSON del QR.
+                    <br />2. Pulsa <strong>Validar boleto</strong>.
+                    <br />3. Revisa el resultado y confirma acceso o rechazo.
+                </div>
+            </section>
+
+            <section class="panel result-panel">
+                <div class="eyebrow">Panel de acceso</div>
+                <h2>Estado del boleto</h2>
+
+                <div class="result-shell">
+                    <div class="result-card neutral" id="result-state">
+                        <div class="result-head">
+                            <div class="result-icon">•</div>
+                            <div class="result-copy">
+                                <h3>Esperando boleto para validar</h3>
+                                <p>Escanea o pega un QR para ver el resultado operativo aqui.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-details" id="result-details"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const scanInput = document.getElementById('scan-input');
+        const ticketIdInput = document.getElementById('ticket-id');
+        const eventIdInput = document.getElementById('event-id');
+        const tokenInput = document.getElementById('token');
+        const dynamicTokenInput = document.getElementById('dynamic-token');
+        const qrWindowInput = document.getElementById('qr-window');
+        const resultState = document.getElementById('result-state');
+        const resultDetails = document.getElementById('result-details');
+        const validateBtn = document.getElementById('validate-btn');
+        const advancedPanel = document.getElementById('advanced-panel');
+
+        function esc(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function hasAdvancedValues() {
+            return Boolean(
+                ticketIdInput.value.trim() ||
+                eventIdInput.value.trim() ||
+                tokenInput.value.trim() ||
+                dynamicTokenInput.value.trim() ||
+                qrWindowInput.value.trim()
+            );
+        }
+
+        function syncAdvancedPanelVisibility() {
+            advancedPanel.open = hasAdvancedValues();
+        }
+
+        function fillFromPayload(payload = {}) {
+            if (payload.ticketId) ticketIdInput.value = payload.ticketId;
+            if (payload.eventId) eventIdInput.value = payload.eventId;
+            if (payload.token) tokenInput.value = payload.token;
+            if (payload.dynamicToken) dynamicTokenInput.value = payload.dynamicToken;
+            if (payload.window !== undefined && payload.window !== null && payload.window !== '') {
+                qrWindowInput.value = String(payload.window);
+            }
+            syncAdvancedPanelVisibility();
+        }
+
+        function parseScanInput() {
+            const raw = scanInput.value.trim();
+            if (!raw) return null;
+
+            try {
+                const parsed = JSON.parse(raw);
+                fillFromPayload(parsed);
+                return parsed;
+            } catch (_) {
+                if (raw.startsWith('BM-TKT-')) {
+                    ticketIdInput.value = raw;
+                    syncAdvancedPanelVisibility();
+                    return { ticketId: raw };
+                }
+                return null;
+            }
+        }
+
+        function getFormPayload() {
+            parseScanInput();
+            return {
+                ticketId: ticketIdInput.value.trim(),
+                eventId: eventIdInput.value.trim(),
+                token: tokenInput.value.trim(),
+                dynamicToken: dynamicTokenInput.value.trim(),
+                window: qrWindowInput.value.trim() ? Number(qrWindowInput.value.trim()) : undefined,
+            };
+        }
+
+        function formatDateTime(value) {
+            if (!value) return 'No disponible';
+            return new Date(value).toLocaleString('es-MX');
+        }
+
+        function getResultDescriptor(payload = {}) {
+            const message = String(payload.message || '').toLowerCase();
+
+            if (payload.valid) {
+                return {
+                    tone: 'success',
+                    icon: '✓',
+                    title: 'Acceso permitido',
+                    detail: payload.message || 'Boleto valido y acceso autorizado.',
+                };
+            }
+
+            if (message.includes('ya utilizado')) {
+                return {
+                    tone: 'duplicate',
+                    icon: '↺',
+                    title: 'Boleto ya utilizado',
+                    detail: 'Este acceso ya fue consumido previamente.',
+                };
+            }
+
+            if (message.includes('cancelado')) {
+                return {
+                    tone: 'duplicate',
+                    icon: '⛔',
+                    title: 'Boleto cancelado',
+                    detail: 'Este boleto no es válido para permitir acceso.',
+                };
+            }
+
+            return {
+                tone: 'invalid',
+                icon: '!',
+                title: 'QR invalido o expirado',
+                detail: payload.message || 'No fue posible validar este boleto.',
+            };
+        }
+
+        function renderResult(payload = null) {
+            if (!payload) {
+                resultState.className = 'result-card neutral';
+                resultState.innerHTML = `
+                    <div class="result-head">
+                        <div class="result-icon">•</div>
+                        <div class="result-copy">
+                            <h3>Esperando boleto para validar</h3>
+                            <p>Escanea o pega un QR para ver el resultado operativo aqui.</p>
+                        </div>
+                    </div>
+                `;
+                resultDetails.replaceChildren();
+                return;
+            }
+
+            const descriptor = getResultDescriptor(payload);
+            const ticket = payload.ticket || null;
+            const validatedAt = payload.usedAt || new Date().toISOString();
+
+            resultState.className = `result-card ${descriptor.tone}`;
+            resultState.innerHTML = `
+                <div class="result-head">
+                    <div class="result-icon">${esc(descriptor.icon)}</div>
+                    <div class="result-copy">
+                        <h3>${esc(descriptor.title)}</h3>
+                        <p>${esc(descriptor.detail)}</p>
+                    </div>
+                </div>
+            `;
+
+            if (descriptor.tone === 'success') {
+                resultState.classList.remove('success-pulse');
+                void resultState.offsetWidth;
+                resultState.classList.add('success-pulse');
+            }
+
+            resultDetails.replaceChildren();
+            if (!ticket) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'result-detail-grid';
+            wrapper.innerHTML = `
+                <div class="result-detail detail-wide">
+                    <span>Evento</span>
+                    <strong>${esc(ticket.eventName || 'Evento no disponible')}</strong>
+                </div>
+                <div class="result-detail">
+                    <span>Ticket ID</span>
+                    <strong class="mono">${esc(ticket.ticketId || 'No disponible')}</strong>
+                </div>
+                <div class="result-detail">
+                    <span>Estado</span>
+                    <strong>${esc(ticket.status || 'No disponible')}</strong>
+                </div>
+                <div class="result-detail detail-wide">
+                    <span>Asiento</span>
+                    <strong>${esc(ticket.seatLabel || 'No disponible')}</strong>
+                </div>
+                <div class="result-detail">
+                    <span>Hora de validacion</span>
+                    <strong>${esc(formatDateTime(validatedAt))}</strong>
+                </div>
+                <div class="result-detail ${ticket.usedAt ? 'used-highlight' : ''}">
+                    <span>Usado el</span>
+                    <strong>${esc(ticket.usedAt ? formatDateTime(ticket.usedAt) : 'Aun no usado')}</strong>
+                </div>
+            `;
+            resultDetails.appendChild(wrapper);
+        }
+
+        function getAdminApiKey() {
+            const stored = sessionStorage.getItem('bm_admin_key') || '';
+            if (stored) return stored;
+
+            const entered = window.prompt('Clave de staff/admin') || '';
+            const adminKey = entered.trim();
+            if (adminKey) sessionStorage.setItem('bm_admin_key', adminKey);
+            return adminKey;
+        }
+
+        async function validateTicket() {
+            const payload = getFormPayload();
+            if (!payload.ticketId) {
+                renderResult({
+                    valid: false,
+                    message: 'Debes pegar el contenido del QR o capturar un ticketId.',
+                });
+                return;
+            }
+
+            validateBtn.disabled = true;
+            validateBtn.textContent = 'Validando...';
+
+            const adminKey = getAdminApiKey();
+
+            try {
+                const response = await fetch('/api/validate-ticket', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-key': adminKey
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const result = await response.json();
+                renderResult(result);
+            } catch (error) {
+                renderResult({
+                    valid: false,
+                    message: error.message || 'No se pudo validar el boleto.',
+                });
+            } finally {
+                validateBtn.disabled = false;
+                validateBtn.textContent = 'Validar boleto';
+            }
+        }
+
+        function preloadFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            fillFromPayload({
+                ticketId: params.get('ticketId') || '',
+                eventId: params.get('eventId') || '',
+                token: params.get('token') || '',
+                dynamicToken: params.get('dynamicToken') || '',
+                window: params.get('window') || '',
+            });
+        }
+
+        scanInput.addEventListener('input', parseScanInput);
+        validateBtn.addEventListener('click', validateTicket);
+        [ticketIdInput, eventIdInput, tokenInput, dynamicTokenInput, qrWindowInput].forEach(input => {
+            input.addEventListener('input', syncAdvancedPanelVisibility);
+        });
+
+        preloadFromQuery();
+        renderResult();
+    </script>
+</body>
+</html>

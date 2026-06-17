@@ -1,0 +1,39 @@
+# Ambiente
+.env
+
+# Dependencias
+node_modules/
+
+# Proyecto ajeno a la boletera
+fintech-platform/
+
+# Datos transaccionales (contienen tokens privados de boletos)
+data/tickets.json
+data/backups/
+data/**/*.backup.json
+data/**/*.bak.json
+data/**/*.dump.json
+data/**/*tickets*.json
+!data/events.json
+
+# Temporales, logs, dumps y respaldos locales
+.tmp/
+*.log
+*.pid
+*.dump
+*.sql.dump
+*.backup
+*.bak
+*.tmp
+
+# Playwright
+.playwright-cli/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

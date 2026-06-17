@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BoletaMax Ticket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #071018;
+            --panel: #0f1826;
+            --panel-2: #152132;
+            --text: #edf2fb;
+            --muted: #98a7bc;
+            --gold: #d4af37;
+            --success: #22c55e;
+            --danger: #ef5d63;
+            --line: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Manrope', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 26%),
+                radial-gradient(circle at bottom, rgba(84, 110, 148, 0.12), transparent 30%),
+                linear-gradient(180deg, #08111a 0%, #040a11 100%);
+        }
+
+        .page {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 22px 16px 42px;
+        }
+
+        .ticket-shell {
+            border-radius: 30px;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(16, 27, 41, 0.98), rgba(9, 16, 26, 0.98));
+            border: 1px solid rgba(212, 175, 55, 0.14);
+            box-shadow: 0 28px 60px rgba(0, 0, 0, 0.32);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .brand img {
+            width: min(100%, 320px);
+            height: auto;
+            display: block;
+        }
+
+        .hero {
+            border-radius: 24px;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+            border: 1px solid var(--line);
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: #f0d47d;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        h1 {
+            margin: 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.25rem, 9vw, 4rem);
+            line-height: .96;
+        }
+
+        .status-row {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            font-size: .76rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .status-pill.active {
+            color: #a6efbb;
+            border-color: rgba(34, 197, 94, 0.24);
+            background: rgba(34, 197, 94, 0.12);
+        }
+
+        .status-pill.used {
+            color: #ffb8bb;
+            border-color: rgba(239, 93, 99, 0.24);
+            background: rgba(239, 93, 99, 0.12);
+        }
+
+        .status-pill.cancelled {
+            color: #ffc9cb;
+            border-color: rgba(239, 93, 99, 0.24);
+            background: rgba(239, 93, 99, 0.14);
+        }
+
+        .message-card {
+            margin-top: 16px;
+            border-radius: 22px;
+            padding: 18px;
+            border: 1px solid transparent;
+        }
+
+        .message-card.active {
+            background: linear-gradient(180deg, rgba(212, 175, 55, 0.12), rgba(212, 175, 55, 0.04));
+            border-color: rgba(212, 175, 55, 0.18);
+        }
+
+        .message-card.used,
+        .message-card.cancelled,
+        .message-card.error {
+            background: linear-gradient(180deg, rgba(239, 93, 99, 0.16), rgba(239, 93, 99, 0.06));
+            border-color: rgba(239, 93, 99, 0.2);
+        }
+
+        .message-card strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+        }
+
+        .message-card p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.65;
+        }
+
+        .meta-grid {
+            margin-top: 18px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .meta-card {
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+        }
+
+        .meta-card span {
+            display: block;
+            margin-bottom: 6px;
+            font-size: .72rem;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .meta-card strong {
+            color: var(--text);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: .92rem;
+        }
+
+        .dynamic-section {
+            margin-top: 18px;
+            border-radius: 24px;
+            padding: 18px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.016));
+            border: 1px solid var(--line);
+        }
+
+        .dynamic-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .dynamic-head strong {
+            font-size: 1rem;
+        }
+
+        .countdown {
+            color: #f0d47d;
+            font-weight: 800;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(236, 210, 122, 0.4);
+            background: linear-gradient(135deg, #c79e2d 0%, #ecd27a 100%);
+            color: #08111f;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 14px 30px rgba(212, 175, 55, 0.16);
+            cursor: pointer;
+            transition: transform .22s ease, box-shadow .22s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 36px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn:disabled {
+            cursor: default;
+            opacity: .7;
+            transform: none;
+        }
+
+        .qr-wrap {
+            margin-top: 14px;
+            display: none;
+            border-radius: 22px;
+            padding: 18px;
+            background: #ffffff;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+        }
+
+        .qr-wrap.visible {
+            display: block;
+        }
+
+        .qr-wrap img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+        }
+
+        .qr-note {
+            margin-top: 14px;
+            font-size: .9rem;
+            line-height: 1.65;
+            color: var(--muted);
+        }
+
+        .state {
+            margin-top: 16px;
+            border-radius: 20px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* Public ticket premium refresh, visual-only. */
+        body {
+            background:
+                radial-gradient(circle at 18% 0%, rgba(212, 175, 55, 0.12), transparent 26%),
+                radial-gradient(circle at 82% 12%, rgba(55, 111, 185, 0.16), transparent 28%),
+                linear-gradient(180deg, #050B12, #071018 56%, #05080d);
+        }
+
+        .ticket-shell {
+            background:
+                radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 26%),
+                linear-gradient(180deg, rgba(16, 29, 45, 0.98), rgba(7, 16, 24, 0.98));
+            border-color: rgba(255, 255, 255, 0.09);
+            box-shadow: 0 34px 86px rgba(0, 0, 0, 0.46);
+        }
+
+        .brand {
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .hero h1 {
+            color: #fff7eb;
+            text-shadow: 0 20px 50px rgba(0, 0, 0, 0.36);
+        }
+
+        .eyebrow,
+        .mono,
+        .countdown {
+            color: #ECD27A;
+        }
+
+        .meta-card,
+        .message-card,
+        .dynamic-section,
+        .qr-wrap {
+            background: rgba(5, 11, 18, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .meta-card span,
+        .qr-note,
+        .state {
+            color: #96A5BB;
+        }
+
+        .meta-card strong {
+            color: #E8EEF8;
+        }
+
+        .status-pill.active {
+            color: #ECD27A;
+            border-color: rgba(212, 175, 55, 0.28);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .status-pill.used {
+            color: #FDBA74;
+            border-color: rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.12);
+        }
+
+        .btn {
+            color: #071018;
+            background: linear-gradient(135deg, #ECD27A, #D4AF37 52%, #B98523);
+            box-shadow: 0 18px 44px rgba(212, 175, 55, 0.22);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 58px rgba(212, 175, 55, 0.3);
+        }
+
+        .qr-wrap img {
+            padding: 12px;
+            background: #fff;
+            box-shadow: 0 24px 54px rgba(0, 0, 0, 0.26);
+        }
+
+        /* Editorial public-ticket pass: keep shell premium, simplify internal data blocks. */
+        .brand {
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .meta-grid {
+            gap: 0 22px;
+        }
+
+        .meta-card {
+            padding: 12px 0;
+            border: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .message-card,
+        .dynamic-section,
+        .state {
+            padding-inline: 0;
+            border-left: 0;
+            border-right: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .message-card,
+        .dynamic-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.065);
+            border-bottom: 0;
+        }
+
+        .qr-wrap {
+            background: #fff;
+            border-color: transparent;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+        }
+
+        .qr-wrap img {
+            padding: 0;
+            box-shadow: none;
+        }
+
+        @media (max-width: 560px) {
+            .page {
+                padding: 18px;
+            }
+
+            .ticket-shell {
+                border-radius: 24px;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="ticket-shell">
+            <div class="brand">
+                <img src="/assets/images/boletamax-logo-premium.png" alt="BoletaMax" decoding="async" />
+            </div>
+
+            <div class="hero">
+                <p class="eyebrow">Boleto publico</p>
+                <h1 id="event-name">Cargando boleto...</h1>
+
+                <div class="status-row">
+                    <div class="status-pill" id="status-pill">Cargando</div>
+                </div>
+
+                <div class="message-card active" id="message-card">
+                    <strong id="message-title">Preparando boleto</strong>
+                    <p id="message-text">Estamos consultando el estado actual del ticket.</p>
+                </div>
+
+                <div class="meta-grid" id="meta-grid" hidden>
+                    <div class="meta-card">
+                        <span>Fecha</span>
+                        <strong id="ticket-date">-</strong>
+                    </div>
+                    <div class="meta-card">
+                        <span>Venue</span>
+                        <strong id="ticket-venue">-</strong>
+                    </div>
+                    <div class="meta-card">
+                        <span>Zona / Asiento</span>
+                        <strong id="ticket-seat">-</strong>
+                    </div>
+                    <div class="meta-card">
+                        <span>Ticket ID</span>
+                        <strong class="mono" id="ticket-id">-</strong>
+                    </div>
+                    <div class="meta-card" id="used-at-card" hidden>
+                        <span>Usado el</span>
+                        <strong id="ticket-used-at">-</strong>
+                    </div>
+                </div>
+            </div>
+
+            <section class="dynamic-section" id="dynamic-section" hidden style="text-align: center; padding: 32px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(212,175,55,0.3));">🛡️</div>
+                <strong style="font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; color: #ECD27A; display: block; margin-bottom: 8px;">Boleto Seguro y Verificado</strong>
+                <p style="font-size: .84rem; color: #96A5BB; margin: 0 0 16px; line-height: 1.6;">El QR de acceso dinámico de este boleto se encuentra protegido. El titular legítimo puede visualizar el código QR activo en su aplicación privada o a través del enlace de compra original.</p>
+                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #22c55e; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;">
+                     Listo para acceso oficial
+                </div>
+            </section>
+
+            <div class="state" id="page-state">Buscando informacion del boleto...</div>
+        </div>
+    </main>
+
+    <script>
+        const eventNameEl = document.getElementById('event-name');
+        const statusPillEl = document.getElementById('status-pill');
+        const messageCardEl = document.getElementById('message-card');
+        const messageTitleEl = document.getElementById('message-title');
+        const messageTextEl = document.getElementById('message-text');
+        const metaGridEl = document.getElementById('meta-grid');
+        const dateEl = document.getElementById('ticket-date');
+        const venueEl = document.getElementById('ticket-venue');
+        const seatEl = document.getElementById('ticket-seat');
+        const ticketIdEl = document.getElementById('ticket-id');
+        const usedAtCardEl = document.getElementById('used-at-card');
+        const usedAtEl = document.getElementById('ticket-used-at');
+        const dynamicSectionEl = document.getElementById('dynamic-section');
+        const pageStateEl = document.getElementById('page-state');
+
+        function getTicketIdFromPath() {
+            const parts = window.location.pathname.split('/').filter(Boolean);
+            return decodeURIComponent(parts[parts.length - 1] || '');
+        }
+
+        function formatDateTime(value) {
+            if (!value) return 'No disponible';
+            return new Date(value).toLocaleString('es-MX');
+        }
+
+        function applyStatusState(ticket) {
+            const status = ticket.status || 'active';
+            statusPillEl.className = `status-pill ${status}`;
+            statusPillEl.textContent = status === 'used' ? 'Usado' : status === 'cancelled' ? 'Cancelado' : 'Activo';
+
+            messageCardEl.className = `message-card ${status === 'active' ? 'active' : status === 'used' ? 'used' : 'cancelled'}`;
+
+            if (status === 'used') {
+                messageTitleEl.textContent = 'Este boleto ya fue utilizado';
+                messageTextEl.textContent = ticket.usedAt
+                    ? `Fue registrado por primera vez el ${formatDateTime(ticket.usedAt)}.`
+                    : 'Este boleto ya no puede utilizarse para ingresar.';
+            } else if (status === 'cancelled') {
+                messageTitleEl.textContent = 'Este boleto esta cancelado';
+                messageTextEl.textContent = 'No es valido para acceso al evento.';
+            } else {
+                messageTitleEl.textContent = 'Boleto activo';
+                messageTextEl.textContent = 'Este es el enlace de visualización pública. Para ingresar al recinto, el titular debe presentar el boleto desde su sesión segura.';
+            }
+        }
+
+        function renderTicket(ticket) {
+            eventNameEl.textContent = ticket.eventName || 'Boleto BoletaMax';
+            dateEl.textContent = ticket.date || 'Por confirmar';
+            venueEl.textContent = ticket.venue || 'Por confirmar';
+            seatEl.textContent = ticket.seatLabel || 'No disponible';
+            ticketIdEl.textContent = ticket.ticketId || 'No disponible';
+            metaGridEl.hidden = false;
+
+            if (ticket.usedAt) {
+                usedAtCardEl.hidden = false;
+                usedAtEl.textContent = formatDateTime(ticket.usedAt);
+            } else {
+                usedAtCardEl.hidden = true;
+                usedAtEl.textContent = '-';
+            }
+
+            applyStatusState(ticket);
+
+            if (ticket.status === 'active') {
+                dynamicSectionEl.hidden = false;
+            } else {
+                dynamicSectionEl.hidden = true;
+            }
+        }
+
+        async function loadTicket() {
+            const ticketId = getTicketIdFromPath();
+            if (!ticketId) {
+                pageStateEl.textContent = 'No se encontro un ticketId valido en la URL.';
+                messageCardEl.className = 'message-card error';
+                messageTitleEl.textContent = 'Boleto no disponible';
+                messageTextEl.textContent = 'Abre este boleto desde un enlace valido de BoletaMax.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tickets/${encodeURIComponent(ticketId)}`);
+                const payload = await response.json();
+
+                if (!response.ok || !payload.ok || !payload.ticket) {
+                    throw new Error(payload.message || 'No se pudo cargar el boleto.');
+                }
+
+                renderTicket(payload.ticket);
+                pageStateEl.hidden = true;
+            } catch (error) {
+                messageCardEl.className = 'message-card error';
+                messageTitleEl.textContent = 'Boleto no encontrado';
+                messageTextEl.textContent = error.message || 'No se pudo consultar este boleto.';
+                pageStateEl.textContent = error.message || 'No se pudo consultar este boleto.';
+            }
+        }
+
+        loadTicket();
+    </script>
+</body>
+</html>
