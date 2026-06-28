@@ -996,15 +996,26 @@
                 return;
             }
 
+            // Pedimos la clave ANTES de mostrar "Validando...".
+            // window.prompt() es bloqueante: si lo invocamos después de poner
+            // el botón en "Validando...", el botón se queda congelado mientras
+            // el diálogo está abierto (o si el navegador lo bloquea).
+            const adminKey = getAdminApiKey();
+            if (!adminKey) {
+                renderResult({
+                    valid: false,
+                    message: 'Se requiere la clave de staff para validar el acceso.',
+                });
+                return;
+            }
+
             validateBtn.disabled = true;
             validateBtn.textContent = 'Validando...';
-
-            const adminKey = getAdminApiKey();
 
             try {
                 const response = await fetch('/api/validate-ticket', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'x-admin-key': adminKey
                     },
@@ -1012,6 +1023,10 @@
                 });
 
                 const result = await response.json();
+                if (response.status === 401) {
+                    // Clave incorrecta: la limpiamos para volver a pedirla.
+                    sessionStorage.removeItem('bm_admin_key');
+                }
                 renderResult(result);
             } catch (error) {
                 renderResult({
@@ -1026,12 +1041,23 @@
 
         function preloadFromQuery() {
             const params = new URLSearchParams(window.location.search);
+            let strippedSecretParams = false;
+            ['token', 'dynamicToken', 'window'].forEach(key => {
+                if (params.has(key)) {
+                    params.delete(key);
+                    strippedSecretParams = true;
+                }
+            });
+
+            if (strippedSecretParams) {
+                const cleanQuery = params.toString();
+                const cleanUrl = `${window.location.pathname}${cleanQuery ? `?${cleanQuery}` : ''}${window.location.hash}`;
+                window.history.replaceState(null, document.title, cleanUrl);
+            }
+
             fillFromPayload({
                 ticketId: params.get('ticketId') || '',
                 eventId: params.get('eventId') || '',
-                token: params.get('token') || '',
-                dynamicToken: params.get('dynamicToken') || '',
-                window: params.get('window') || '',
             });
         }
 

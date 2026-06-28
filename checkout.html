@@ -1276,6 +1276,23 @@
             display: none;
         }
 
+        /* La tarjeta destacada (SPEI) reserva una franja superior para el
+           badge "AHORRA $X", que antes se encimaba con el precio (ambos
+           vivían arriba a la derecha). Así el badge queda despejado. */
+        .pm-card.featured {
+            padding-top: 36px;
+        }
+
+        .pm-card.featured::before {
+            z-index: 3;
+        }
+
+        @media (max-width: 620px) {
+            .pm-card.featured {
+                padding-top: 32px;
+            }
+        }
+
         .confirm-card {
             box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
         }
@@ -1571,6 +1588,7 @@
         function showCheckoutAlert(message) {
             alertEl.textContent = message;
             alertEl.classList.add('show');
+            alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function setPaymentEnabled(enabled) {
@@ -2023,6 +2041,10 @@
                 confirmOverlay.classList.remove('show');
                 window.location.href = `ticket.html?ticketIds=${encodeURIComponent(ticketIds.join(','))}`;
             } catch (error) {
+                // Cerramos el modal de pago para que el banner de error sea
+                // visible (antes quedaba tapado y parecía que el botón no hacía
+                // nada; típicamente por límite de compras 429 o cotización expirada).
+                confirmOverlay.classList.remove('show');
                 showCheckoutAlert(error.message || 'No fue posible generar los boletos. Intenta nuevamente.');
             } finally {
                 setConfirmActionState(false);

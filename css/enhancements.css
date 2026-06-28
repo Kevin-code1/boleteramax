@@ -1,0 +1,453 @@
+/* =====================================================================
+   BoletaMax · Capa de pulido profesional (enhancements.css)
+   ---------------------------------------------------------------------
+   Se carga DESPUÉS de style.css para ganar la cascada sin tocar el
+   archivo base (que tiene reglas duplicadas en conflicto).
+   100% visual: no altera lógica de tickets, pagos ni JS.
+   Paleta heredada del tema activo: dorado #d6b45f sobre azul noche.
+   ===================================================================== */
+
+:root {
+  --bmx-gold: #d6b45f;
+  --bmx-gold-soft: #f0d997;
+  --bmx-ring: rgba(240, 217, 151, 0.55);
+  --bmx-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --bmx-line: rgba(214, 180, 95, 0.16);
+}
+
+/* ---------------------------------------------------------------------
+   1. Sistema de botones unificado
+   Altura táctil consistente (44px), sin que el texto se parta, y un
+   estado :active de "presión" para que se sienta como app real.
+--------------------------------------------------------------------- */
+.btn-login,
+.btn-register,
+.btn-hero-primary,
+.btn-hero-secondary,
+.btn-ver-mas,
+.btn-learn-more,
+.btn-subscribe,
+.btn-modal-submit,
+.btn-social,
+.btn-collab-more,
+.sales-point-action,
+.pm-btn,
+.btn-confirm-ok,
+.btn-comprar,
+.filter-btn,
+.pos-filter {
+  min-height: 44px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.18s var(--bmx-ease),
+    box-shadow 0.18s var(--bmx-ease),
+    background 0.18s var(--bmx-ease),
+    border-color 0.18s var(--bmx-ease),
+    color 0.18s var(--bmx-ease);
+}
+
+/* Microinteracción de presión (no aplica a deshabilitados) */
+.btn-login:active,
+.btn-register:active,
+.btn-hero-primary:active,
+.btn-hero-secondary:active,
+.btn-ver-mas:not(:disabled):active,
+.btn-learn-more:active,
+.btn-subscribe:active,
+.btn-modal-submit:active,
+.btn-confirm-ok:active,
+.btn-comprar:not(:disabled):active,
+.sales-point-action:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Foco accesible y consistente con anillo dorado */
+.btn-ver-mas:focus-visible,
+.btn-hero-primary:focus-visible,
+.btn-hero-secondary:focus-visible,
+.btn-login:focus-visible,
+.btn-register:focus-visible,
+.btn-learn-more:focus-visible,
+.btn-subscribe:focus-visible,
+.btn-modal-submit:focus-visible,
+.btn-comprar:focus-visible,
+.filter-btn:focus-visible,
+.pos-filter:focus-visible,
+.sales-point-action:focus-visible {
+  outline: 3px solid var(--bmx-ring);
+  outline-offset: 3px;
+}
+
+/* Botón AGOTADO: visiblemente inactivo, sin microinteracción */
+.btn-agotado,
+.btn-ver-mas:disabled {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(245, 238, 220, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ---------------------------------------------------------------------
+   2. Pie de tarjeta de evento — antiencimamiento precio / botón
+   Causa raíz reportada ("botones que se interponen"): el flex sin gap
+   ni protección de ancho dejaba que el precio empujara al botón.
+--------------------------------------------------------------------- */
+.event-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+}
+
+.event-price {
+  min-width: 0;          /* permite truncar en vez de empujar */
+  flex: 1 1 auto;
+}
+
+.event-card-footer .btn-ver-mas {
+  flex: 0 0 auto;        /* el botón nunca se comprime */
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   3. Nombres de evento — 2 líneas limpias con altura reservada
+   Antes truncaban a 1 línea con ellipsis (nombres largos quedaban
+   cortados de golpe). Ahora caen elegantes a 2 líneas y todas las
+   tarjetas alinean su pie a la misma altura.
+--------------------------------------------------------------------- */
+.event-name {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.event-venue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La columna de info no debe desbordar al chip de fecha */
+.event-info {
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------------
+   4. Badges sobre la imagen — legibilidad y orden de capas
+   Sombra sutil para que se lean sobre cualquier foto, y z-index para
+   que nunca queden tapados por el zoom de la imagen al hover.
+--------------------------------------------------------------------- */
+.event-city-badge,
+.event-category-icon,
+.event-wishlist,
+.event-hot-badge {
+  z-index: 2;
+  box-shadow: 0 4px 14px rgba(4, 9, 16, 0.35);
+}
+
+.sold-out-ribbon {
+  z-index: 3;
+  backdrop-filter: blur(2px);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.event-wishlist:active {
+  transform: scale(0.88);
+}
+
+/* ---------------------------------------------------------------------
+   5. Acciones del hero y barras de filtros — envolver con gracia
+--------------------------------------------------------------------- */
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.sales-points-toolbar,
+.newsletter-form,
+.security-features,
+.hero-meta {
+  flex-wrap: wrap;
+}
+
+.newsletter-input-wrap {
+  min-width: 0;
+}
+
+/* La barra de filtros es un carrusel horizontal: NO debe envolver.
+   (Antes forzábamos flex-wrap y "Comedia" saltaba de línea suelta.) */
+.filters-scroll {
+  flex-wrap: nowrap;
+  scroll-snap-type: x proximity;
+}
+
+.filters-scroll .filter-btn {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.filters-container {
+  align-items: center;
+}
+
+/* ---------------------------------------------------------------------
+   6. Pulido de tarjetas (eventos, colaboración, puntos de venta)
+   Curva de elevación más suave y borde dorado al pasar el cursor.
+--------------------------------------------------------------------- */
+.event-card,
+.collab-card,
+.sales-point-card,
+.trust-info-card {
+  transition:
+    transform 0.28s var(--bmx-ease),
+    box-shadow 0.28s var(--bmx-ease),
+    border-color 0.28s var(--bmx-ease);
+  will-change: transform;
+}
+
+.collab-card:hover,
+.sales-point-card:hover,
+.trust-info-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--bmx-line);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.32);
+}
+
+/* Imagen del producto de colaboración: misma proporción que eventos */
+.collab-card-img {
+  position: relative;
+  overflow: hidden;
+}
+
+.collab-card-img img {
+  transition: transform 0.5s var(--bmx-ease);
+}
+
+.collab-card:hover .collab-card-img img {
+  transform: scale(1.05);
+}
+
+/* ---------------------------------------------------------------------
+   7. Encabezados de sección — acento dorado bajo el eyebrow
+--------------------------------------------------------------------- */
+.section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--bmx-gold), transparent);
+}
+
+.section-eyebrow.light::before,
+.section-eyebrow.centered::before {
+  background: linear-gradient(90deg, var(--bmx-gold-soft), transparent);
+}
+
+/* ---------------------------------------------------------------------
+   8. Inputs — foco dorado coherente en toda la plataforma
+--------------------------------------------------------------------- */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--bmx-gold) !important;
+  box-shadow: 0 0 0 3px rgba(214, 180, 95, 0.22) !important;
+}
+
+/* ---------------------------------------------------------------------
+   9. Header — sombra fina al hacer scroll (clase ya togglada por JS)
+--------------------------------------------------------------------- */
+#main-header.scrolled,
+#main-header.is-scrolled {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+/* ---------------------------------------------------------------------
+   10. Detalles finos: scrollbar, selección de texto, links del footer
+--------------------------------------------------------------------- */
+::selection {
+  background: rgba(214, 180, 95, 0.32);
+  color: #fff;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 180, 95, 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(214, 180, 95, 0.35);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(214, 180, 95, 0.6);
+  background-clip: padding-box;
+}
+
+.footer-col ul li a {
+  transition: color 0.18s var(--bmx-ease), padding-left 0.18s var(--bmx-ease);
+}
+
+.footer-col ul li a:hover {
+  color: var(--bmx-gold-soft);
+  padding-left: 4px;
+}
+
+.social-links a {
+  transition: transform 0.18s var(--bmx-ease), color 0.18s var(--bmx-ease);
+}
+
+.social-links a:hover {
+  transform: translateY(-3px);
+  color: var(--bmx-gold);
+}
+
+/* ---------------------------------------------------------------------
+   11. Botones flotantes (ayuda / subir) — capa por encima del contenido
+--------------------------------------------------------------------- */
+.floating-help,
+.scroll-top {
+  z-index: 60;
+}
+
+.scroll-top {
+  transition: transform 0.2s var(--bmx-ease), opacity 0.2s var(--bmx-ease);
+}
+
+.scroll-top:hover {
+  transform: translateY(-3px);
+}
+
+/* ---------------------------------------------------------------------
+   12. Respeto a usuarios con movimiento reducido
+--------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   13. Móvil — refuerzo antiencimamiento en pantallas chicas
+--------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  .event-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .event-card-footer .btn-ver-mas {
+    width: 100%;
+  }
+
+  .hero-actions .btn-hero-primary,
+  .hero-actions .btn-hero-secondary {
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   14. Flechas del slider hero — fuera del texto
+   Antes vivían en top:50% (centro vertical) y left/right:24px, justo
+   ENCIMA de la descripción del evento (texto alineado a la izquierda).
+   Las llevamos al borde inferior derecho, en pareja, lejos del texto y
+   sin chocar con los dots (que van abajo al centro).
+--------------------------------------------------------------------- */
+.hero-nav {
+  top: auto;
+  bottom: 24px;
+  transform: none;
+  width: 44px;
+  height: 44px;
+}
+
+.hero-prev {
+  left: auto;
+  right: 80px;
+}
+
+.hero-next {
+  right: 24px;
+}
+
+.hero-nav:active {
+  transform: scale(0.92);
+}
+
+/* En móvil el style.css ya las oculta (display:none) — no las reactivamos. */
+
+/* ---------------------------------------------------------------------
+   15. Sección "Alianza" (collab) — legibilidad sobre fondo oscuro
+   El título y los logos usaban color oscuro (var(--primary)) heredado
+   del tema claro: quedaban casi invisibles. Los pasamos a tono claro.
+--------------------------------------------------------------------- */
+.collab-logo-main {
+  color: #f4ecd8;
+}
+
+.collab-logo-main strong {
+  color: var(--bmx-gold-soft);
+}
+
+.collab-logo-partner {
+  color: #d8c9a6;
+}
+
+.collab-logo-partner strong {
+  color: #e7b765;
+}
+
+.collab-x {
+  color: rgba(245, 238, 220, 0.5);
+}
+
+.collab-title-wrap h2 {
+  color: #fff7eb;
+}
+
+.collab-title-wrap p {
+  color: rgba(232, 224, 206, 0.72);
+}
+
+.collab-badge {
+  background: linear-gradient(135deg, #1a2740, #243a5e);
+  color: var(--bmx-gold-soft);
+  border: 1px solid rgba(214, 180, 95, 0.28);
+}
+
+/* El badge ahora vive dentro de .collab-title-wrap (arriba del título),
+   ya no como hermano que se interpone a un lado. */
+.collab-title-wrap .collab-badge {
+  margin-bottom: 14px;
+}

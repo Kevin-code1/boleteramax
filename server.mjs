@@ -39,7 +39,7 @@ const CHECKOUT_QUOTE_TTL_MS = 10 * 60 * 1000;
 const CHECKOUT_SIGNING_SECRET =
   process.env.CHECKOUT_SIGNING_SECRET ||
   process.env.SESSION_SECRET ||
-  'boletamax-dev-checkout-signing-secret';
+  (process.env.NODE_ENV === 'production' ? '' : 'boletamax-dev-checkout-signing-secret');
 const TURNSTILE_SITE_KEY = String(process.env.TURNSTILE_SITE_KEY || '').trim();
 const TURNSTILE_SECRET_KEY = String(process.env.TURNSTILE_SECRET_KEY || '').trim();
 const TURNSTILE_ENABLED = Boolean(TURNSTILE_SITE_KEY && TURNSTILE_SECRET_KEY);
@@ -57,6 +57,13 @@ if (
   process.exit(1);
 }
 const ADMIN_API_KEY = String(process.env.ADMIN_API_KEY || '').trim();
+if (process.env.NODE_ENV === 'production' && !CHECKOUT_SIGNING_SECRET) {
+  console.error('\n======================================================================');
+  console.error('BoletaMax Security ERROR: CHECKOUT_SIGNING_SECRET no configurado en produccion.');
+  console.error('El servidor se detiene para evitar cotizaciones firmadas con secreto de desarrollo.');
+  console.error('======================================================================\n');
+  process.exit(1);
+}
 if (process.env.NODE_ENV === 'production' && !ADMIN_API_KEY) {
   console.error('\n======================================================================');
   console.error('BoletaMax Security ERROR: ADMIN_API_KEY no configurada en producción.');
