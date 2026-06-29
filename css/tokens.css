@@ -1,0 +1,75 @@
+/* =====================================================================
+   BoletaMax · Tokens semánticos (tokens.css)
+   ---------------------------------------------------------------------
+   Fuente única de verdad para color y tipografía. Se carga ANTES que
+   style.css. Define tokens NUEVOS (--bmx-*) que consume enhancements.css
+   (cargado al final). No reescribe ni rompe el style.css existente.
+   Paleta alineada al tema activo: azul noche + dorado (E-commerce Luxury).
+   ===================================================================== */
+
+:root {
+  /* ── Superficies ───────────────────────────────────────────── */
+  --bmx-bg: #070d16;            /* fondo base */
+  --bmx-surface: #0b1627;       /* tarjetas / paneles */
+  --bmx-surface-2: #10233d;     /* superficie elevada */
+  --bmx-surface-3: #16314f;     /* hover / activo */
+
+  /* ── Texto (contraste verificado sobre superficies oscuras) ─── */
+  --bmx-on-surface: #fff7eb;          /* texto principal  (~15:1) */
+  --bmx-on-surface-strong: #ffffff;   /* títulos / énfasis */
+  --bmx-on-surface-muted: rgba(236, 228, 210, 0.74); /* secundario ≥4.5:1 */
+  --bmx-on-surface-faint: rgba(220, 214, 198, 0.55); /* terciario, solo decorativo */
+
+  /* ── Acento dorado ─────────────────────────────────────────── */
+  --bmx-gold: #d6b45f;
+  --bmx-gold-soft: #f0d997;
+  --bmx-gold-strong: #b98b25;
+  --bmx-on-accent: #09111e;     /* texto sobre dorado (alto contraste) */
+  --bmx-accent-glow: rgba(214, 180, 95, 0.22);
+
+  /* ── Bordes y líneas ───────────────────────────────────────── */
+  --bmx-border: rgba(255, 255, 255, 0.09);
+  --bmx-border-strong: rgba(214, 180, 95, 0.28);
+  --bmx-ring: rgba(240, 217, 151, 0.55);
+
+  /* ── Estados semánticos ────────────────────────────────────── */
+  --bmx-danger: #f08a7a;
+  --bmx-danger-bg: rgba(142, 79, 68, 0.22);
+  --bmx-success: #57c79a;
+  --bmx-success-bg: rgba(47, 106, 87, 0.22);
+  --bmx-warning: #e7c46b;
+
+  /* ── Tipografía: escala (1.25 ratio) ───────────────────────── */
+  --bmx-fs-xs: 0.75rem;    /* 12 · etiquetas, eyebrows */
+  --bmx-fs-sm: 0.875rem;   /* 14 · texto auxiliar */
+  --bmx-fs-base: 1rem;     /* 16 · cuerpo */
+  --bmx-fs-md: 1.125rem;   /* 18 · subtítulos */
+  --bmx-fs-lg: 1.5rem;     /* 24 · h3 */
+  --bmx-fs-xl: 2rem;       /* 32 · h2 */
+  --bmx-fs-2xl: 2.75rem;   /* 44 · títulos de sección grandes */
+  --bmx-fs-3xl: clamp(2.6rem, 6vw, 4.5rem); /* hero */
+
+  /* ── Tipografía: pesos ─────────────────────────────────────── */
+  --bmx-fw-body: 400;
+  --bmx-fw-label: 500;
+  --bmx-fw-title: 700;
+  --bmx-fw-display: 800;
+
+  /* ── Tipografía: interlineado ──────────────────────────────── */
+  --bmx-lh-tight: 1.15;   /* títulos display */
+  --bmx-lh-snug: 1.3;     /* títulos */
+  --bmx-lh-body: 1.6;     /* cuerpo */
+
+  /* ── Radios y sombras (escala de elevación consistente) ────── */
+  --bmx-radius-sm: 12px;
+  --bmx-radius: 18px;
+  --bmx-radius-lg: 24px;
+  --bmx-shadow-1: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --bmx-shadow-2: 0 18px 44px rgba(0, 0, 0, 0.28);
+  --bmx-shadow-3: 0 28px 64px rgba(0, 0, 0, 0.34);
+
+  /* ── Movimiento ────────────────────────────────────────────── */
+  --bmx-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --bmx-dur-fast: 0.18s;
+  --bmx-dur: 0.28s;
+}

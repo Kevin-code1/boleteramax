@@ -329,8 +329,33 @@ function renderSearchNote(message) {
 function renderSearchAiLabel() {
   const label = document.createElement('div');
   label.className = 'search-results-ai-label';
-  label.textContent = '⚡ Búsqueda con IA';
+  label.innerHTML = '<i class="fas fa-bolt"></i> Búsqueda con IA';
   return label;
+}
+
+// Skeleton shimmer mientras la búsqueda IA responde (mejor que texto plano).
+// Solo presentación: lo reemplazan renderSearchResults/renderSearchState al resolver.
+function renderSearchSkeleton(rows = 3) {
+  searchResultsEl.replaceChildren();
+  searchResultsEl.appendChild(renderSearchAiLabel());
+
+  const live = document.createElement('span');
+  live.className = 'sr-only';
+  live.textContent = 'Buscando eventos…';
+  searchResultsEl.appendChild(live);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'search-results-skeleton';
+  wrap.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < rows; i++) {
+    const row = document.createElement('div');
+    row.className = 'sk-row';
+    row.innerHTML =
+      '<div class="sk-thumb"></div><div class="sk-lines"><div class="sk-line sk-line-lg"></div><div class="sk-line sk-line-sm"></div></div>';
+    wrap.appendChild(row);
+  }
+  searchResultsEl.appendChild(wrap);
+  searchResultsEl.classList.add('visible');
 }
 
 function renderSearchState(title, description, suggestions = []) {
@@ -477,7 +502,7 @@ async function runAiSearch(query) {
 
   if (aiSearchController) aiSearchController.abort();
   aiSearchController = new AbortController();
-  renderSearchState('Buscando eventos...', 'La IA está interpretando tu búsqueda.');
+  renderSearchSkeleton();
 
   try {
     const response = await fetch('/api/ai-search', {
