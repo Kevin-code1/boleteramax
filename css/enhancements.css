@@ -633,3 +633,35 @@ textarea::placeholder,
 .header-container {
   padding-inline: 30px;
 }
+
+/* ---------------------------------------------------------------------
+   22. Buscador visible en móvil (≤680px)
+   Antes el buscador se ocultaba en móvil y el menú no tenía búsqueda:
+   en una boletera, buscar es la acción principal. Lo mantenemos visible
+   en una sola fila (logo · búsqueda · hamburger) usando el MISMO
+   #search-input, así la lógica de búsqueda no cambia. No alteramos la
+   altura sticky del header (sigue en una fila).
+--------------------------------------------------------------------- */
+@media (max-width: 680px) {
+  .header-container {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 10px;
+    padding-inline: 16px;
+  }
+
+  .header-search {
+    display: flex; /* anula el display:none de móvil del style.css base */
+  }
+
+  .header-search-badge {
+    display: none; /* el chip 'Búsqueda con IA' no cabe; el dropdown ya lo indica */
+  }
+}
+
+/* En pantallas muy chicas, el logo se compacta a solo el rayo para dar
+   espacio al buscador (patrón común y limpio en móvil). */
+@media (max-width: 430px) {
+  .logo-text {
+    display: none;
+  }
+}

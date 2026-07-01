@@ -1,0 +1,19 @@
+{
+  "name": "BoletaMax",
+  "short_name": "BoletaMax",
+  "description": "Compra boletos para conciertos, festivales, teatro y deportes con total seguridad.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070d16",
+  "theme_color": "#0b1627",
+  "icons": [
+    {
+      "src": "/assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

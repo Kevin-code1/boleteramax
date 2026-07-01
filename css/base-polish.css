@@ -1,0 +1,70 @@
+/* =====================================================================
+   BoletaMax · Pulido base compartido (base-polish.css)
+   ---------------------------------------------------------------------
+   Reglas GLOBALES seguras para páginas con <style> inline propio
+   (checkout, ticket, validate). NO incluye selectores del landing.
+   Diseñado para no chocar: el foco usa :where() (especificidad 0), así
+   que cualquier regla de la página gana. Lo demás es cosmético/a11y.
+   Se carga ANTES del <style> inline de cada página.
+   ===================================================================== */
+
+/* Foco visible accesible (fallback). Especificidad 0 → la página manda. */
+:where(a, button, input, textarea, select, [tabindex], [role="button"]):focus-visible {
+  outline: 3px solid var(--bmx-ring, rgba(240, 217, 151, 0.55));
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Scrollbar fina dorada, coherente con el tema */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 180, 95, 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(214, 180, 95, 0.35);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(214, 180, 95, 0.6);
+  background-clip: padding-box;
+}
+
+/* Selección de texto en tono de marca */
+::selection {
+  background: rgba(214, 180, 95, 0.32);
+  color: #fff;
+}
+
+/* Utilidad solo para lectores de pantalla */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Respeto a usuarios con movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

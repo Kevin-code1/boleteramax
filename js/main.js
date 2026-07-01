@@ -228,6 +228,7 @@ function initCounters() {
 const searchInput = document.getElementById('search-input');
 const searchResultsEl = document.getElementById('search-results');
 const SEARCH_DEBOUNCE_MS = 420;
+const AI_SEARCH_TIMEOUT_MS = 6000; // si /api/ai-search no responde, caemos al fallback local
 const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
 const SEARCH_CATEGORY_ICONS = {
   musica: 'fas fa-music',
@@ -502,6 +503,14 @@ async function runAiSearch(query) {
 
   if (aiSearchController) aiSearchController.abort();
   aiSearchController = new AbortController();
+  // Timeout de red: si /api/ai-search no responde a tiempo, abortamos y
+  // caemos al fallback local (evita el skeleton colgado indefinidamente).
+  const controller = aiSearchController;
+  let timedOut = false;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, AI_SEARCH_TIMEOUT_MS);
   renderSearchSkeleton();
 
   try {
@@ -509,7 +518,7 @@ async function runAiSearch(query) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: trimmedQuery }),
-      signal: aiSearchController.signal,
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -531,8 +540,13 @@ async function runAiSearch(query) {
       SEARCH_SUGGESTIONS,
     );
   } catch (error) {
-    if (error.name === 'AbortError') return;
+    // AbortError SIN timedOut = otra búsqueda más nueva reemplazó a esta →
+    // no hacemos nada. Si fue timeout (o error de red) → fallback local.
+    if (error.name === 'AbortError' && !timedOut) return;
 
+    // Aseguramos el catálogo local antes del fallback (por si aún no cargó),
+    // así el fallback muestra resultados reales en vez de quedar vacío.
+    await loadLocalEventsCatalog();
     const fallbackResults = fallbackLocalSearch(trimmedQuery);
     if (searchInput.value.trim() !== trimmedQuery) return;
 
@@ -553,6 +567,8 @@ async function runAiSearch(query) {
       'Intenta otra frase como “eventos de comedia” o “algo barato en Chihuahua”.',
       SEARCH_SUGGESTIONS,
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -586,6 +602,26 @@ if (searchInput && searchResultsEl) {
         e.preventDefault();
         firstResult.focus();
       }
+    }
+  });
+
+  // Navegación con flechas ↑/↓ entre resultados (combobox accesible).
+  // Enter activa de forma nativa (son <button>); Escape cierra y vuelve al input.
+  searchResultsEl.addEventListener('keydown', e => {
+    const items = [...searchResultsEl.querySelectorAll('.search-result-item:not(:disabled)')];
+    if (!items.length) return;
+    const idx = items.indexOf(document.activeElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      (items[idx + 1] || items[0]).focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (idx <= 0) searchInput.focus();
+      else items[idx - 1].focus();
+    } else if (e.key === 'Escape') {
+      searchResultsEl.classList.remove('visible');
+      searchInput.focus();
     }
   });
 
@@ -645,6 +681,33 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+});
+
+// Focus-trap: mantiene el foco dentro del modal abierto (Tab / Shift+Tab).
+// Complementa el guardado/restauración de foco que ya hacen open/closeModal.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const overlay = document.querySelector('.modal-overlay.open');
+  if (!overlay) return;
+
+  const focusables = [...overlay.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )].filter(el => el.offsetParent !== null); // solo visibles
+  if (!focusables.length) return;
+
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+
+  if (!overlay.contains(document.activeElement)) {
+    e.preventDefault();
+    first.focus();
+  } else if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
 });
 
 // =================== LOGIN / REGISTER ===================
