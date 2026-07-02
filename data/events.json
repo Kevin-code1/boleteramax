@@ -8,7 +8,7 @@
     "price": 850,
     "priceLabel": "$850 MXN",
     "category": "musica",
-    "venueType": "palenque",
+    "venueType": "estadio",
     "available": true,
     "keywords": ["rock", "concierto", "guitarras", "musica", "show", "premium"],
     "description": "La experiencia de rock más grande del año con artistas internacionales."
@@ -22,7 +22,7 @@
     "price": 1200,
     "priceLabel": "$1,200 MXN",
     "category": "musica",
-    "venueType": "palenque",
+    "venueType": "festival",
     "available": true,
     "keywords": ["festival", "musica", "verano", "artistas", "experiencia", "fin de semana"],
     "description": "Tres días de música, artistas y experiencias exclusivas."
@@ -92,7 +92,7 @@
     "price": 750,
     "priceLabel": "$750 MXN",
     "category": "musica",
-    "venueType": "palenque",
+    "venueType": "festival",
     "available": true,
     "keywords": ["urbano", "musica", "reggaeton", "fiesta", "gdl"],
     "description": "Evento de música urbana con ambiente nocturno."
