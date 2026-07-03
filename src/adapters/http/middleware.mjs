@@ -95,6 +95,14 @@ export const ticketQueryLimiter = rateLimit({
   message: { ok: false, message: 'Demasiadas consultas de boletos. Espera un momento.' },
 });
 
+export const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, message: 'Demasiados intentos. Espera un momento.' },
+});
+
 // ── Middleware de autenticación para staff/admin ──
 export function requireAdminAuth(req, res, next) {
   if (!ADMIN_API_KEY) {

@@ -10,6 +10,7 @@ import {
 import {
   apiGeneralLimiter,
   aiSearchLimiter,
+  authLimiter,
   blockSensitiveFiles,
   purchaseLimiter,
   requireAdminAuth,
@@ -17,6 +18,7 @@ import {
   ticketQueryLimiter,
   validationLimiter,
 } from './middleware.mjs';
+import { clearSessionCookie, getSessionCookie, setSessionCookie } from './cookies.mjs';
 
 function getPublicBaseUrl(req) {
   const configuredBaseUrl = String(process.env.PUBLIC_BASE_URL || '').trim();
@@ -30,7 +32,19 @@ function getPublicBaseUrl(req) {
 }
 
 export function createApp({ services }) {
-  const { searchEvents, availability, checkout, ticketQueries, validateTicket } = services;
+  const { searchEvents, availability, checkout, ticketQueries, validateTicket, auth, account } = services;
+
+  // Usuario de la sesión (cookie httpOnly) o null; nunca falla la request.
+  async function resolveSessionUser(req) {
+    try {
+      return await auth.getSessionUser(getSessionCookie(req));
+    } catch (error) {
+      console.error('BoletaMax Auth: session lookup failed', {
+        message: error?.message || 'Error desconocido',
+      });
+      return null;
+    }
+  }
 
   const app = express();
   app.disable('x-powered-by');
@@ -78,6 +92,91 @@ export function createApp({ services }) {
           : 'Cloudflare Turnstile listo para activar configurando TURNSTILE_SITE_KEY y TURNSTILE_SECRET_KEY.',
       },
     });
+  });
+
+  // ── Cuentas de compradores (separadas del staff: x-admin-key) ──
+  app.post('/api/auth/register', authLimiter, async (req, res) => {
+    try {
+      const result = await auth.register({
+        name: req.body?.name,
+        email: req.body?.email,
+        password: req.body?.password,
+      });
+
+      if (result.outcome === 'invalid') {
+        return res.status(400).json({ ok: false, message: result.errors[0], errors: result.errors });
+      }
+      if (result.outcome === 'email_taken') {
+        return res.status(409).json({ ok: false, message: 'Ya existe una cuenta con ese correo.' });
+      }
+
+      setSessionCookie(res, result.sessionToken, result.expiresAt);
+      return res.status(201).json({ ok: true, user: result.user });
+    } catch (error) {
+      console.error('BoletaMax Auth: register failed', {
+        message: error?.message || 'Error desconocido',
+      });
+      return res.status(500).json({ ok: false, message: 'No fue posible crear la cuenta en este momento.' });
+    }
+  });
+
+  app.post('/api/auth/login', authLimiter, async (req, res) => {
+    try {
+      const result = await auth.login({
+        email: req.body?.email,
+        password: req.body?.password,
+      });
+
+      if (result.outcome !== 'ok') {
+        return res.status(401).json({ ok: false, message: 'Correo o contraseña incorrectos.' });
+      }
+
+      setSessionCookie(res, result.sessionToken, result.expiresAt);
+      return res.json({ ok: true, user: result.user });
+    } catch (error) {
+      console.error('BoletaMax Auth: login failed', {
+        message: error?.message || 'Error desconocido',
+      });
+      return res.status(500).json({ ok: false, message: 'No fue posible iniciar sesión en este momento.' });
+    }
+  });
+
+  app.post('/api/auth/logout', async (req, res) => {
+    try {
+      await auth.logout(getSessionCookie(req));
+    } catch (error) {
+      console.error('BoletaMax Auth: logout failed', {
+        message: error?.message || 'Error desconocido',
+      });
+    }
+    clearSessionCookie(res);
+    return res.json({ ok: true });
+  });
+
+  app.get('/api/auth/me', async (req, res) => {
+    const user = await resolveSessionUser(req);
+    if (!user) {
+      return res.status(401).json({ ok: false, message: 'No has iniciado sesión.' });
+    }
+    return res.json({ ok: true, user: { email: user.email, displayName: user.displayName } });
+  });
+
+  app.get('/api/account/tickets', ticketQueryLimiter, async (req, res) => {
+    const user = await resolveSessionUser(req);
+    if (!user) {
+      return res.status(401).json({ ok: false, message: 'Inicia sesión para ver tus boletos.' });
+    }
+
+    try {
+      const result = await account.getMyTickets(user.id);
+      return res.json({ ok: true, tickets: result.tickets });
+    } catch (error) {
+      console.error('BoletaMax Account: tickets read failed', {
+        mode: TICKETS_STORAGE_MODE,
+        message: error?.message || 'Error desconocido',
+      });
+      return res.status(500).json({ ok: false, message: 'No fue posible consultar tus boletos en este momento.' });
+    }
   });
 
   // ── Disponibilidad por descriptor de evento (name/date/venue) ──
@@ -133,9 +232,13 @@ export function createApp({ services }) {
 
   app.post('/api/tickets', purchaseLimiter, async (req, res) => {
     try {
+      // Compra de invitado o de usuario logueado: la sesión solo agrega
+      // propiedad de la orden, nunca bloquea la compra.
+      const sessionUser = await resolveSessionUser(req);
       const result = await checkout.purchase(req.body, {
         publicBaseUrl: getPublicBaseUrl(req),
         requestContext: req,
+        userId: sessionUser?.id || null,
       });
 
       if (result.outcome === 'invalid') {
@@ -241,7 +344,10 @@ export function createApp({ services }) {
 
   app.get('/api/tickets/:ticketId/dynamic-qr', ticketQueryLimiter, async (req, res) => {
     const token = String(req.headers['x-ticket-token'] || '').trim();
-    const result = await ticketQueries.getDynamicQr(req.params.ticketId, token);
+    const sessionUser = await resolveSessionUser(req);
+    const result = await ticketQueries.getDynamicQr(req.params.ticketId, token, {
+      sessionUserId: sessionUser?.id || null,
+    });
 
     if (result.outcome === 'storage_error') {
       return res.status(500).json({
@@ -293,7 +399,10 @@ export function createApp({ services }) {
     const token = String(req.headers['x-ticket-token'] || '').trim();
 
     try {
-      const result = await ticketQueries.getTicketDetail(ticketId, token);
+      const sessionUser = await resolveSessionUser(req);
+      const result = await ticketQueries.getTicketDetail(ticketId, token, {
+        sessionUserId: sessionUser?.id || null,
+      });
 
       if (result.outcome === 'not_found') {
         return res.status(404).json({

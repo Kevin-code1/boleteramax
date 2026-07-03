@@ -9,6 +9,7 @@ fintech-platform/
 
 # Datos transaccionales (contienen tokens privados de boletos)
 data/tickets.json
+data/users.json
 data/backups/
 data/**/*.backup.json
 data/**/*.bak.json

@@ -161,7 +161,50 @@
             return card;
         }
 
+        // Modo cuenta (?mine=1): los boletos vienen de la sesión del usuario
+        // (cookie httpOnly). El QR dinámico también se autoriza por sesión,
+        // así que no se necesitan tokens en sessionStorage.
+        async function loadAccountTickets() {
+            const params = new URLSearchParams(window.location.search);
+            const wanted = (params.get('ticketIds') || '')
+                .split(',')
+                .map(id => id.trim())
+                .filter(Boolean);
+
+            try {
+                const response = await fetch('/api/account/tickets');
+                const payload = await response.json();
+
+                if (response.status === 401) {
+                    throw new Error(payload.message || 'Inicia sesión para ver tus boletos.');
+                }
+                if (!response.ok || !payload.ok) {
+                    throw new Error(payload.message || 'No se pudieron cargar tus boletos.');
+                }
+
+                let tickets = Array.isArray(payload.tickets) ? payload.tickets : [];
+                if (wanted.length) {
+                    tickets = tickets.filter(ticket => wanted.includes(ticket.ticketId));
+                }
+                if (!tickets.length) {
+                    throw new Error('No encontramos boletos en tu cuenta.');
+                }
+
+                renderSummary(tickets);
+                ticketsGrid.replaceChildren(...tickets.map(renderTicket));
+                stateEl.remove();
+                startDynamicQrLoop();
+            } catch (error) {
+                stateEl.textContent = error.message || 'No se pudieron cargar tus boletos.';
+            }
+        }
+
         async function loadTickets() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('mine') === '1') {
+                return loadAccountTickets();
+            }
+
             const ticketIds = getTicketIds();
             const tokensMap = getTicketTokens();
             const resolvedIds = ticketIds.length ? ticketIds : Object.keys(tokensMap);

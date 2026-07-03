@@ -1,0 +1,116 @@
+/* Cuenta de comprador: menú del header y modal Mis Boletos */
+
+/* [hidden] debe ganar aunque los botones tengan display propio */
+.header-cta [hidden],
+.mobile-menu [hidden] {
+  display: none !important;
+}
+
+/* Mis Boletos */
+.account-modal-box {
+  max-width: 560px;
+}
+
+.account-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+.account-state {
+  color: var(--bmx-on-surface-muted);
+  text-align: center;
+  padding: 18px 8px;
+}
+
+.account-ticket-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--bmx-border);
+  border-radius: var(--bmx-radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ati-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ati-head strong {
+  font-size: 1rem;
+}
+
+.ati-status {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ati-status.active {
+  background: var(--bmx-success-bg);
+  color: var(--bmx-success);
+}
+
+.ati-status.used {
+  background: rgba(231, 196, 107, 0.14);
+  color: var(--bmx-warning);
+}
+
+.ati-status.cancelled {
+  background: var(--bmx-danger-bg);
+  color: var(--bmx-danger);
+}
+
+.ati-meta {
+  color: var(--bmx-on-surface-muted);
+  font-size: 0.85rem;
+}
+
+.ati-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ati-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.2s var(--bmx-ease), background 0.2s ease, border-color 0.2s ease;
+}
+
+.ati-actions a:hover {
+  transform: translateY(-1px);
+}
+
+.ati-view-qr {
+  background: linear-gradient(135deg, #d4ab68 0%, #f0d39b 100%);
+  color: #17191c;
+  border: 1px solid rgba(240, 211, 155, 0.55);
+}
+
+.ati-public-link {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--bmx-on-surface);
+  border: 1px solid var(--bmx-border);
+}
+
+.ati-public-link:hover {
+  border-color: var(--bmx-border-strong);
+}

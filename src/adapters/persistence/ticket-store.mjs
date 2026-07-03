@@ -9,6 +9,7 @@ import {
   serializeTicketForPublic,
   verifyTicketPrivateToken,
 } from '../../../db/tickets.storage.mjs';
+import { findTicketsByUserId } from '../../../db/tickets.repository.mjs';
 import {
   persistTicketPurchaseByWriteMode,
   writeTicketPurchaseToPostgresIfEnabled,
@@ -106,6 +107,23 @@ export function createTicketStore({ logger = console } = {}) {
     verifyPrivateToken: verifyTicketPrivateToken,
     getDynamicSecret: getTicketDynamicSecret,
     serializePublic: ticket => serializeTicketForPublic(ticket, { buildPublicTicketPath }),
+
+    // Propiedad del boleto: ownerUserId viene de orders.user_id (PostgreSQL)
+    // y userId del registro JSON (compras nuevas de usuarios logueados).
+    isOwnedBy: (ticket, userId) =>
+      Boolean(userId) &&
+      (ticket?.ownerUserId === userId || ticket?.userId === userId),
+
+    getTicketsByUserId: async userId => {
+      const cleanUserId = String(userId || '').trim();
+      if (!cleanUserId) return [];
+
+      if (TICKETS_STORAGE_MODE === 'json') {
+        return readTickets().filter(ticket => ticket.userId === cleanUserId);
+      }
+
+      return findTicketsByUserId(cleanUserId);
+    },
 
     // Escritura de una compra dentro del write-lock, respetando el write-mode.
     saveNewTickets: async ({ existingTickets, newTickets }) => {

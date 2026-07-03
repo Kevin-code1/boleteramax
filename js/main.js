@@ -6,12 +6,11 @@
 import { showToast } from './modules/toast.js';
 import { openModal, closeModal, switchModal } from './modules/modals.js';
 import {
-  handleLogin,
-  handleRegister,
   showFurnitureQuickView,
   subscribeNewsletter,
   togglePass,
 } from './modules/ui.js';
+import { handleLogin, handleRegister } from './modules/auth.js';
 import { openTicketModal, proceedCheckout, removeSeat } from './modules/seatmap.js';
 import './modules/search.js';
 

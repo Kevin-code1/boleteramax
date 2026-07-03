@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/enhancements.css" />
     <link rel="stylesheet" href="css/landing-polish.css" />
+    <link rel="stylesheet" href="css/account.css" />
 </head>
 
 <body>
@@ -103,6 +104,13 @@
                 <button class="btn-register" id="btn-register-header" onclick="openModal('register-modal')">
                     Registrarse
                 </button>
+                <button class="btn-register" id="btn-my-tickets" hidden>
+                    <i class="fas fa-ticket"></i> Mis boletos
+                </button>
+                <button class="btn-login" id="btn-logout" hidden>
+                    <i class="fas fa-right-from-bracket"></i>
+                    <span id="header-user-name">Salir</span>
+                </button>
             </div>
 
             <!-- Hamburger -->
@@ -118,8 +126,10 @@
             <a href="#puntos-venta">Puntos de Venta</a>
             <a href="#contacto">Contacto</a>
             <hr />
-            <button onclick="openModal('login-modal')"><i class="fas fa-user-circle"></i> Iniciar Sesión</button>
-            <button onclick="openModal('register-modal')">Registrarse Gratis</button>
+            <button id="mobile-login-btn" onclick="openModal('login-modal')"><i class="fas fa-user-circle"></i> Iniciar Sesión</button>
+            <button id="mobile-register-btn" onclick="openModal('register-modal')">Registrarse Gratis</button>
+            <button id="mobile-my-tickets" hidden><i class="fas fa-ticket"></i> Mis boletos</button>
+            <button id="mobile-logout" hidden><i class="fas fa-right-from-bracket"></i> Cerrar sesión</button>
         </div>
     </header>
 
@@ -1070,16 +1080,16 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Nombre</label>
-                        <input type="text" placeholder="Juan" required />
+                        <input type="text" id="reg-name" placeholder="Juan" required />
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Apellido</label>
-                        <input type="text" placeholder="García" required />
+                        <input type="text" id="reg-lastname" placeholder="García" required />
                     </div>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-envelope"></i> Correo Electrónico</label>
-                    <input type="email" placeholder="tu@correo.com" required />
+                    <input type="email" id="reg-email" placeholder="tu@correo.com" required />
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Contraseña</label>
@@ -1335,6 +1345,21 @@
                             resolvemos.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mis Boletos Modal -->
+    <div class="modal-overlay" id="account-modal">
+        <div class="modal-box account-modal-box">
+            <button class="modal-close" onclick="closeModal('account-modal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <div class="modal-logo"><i class="fas fa-bolt"></i> <strong>BoletaMax</strong></div>
+                <h2>Mis Boletos</h2>
+                <p id="account-modal-subtitle">Boletos comprados con tu cuenta</p>
+            </div>
+            <div class="account-tickets" id="account-tickets-list">
+                <p class="account-state" id="account-tickets-state">Cargando tus boletos...</p>
             </div>
         </div>
     </div>

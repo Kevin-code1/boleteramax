@@ -191,6 +191,7 @@ function mapTicketRow(row) {
     cancelledAt: row.cancelled_at ? new Date(row.cancelled_at).toISOString() : null,
     privateViewTokenHash: row.private_view_token_hash,
     dynamicSecret: row.private_view_token_hash,
+    ownerUserId: row.order_user_id || null,
     storageSource: 'postgres',
   };
 }
@@ -215,6 +216,7 @@ async function fetchTicketRowsByCodes(ticketCodes, dbClient = null) {
         o.payment_method,
         o.total_cents AS order_total_cents,
         o.metadata AS order_metadata,
+        o.user_id AS order_user_id,
         e.id::text AS event_id,
         e.external_reference AS event_external_reference,
         e.name AS event_name,
@@ -254,6 +256,55 @@ export async function findTicketByCode(ticketCode, dbClient = null) {
 
   const tickets = await findTicketsByCodes([code], dbClient);
   return tickets[0] || null;
+}
+
+export async function findTicketsByUserId(userId, dbClient = null) {
+  const cleanUserId = String(userId || '').trim();
+  if (!cleanUserId) return [];
+
+  const result = await run(
+    dbClient,
+    `
+      SELECT
+        t.id AS ticket_uuid,
+        t.ticket_code,
+        t.private_view_token_hash,
+        t.status AS ticket_status,
+        t.validation_count,
+        t.used_at,
+        t.cancelled_at,
+        t.created_at AS ticket_created_at,
+        t.metadata AS ticket_metadata,
+        o.order_number,
+        o.payment_method,
+        o.total_cents AS order_total_cents,
+        o.metadata AS order_metadata,
+        o.user_id AS order_user_id,
+        e.id::text AS event_id,
+        e.external_reference AS event_external_reference,
+        e.name AS event_name,
+        e.starts_at,
+        e.metadata AS event_metadata,
+        v.name AS venue_name,
+        sec.name AS section_name,
+        s.seat_code,
+        s.row_label,
+        s.seat_number,
+        s.table_label,
+        s.table_seat_number
+      FROM tickets t
+      JOIN orders o ON o.id = t.order_id
+      JOIN events e ON e.id = t.event_id
+      JOIN venues v ON v.id = e.venue_id
+      LEFT JOIN seats s ON s.id = t.seat_id
+      LEFT JOIN sections sec ON sec.id = s.section_id
+      WHERE o.user_id = $1
+      ORDER BY t.created_at DESC
+    `,
+    [cleanUserId],
+  );
+
+  return result.rows.map(mapTicketRow).filter(Boolean);
 }
 
 async function upsertVenue(dbClient, ticket) {
@@ -470,9 +521,9 @@ async function upsertOrder(dbClient, ticket, status) {
     `
       INSERT INTO orders (
         order_number, buyer_email, buyer_name, status, subtotal_cents,
-        fee_cents, total_cents, payment_method, metadata, created_at, updated_at
+        fee_cents, total_cents, payment_method, metadata, created_at, updated_at, user_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10::timestamptz, now()), now())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10::timestamptz, now()), now(), $11)
       ON CONFLICT (order_number) DO UPDATE
       SET status = CASE
             WHEN orders.status IN ('paid', 'fulfilled') THEN orders.status
@@ -480,6 +531,7 @@ async function upsertOrder(dbClient, ticket, status) {
           END,
           total_cents = GREATEST(orders.total_cents, EXCLUDED.total_cents),
           metadata = orders.metadata || EXCLUDED.metadata,
+          user_id = COALESCE(orders.user_id, EXCLUDED.user_id),
           updated_at = now()
       RETURNING id
     `,
@@ -497,6 +549,7 @@ async function upsertOrder(dbClient, ticket, status) {
         legacyOrderSeatCount: positiveInt(ticket.orderSeatCount),
       },
       asDateOrNull(ticket.createdAt),
+      ticket.userId || null,
     ],
   );
 

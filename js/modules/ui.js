@@ -2,7 +2,7 @@
    contadores, login/registro, newsletter, scroll y animaciones */
 
 import { showToast } from './toast.js';
-import { openModal, closeModal } from './modals.js';
+import { openModal } from './modals.js';
 
 // =================== PRELOADER ===================
 const preloaderEl = document.getElementById('preloader');
@@ -227,8 +227,7 @@ function initCounters() {
 }
 
 // =================== LOGIN / REGISTER ===================
-export function handleLogin(e) { e.preventDefault(); closeModal('login-modal'); showToast('✅ ¡Bienvenido de vuelta!'); }
-export function handleRegister(e) { e.preventDefault(); closeModal('register-modal'); showToast('🎉 ¡Cuenta creada con éxito!'); }
+// handleLogin/handleRegister reales viven en auth.js (sesión con backend).
 export function togglePass(id) { const input = document.getElementById(id); input.type = input.type === 'password' ? 'text' : 'password'; }
 
 const regPass = document.getElementById('reg-pass');

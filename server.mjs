@@ -5,6 +5,7 @@
 import { ADMIN_API_KEY, PORT, TURNSTILE_ENABLED } from './src/config/index.mjs';
 import { createEventsCatalog } from './src/adapters/catalog/events-catalog.mjs';
 import { createTicketStore } from './src/adapters/persistence/ticket-store.mjs';
+import { createUserStore } from './src/adapters/persistence/user-store.mjs';
 import { createAiFilterInference, hasOpenAIKey } from './src/adapters/ai/openai-filters.mjs';
 import { createTurnstileVerifier } from './src/adapters/captcha/turnstile.mjs';
 import { createQrCodeGenerator } from './src/adapters/qr/qr-codes.mjs';
@@ -13,11 +14,14 @@ import { createAvailability } from './src/application/availability.mjs';
 import { createCheckout } from './src/application/checkout.mjs';
 import { createTicketQueries } from './src/application/tickets.mjs';
 import { createValidateTicket } from './src/application/validate-ticket.mjs';
+import { createAuth } from './src/application/auth.mjs';
+import { createAccount } from './src/application/account.mjs';
 import { createApp } from './src/adapters/http/app.mjs';
 
 // ── Adaptadores (puertos de salida) ──
 const catalog = createEventsCatalog();
 const ticketStore = createTicketStore({ logger: console });
+const userStore = await createUserStore();
 const aiFilters = createAiFilterInference({ catalog });
 const captcha = createTurnstileVerifier();
 const qr = createQrCodeGenerator();
@@ -31,6 +35,8 @@ const services = {
   checkout: createCheckout({ catalog, ticketStore, captcha, qr }),
   ticketQueries: createTicketQueries({ ticketStore, qr }),
   validateTicket: createValidateTicket({ ticketStore }),
+  auth: createAuth({ userStore }),
+  account: createAccount({ ticketStore }),
 };
 
 // ── Adaptador HTTP (puerto de entrada) ──

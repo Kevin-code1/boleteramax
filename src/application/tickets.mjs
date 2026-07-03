@@ -61,13 +61,21 @@ export function createTicketQueries({ ticketStore, qr }) {
     return { outcome: 'ok', tickets: validTickets };
   }
 
-  async function getTicketDetail(rawTicketId, token) {
+  // Autorización privada: token del boleto, o sesión del dueño de la compra.
+  function isAuthorizedForPrivateView(ticket, token, sessionUserId) {
+    return (
+      ticketStore.verifyPrivateToken(ticket, token) ||
+      ticketStore.isOwnedBy(ticket, sessionUserId)
+    );
+  }
+
+  async function getTicketDetail(rawTicketId, token, { sessionUserId = null } = {}) {
     const ticketId = String(rawTicketId || '').trim();
 
     const ticket = await ticketStore.getTicketById(ticketId);
     if (!ticket) return { outcome: 'not_found' };
 
-    if (!ticketStore.verifyPrivateToken(ticket, token)) {
+    if (!isAuthorizedForPrivateView(ticket, token, sessionUserId)) {
       console.warn('BoletaMax Tickets: unauthorized private detail access attempt', { ticketId });
       return { outcome: 'unauthorized' };
     }
@@ -75,7 +83,7 @@ export function createTicketQueries({ ticketStore, qr }) {
     return { outcome: 'ok', ticket: ticketStore.serializePublic(ticket) };
   }
 
-  async function getDynamicQr(rawTicketId, token) {
+  async function getDynamicQr(rawTicketId, token, { sessionUserId = null } = {}) {
     const ticketId = String(rawTicketId || '').trim();
     console.log('BoletaMax QR: request', { ticketId });
 
@@ -96,7 +104,7 @@ export function createTicketQueries({ ticketStore, qr }) {
       return { outcome: 'not_found' };
     }
 
-    if (!ticketStore.verifyPrivateToken(ticket, token)) {
+    if (!isAuthorizedForPrivateView(ticket, token, sessionUserId)) {
       console.warn('BoletaMax QR: unauthorized access attempt', { ticketId });
       return { outcome: 'unauthorized' };
     }

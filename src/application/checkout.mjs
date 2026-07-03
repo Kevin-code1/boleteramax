@@ -16,7 +16,7 @@ import {
 } from '../domain/tickets.mjs';
 
 export function createCheckout({ catalog, ticketStore, captcha, qr }) {
-  async function buildTicketRecord({ orderId, event, seat, totalPaid, paymentMethod, orderSeatCount, publicBaseUrl }) {
+  async function buildTicketRecord({ orderId, event, seat, totalPaid, paymentMethod, orderSeatCount, publicBaseUrl, userId }) {
     const eventId = buildEventId(event);
     const ticketId = createTicketId();
     const token = createTicketToken();
@@ -40,6 +40,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
       orderSeatCount,
       status: 'active',
       validationCount: 0,
+      userId: userId || null, // dueño de la compra; null = invitado
       publicPath,
       publicUrl,
       createdAt: new Date().toISOString(),
@@ -69,7 +70,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
     return { outcome: 'ok', quote: checkoutQuote };
   }
 
-  async function purchase(rawBody, { publicBaseUrl, requestContext }) {
+  async function purchase(rawBody, { publicBaseUrl, requestContext, userId = null }) {
     const purchaseRequest = sanitizePurchasePayload(rawBody);
 
     // ── 1. Validar estructura del request ──
@@ -126,6 +127,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
             paymentMethod: purchaseRequest.paymentMethod,
             orderSeatCount,
             publicBaseUrl,
+            userId,
           }),
         ),
       );
