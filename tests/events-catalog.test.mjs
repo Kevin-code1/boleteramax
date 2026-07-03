@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Evitar el fail-fast de postgres-primary al importar server/config.mjs
+// Evitar el fail-fast de postgres-primary al importar src/config
 // en entornos sin DATABASE_URL.
 process.env.TICKETS_STORAGE = 'json';
 process.env.TICKETS_WRITE_MODE = 'json';
 
-const { findCatalogEvent } = await import('../server/events.mjs');
+const { createEventsCatalog } = await import('../src/adapters/catalog/events-catalog.mjs');
+const { findCatalogEvent } = createEventsCatalog();
 
 test('unknown event name without date/venue does not match the catalog', () => {
   const match = findCatalogEvent({ name: 'Evento Que No Existe' });

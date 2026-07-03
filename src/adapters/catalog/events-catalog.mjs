@@ -1,14 +1,8 @@
 import fs from 'fs';
-import { EVENTS_PATH } from './config.mjs';
-import { textValuesMatch } from './text.mjs';
+import { EVENTS_PATH } from '../../config/index.mjs';
+import { textValuesMatch } from '../../domain/text.mjs';
 
-export const eventsCatalog = JSON.parse(fs.readFileSync(EVENTS_PATH, 'utf8'));
-
-export function uniqueCities(events = eventsCatalog) {
-  return [...new Set(events.map(event => event.city))];
-}
-
-export function findCatalogEvent(event = {}) {
+export function findCatalogEventIn(eventsCatalog = [], event = {}) {
   const eventVenue = String(event.venue || '').trim();
   const eventDate = String(event.date || '').trim();
 
@@ -21,4 +15,14 @@ export function findCatalogEvent(event = {}) {
     const venueAndDateIdentify = Boolean(eventVenue) && Boolean(eventDate) && venueMatches && dateMatches;
     return (nameMatches && venueMatches) || (nameMatches && dateMatches) || venueAndDateIdentify;
   }) || null;
+}
+
+export function createEventsCatalog({ eventsPath = EVENTS_PATH } = {}) {
+  const events = JSON.parse(fs.readFileSync(eventsPath, 'utf8'));
+
+  return {
+    events,
+    uniqueCities: () => [...new Set(events.map(event => event.city))],
+    findCatalogEvent: event => findCatalogEventIn(events, event),
+  };
 }

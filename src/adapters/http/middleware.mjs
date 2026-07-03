@@ -1,7 +1,7 @@
 import rateLimit from 'express-rate-limit';
 import { randomBytes } from 'crypto';
-import { ADMIN_API_KEY } from './config.mjs';
-import { safeEqualString } from './text.mjs';
+import { ADMIN_API_KEY } from '../../config/index.mjs';
+import { safeEqualString } from '../../domain/text.mjs';
 
 // ── Headers de seguridad ──
 export function securityHeaders(req, res, next) {
@@ -33,6 +33,7 @@ const BLOCKED_FILE_PATTERNS = [
   /^\/scripts(?:\/|$)/i,
   /^\/tests(?:\/|$)/i,
   /^\/server(?:\/|$)/i,
+  /^\/src(?:\/|$)/i,
   /^\/\.tmp(?:\/|$)/i,
   /^\/\.env(?:$|\.)/i,
   /^\/server\.mjs$/i,

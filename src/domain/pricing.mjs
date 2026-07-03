@@ -7,9 +7,8 @@ import {
   PAYMENT_METHODS,
   SERVICE_FEE_RATE,
   SPEI_DISCOUNT_RATE,
-} from './config.mjs';
+} from '../config/index.mjs';
 import { normalizeZoneLabel, safeEqualString, textValuesMatch } from './text.mjs';
-import { findCatalogEvent } from './events.mjs';
 
 export const SERVER_EVENT_VENUE_MAP = {
   'Gran Festival de Banda': 'palenque',
@@ -210,8 +209,7 @@ export function validatePurchaseRequest(purchase, catalogEvent) {
   return errors;
 }
 
-export function buildCheckoutQuote({ event, seats, now = Date.now() }) {
-  const catalogEvent = findCatalogEvent(event);
+export function buildCheckoutQuote({ event, seats, catalogEvent, now = Date.now() }) {
   if (!catalogEvent || catalogEvent.available === false || !Number.isFinite(Number(catalogEvent.price))) {
     throw new Error('Evento no disponible para cotizacion segura.');
   }

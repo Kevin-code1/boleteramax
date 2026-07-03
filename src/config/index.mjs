@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getTicketsStorageMode } from '../db/tickets.storage.mjs';
-import { getTicketsWriteMode } from '../db/tickets.write-mode.mjs';
+import { getTicketsStorageMode } from '../../db/tickets.storage.mjs';
+import { getTicketsWriteMode } from '../../db/tickets.write-mode.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
-export const ROOT_DIR = path.join(path.dirname(__filename), '..');
+export const ROOT_DIR = path.join(path.dirname(__filename), '..', '..');
 
 export const PORT = Number(process.env.PORT) || 3000;
 export const EVENTS_PATH = path.join(ROOT_DIR, 'data', 'events.json');
