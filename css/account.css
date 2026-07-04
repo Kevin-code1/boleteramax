@@ -1,6 +1,4 @@
-/* Cuenta de comprador: menú del header y modal Mis Boletos */
-
-/* [hidden] debe ganar aunque los botones tengan display propio */
+/* Cuenta */
 .header-cta [hidden],
 .mobile-menu [hidden] {
   display: none !important;
@@ -115,7 +113,7 @@
   border-color: var(--bmx-border-strong);
 }
 
-/* Aviso de verificación en el modal de login */
+/* Verificación */
 .verify-notice {
   margin: 14px 0 4px;
   padding: 14px 16px;
