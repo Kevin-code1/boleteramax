@@ -1,5 +1,4 @@
-/* BoletaMax – ui.js: preloader, slider, header, menú, filtros, wishlist,
-   contadores, login/registro, newsletter, scroll y animaciones */
+/* ui.js: preloader, slider, header, menú, filtros, wishlist, newsletter */
 
 import { showToast } from './toast.js';
 import { openModal } from './modals.js';

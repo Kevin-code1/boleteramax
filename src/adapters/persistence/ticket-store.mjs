@@ -15,7 +15,7 @@ import {
   writeTicketPurchaseToPostgresIfEnabled,
 } from '../../../db/tickets.write-mode.mjs';
 
-// ── Mutex simple para escritura de tickets (previene race conditions) ──
+// Mutex de escritura de tickets
 let _ticketsWriteLock = Promise.resolve();
 async function withTicketsWriteLock(task) {
   let release;
@@ -108,8 +108,6 @@ export function createTicketStore({ logger = console } = {}) {
     getDynamicSecret: getTicketDynamicSecret,
     serializePublic: ticket => serializeTicketForPublic(ticket, { buildPublicTicketPath }),
 
-    // Propiedad del boleto: ownerUserId viene de orders.user_id (PostgreSQL)
-    // y userId del registro JSON (compras nuevas de usuarios logueados).
     isOwnedBy: (ticket, userId) =>
       Boolean(userId) &&
       (ticket?.ownerUserId === userId || ticket?.userId === userId),
@@ -125,7 +123,6 @@ export function createTicketStore({ logger = console } = {}) {
       return findTicketsByUserId(cleanUserId);
     },
 
-    // Escritura de una compra dentro del write-lock, respetando el write-mode.
     saveNewTickets: async ({ existingTickets, newTickets }) => {
       if (TICKETS_WRITE_MODE === 'postgres-primary') {
         await persistTicketPurchaseByWriteMode({
@@ -139,7 +136,6 @@ export function createTicketStore({ logger = console } = {}) {
       }
     },
 
-    // En dual-write, la réplica a PostgreSQL corre fuera del lock.
     syncDualWrite: async tickets => {
       if (TICKETS_WRITE_MODE !== 'dual-write') return;
       await writeTicketPurchaseToPostgresIfEnabled({

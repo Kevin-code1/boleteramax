@@ -161,9 +161,7 @@
             return card;
         }
 
-        // Modo cuenta (?mine=1): los boletos vienen de la sesión del usuario
-        // (cookie httpOnly). El QR dinámico también se autoriza por sesión,
-        // así que no se necesitan tokens en sessionStorage.
+        // Modo cuenta (?mine=1): boletos y QR se autorizan por sesión.
         async function loadAccountTickets() {
             const params = new URLSearchParams(window.location.search);
             const wanted = (params.get('ticketIds') || '')

@@ -88,7 +88,7 @@ async function createPostgresUserStore() {
       await query('DELETE FROM user_sessions WHERE session_token_hash = $1', [tokenHash]);
     },
 
-    // ── Verificación de correo ──
+    // Verificación de correo
     async invalidatePendingVerificationTokens(userId) {
       await query(
         `
@@ -110,7 +110,7 @@ async function createPostgresUserStore() {
       );
     },
 
-    // Consumo atómico: solo un intento válido gana; los siguientes ven used_at.
+    // Consumo atómico del token.
     async consumeVerificationToken(tokenHash) {
       const result = await query(
         `
@@ -124,8 +124,6 @@ async function createPostgresUserStore() {
       return result.rows[0]?.user_id || null;
     },
 
-    // Solo para categorizar el fallo (inválido/expirado/usado) tras un consumo
-    // fallido; la decisión de seguridad ya la tomó consumeVerificationToken.
     async findVerificationToken(tokenHash) {
       const result = await query(
         'SELECT expires_at, used_at FROM email_verification_tokens WHERE token_hash = $1 LIMIT 1',
@@ -149,9 +147,8 @@ async function createPostgresUserStore() {
   };
 }
 
-// Modo dev sin base de datos: usuarios en data/users.json, y sesiones y tokens
-// de verificación en memoria (se pierden al reiniciar). El modo por defecto
-// usa PostgreSQL.
+// Modo dev sin base de datos: usuarios en data/users.json, sesiones y tokens
+// en memoria.
 function createJsonUserStore() {
   const sessions = new Map(); // tokenHash → { userId, expiresAt }
   const verificationTokens = new Map(); // tokenHash → { userId, expiresAt, usedAt }

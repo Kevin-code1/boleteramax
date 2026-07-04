@@ -1,6 +1,4 @@
-/* BoletaMax – auth.js: sesión del comprador (registro, login, logout)
-   y modal "Mis boletos". La sesión vive en una cookie httpOnly que el
-   navegador envía solo; aquí solo se consulta /api/auth/me. */
+/* auth.js: sesión del comprador (registro, login, logout, Mis boletos) */
 
 import { showToast } from './toast.js';
 import { openModal, closeModal } from './modals.js';
@@ -247,8 +245,7 @@ $('btn-my-tickets')?.addEventListener('click', openMyTickets);
 $('mobile-my-tickets')?.addEventListener('click', openMyTickets);
 $('login-resend-btn')?.addEventListener('click', resendVerification);
 
-// Tras verificar el correo, verify-email.html envía a /?login=1 para abrir
-// directamente el modal de inicio de sesión.
+// verify-email.html envía a /?login=1 para abrir el login.
 if (new URLSearchParams(window.location.search).get('login') === '1') {
   openModal('login-modal');
 }

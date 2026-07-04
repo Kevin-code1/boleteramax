@@ -13,8 +13,7 @@ import {
   verifyPassword,
 } from '../domain/auth.mjs';
 
-// Hash ficticio para igualar el tiempo de respuesta cuando el correo no
-// existe (evita enumerar cuentas midiendo latencia).
+// Hash ficticio para igualar tiempos cuando el correo no existe.
 const DUMMY_HASH_PROMISE = hashPassword('boletamax-dummy-password');
 
 export function createAuth({ userStore, emailService }) {
@@ -29,9 +28,6 @@ export function createAuth({ userStore, emailService }) {
     return { sessionToken, expiresAt };
   }
 
-  // Emite un token nuevo (invalidando los pendientes) y envía el correo.
-  // El enlace NUNCA sale de aquí hacia el HTTP: solo lo conoce el EmailService
-  // (que en dev lo imprime en consola y en prod lo manda por SMTP).
   async function issueVerification(user, { name, buildVerifyUrl }) {
     const token = createVerificationToken();
     await userStore.invalidatePendingVerificationTokens(user.id);
@@ -48,7 +44,6 @@ export function createAuth({ userStore, emailService }) {
         verifyUrl: buildVerifyUrl(token),
       });
     } catch (error) {
-      // No se rompe el registro por un fallo de envío: el usuario puede reenviar.
       console.error('BoletaMax Auth: verification email failed', {
         message: error?.message || 'Error desconocido',
       });
@@ -74,8 +69,7 @@ export function createAuth({ userStore, emailService }) {
     await issueVerification(user, { name: String(name).trim(), buildVerifyUrl });
     console.log('BoletaMax Auth: cuenta creada (pendiente de verificación)', { userId: user.id });
 
-    // NO se inicia sesión: la cuenta no se puede usar hasta verificar.
-    // No se devuelve el enlace ni el token en ningún caso.
+    // No inicia sesión: requiere verificar el correo.
     return { outcome: 'ok' };
   }
 
@@ -92,8 +86,7 @@ export function createAuth({ userStore, emailService }) {
       return { outcome: 'invalid_credentials' };
     }
 
-    // Solo tras confirmar la contraseña se revela el estado de verificación
-    // (evita filtrar el estado de una cuenta a quien no conoce la clave).
+    // El estado de verificación solo se revela tras validar la contraseña.
     if (!isUserVerified(user)) {
       return { outcome: 'email_not_verified' };
     }
@@ -110,7 +103,6 @@ export function createAuth({ userStore, emailService }) {
     return { outcome: 'ok' };
   }
 
-  // Devuelve el usuario de la sesión (con id interno) o null.
   async function getSessionUser(sessionToken) {
     const token = String(sessionToken || '').trim();
     if (!token) return null;
@@ -129,15 +121,14 @@ export function createAuth({ userStore, emailService }) {
       return { outcome: 'ok' };
     }
 
-    // El consumo atómico ya falló; solo categorizamos el motivo para el mensaje.
+    // Categoriza el motivo del fallo para el mensaje.
     const existing = await userStore.findVerificationToken(tokenHash);
     if (!existing) return { outcome: 'invalid' };
     if (existing.usedAt) return { outcome: 'used' };
     return { outcome: 'expired' };
   }
 
-  // Anti-enumeración: siempre responde igual. Solo envía si el correo existe
-  // y aún no está verificado. Nunca devuelve el enlace ni el token.
+  // Anti-enumeración: respuesta genérica; solo envía si existe y sin verificar.
   async function resendVerification({ email, buildVerifyUrl }) {
     const user = await userStore.findUserByEmail(normalizeEmail(email));
 
@@ -145,7 +136,6 @@ export function createAuth({ userStore, emailService }) {
       await issueVerification(user, { name: user.displayName, buildVerifyUrl });
     }
 
-    // Correo inexistente o ya verificado: misma respuesta genérica.
     return { outcome: 'ok' };
   }
 

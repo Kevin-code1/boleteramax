@@ -1,5 +1,4 @@
-/* Pantalla de verificación de correo. Toma el token de la URL, llama a
-   /api/auth/verify-email y muestra el estado. Nunca guarda el token. */
+/* Pantalla de verificación de correo */
 
 (function () {
   const card = document.getElementById('card');

@@ -37,7 +37,7 @@ export function createApp({ services }) {
 
   const verifyUrlBuilder = req => token => emailService.buildVerifyUrl(token, req);
 
-  // Usuario de la sesión (cookie httpOnly) o null; nunca falla la request.
+  // Usuario de la sesión o null.
   async function resolveSessionUser(req) {
     try {
       return await auth.getSessionUser(getSessionCookie(req));
@@ -98,9 +98,7 @@ export function createApp({ services }) {
     });
   });
 
-  // ── Cuentas de compradores (separadas del staff: x-admin-key) ──
-  // El registro NO inicia sesión: la cuenta queda pendiente de verificar el
-  // correo. No se setea cookie ni se devuelve el token de verificación en prod.
+  // Cuentas de compradores (separadas del staff)
   app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
       const result = await auth.register({
@@ -304,8 +302,7 @@ export function createApp({ services }) {
 
   app.post('/api/tickets', purchaseLimiter, async (req, res) => {
     try {
-      // Compra de invitado o de usuario logueado: la sesión solo agrega
-      // propiedad de la orden, nunca bloquea la compra.
+      // La sesión solo asocia la orden; nunca bloquea la compra.
       const sessionUser = await resolveSessionUser(req);
       const result = await checkout.purchase(req.body, {
         publicBaseUrl: getPublicBaseUrl(req),

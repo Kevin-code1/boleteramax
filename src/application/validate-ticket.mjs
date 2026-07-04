@@ -75,10 +75,7 @@ export function createValidateTicket({ ticketStore }) {
           };
         }
       }
-      // Sin token ni QR dinámico: validación manual por ticketId. Se permite
-      // porque el endpoint ya exige la clave de staff (requireAdminAuth) y
-      // es el flujo real al escanear el QR público del boleto (una URL con el
-      // ticketId). El QR dinámico sigue siendo la vía con mayor garantía.
+      // Sin token ni QR dinámico: validación manual por ticketId (staff).
 
       if (ticket.status === 'used' || ticket.usedAt) {
         return {

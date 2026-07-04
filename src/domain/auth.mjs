@@ -3,7 +3,7 @@ import { promisify } from 'util';
 
 const scrypt = promisify(scryptCallback);
 
-// Parámetros scrypt (N, r, p) guardados junto al hash para poder migrarlos.
+// Parámetros scrypt
 const SCRYPT_N = 16384;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
@@ -95,8 +95,7 @@ export function getSessionExpiry(now = Date.now()) {
   return new Date(now + SESSION_TTL_MS).toISOString();
 }
 
-// ── Verificación de correo ──
-// Token aleatorio criptográficamente seguro; en la base solo vive su hash.
+// Verificación de correo
 export function createVerificationToken() {
   return randomBytes(32).toString('hex');
 }
@@ -118,8 +117,6 @@ export function isUserVerified(user = {}) {
   return Boolean(user.emailVerifiedAt);
 }
 
-// Lo único que el frontend necesita saber del usuario. emailVerified no es
-// dato privado; nunca se exponen hashes ni el id interno.
 export function serializeUserPublic(user = {}) {
   return {
     email: user.email,

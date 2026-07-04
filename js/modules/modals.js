@@ -56,8 +56,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
 });
 
-// Focus-trap: mantiene el foco dentro del modal abierto (Tab / Shift+Tab).
-// Complementa el guardado/restauración de foco que ya hacen open/closeModal.
+// Focus-trap dentro del modal abierto (Tab / Shift+Tab).
 document.addEventListener('keydown', e => {
   if (e.key !== 'Tab') return;
   const overlay = document.querySelector('.modal-overlay.open');

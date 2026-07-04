@@ -1,5 +1,4 @@
-/* BoletaMax – search.js: búsqueda IA del header con debounce, caché,
-   timeout de red y fallback local */
+/* search.js: búsqueda IA del header */
 
 import { showToast } from './toast.js';
 import { openTicketModal } from './seatmap.js';
@@ -113,8 +112,7 @@ function renderSearchAiLabel() {
   return label;
 }
 
-// Skeleton shimmer mientras la búsqueda IA responde (mejor que texto plano).
-// Solo presentación: lo reemplazan renderSearchResults/renderSearchState al resolver.
+// Skeleton mientras la búsqueda IA responde.
 function renderSearchSkeleton(rows = 3) {
   searchResultsEl.replaceChildren();
   searchResultsEl.appendChild(renderSearchAiLabel());
@@ -282,8 +280,7 @@ async function runAiSearch(query) {
 
   if (aiSearchController) aiSearchController.abort();
   aiSearchController = new AbortController();
-  // Timeout de red: si /api/ai-search no responde a tiempo, abortamos y
-  // caemos al fallback local (evita el skeleton colgado indefinidamente).
+  // Timeout de red: si no responde a tiempo, fallback local.
   const controller = aiSearchController;
   let timedOut = false;
   const timeoutId = setTimeout(() => {
@@ -319,12 +316,9 @@ async function runAiSearch(query) {
       SEARCH_SUGGESTIONS,
     );
   } catch (error) {
-    // AbortError SIN timedOut = otra búsqueda más nueva reemplazó a esta →
-    // no hacemos nada. Si fue timeout (o error de red) → fallback local.
+    // Abort por una búsqueda más nueva: no hacer nada. Timeout/red: fallback.
     if (error.name === 'AbortError' && !timedOut) return;
 
-    // Aseguramos el catálogo local antes del fallback (por si aún no cargó),
-    // así el fallback muestra resultados reales en vez de quedar vacío.
     await loadLocalEventsCatalog();
     const fallbackResults = fallbackLocalSearch(trimmedQuery);
     if (searchInput.value.trim() !== trimmedQuery) return;
@@ -384,8 +378,7 @@ if (searchInput && searchResultsEl) {
     }
   });
 
-  // Navegación con flechas ↑/↓ entre resultados (combobox accesible).
-  // Enter activa de forma nativa (son <button>); Escape cierra y vuelve al input.
+  // Navegación con flechas ↑/↓ entre resultados.
   searchResultsEl.addEventListener('keydown', e => {
     const items = [...searchResultsEl.querySelectorAll('.search-result-item:not(:disabled)')];
     if (!items.length) return;

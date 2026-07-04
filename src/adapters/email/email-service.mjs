@@ -34,8 +34,7 @@ function buildVerificationHtml({ name, verifyUrl }) {
   `;
 }
 
-// Adaptador de consola: en desarrollo imprime el enlace de forma clara.
-// No se usa en producción (allí se exige SMTP configurado desde config).
+// Consola: imprime el enlace en desarrollo.
 function createConsoleEmailService() {
   return {
     async sendVerificationEmail({ to, name, verifyUrl }) {
@@ -51,8 +50,7 @@ function createConsoleEmailService() {
   };
 }
 
-// Adaptador SMTP: importa nodemailer de forma perezosa para que el modo dev
-// (consola) funcione aunque nodemailer no esté disponible.
+// SMTP: importa nodemailer de forma perezosa.
 function createSmtpEmailService() {
   let transporterPromise = null;
 
@@ -82,7 +80,6 @@ function createSmtpEmailService() {
         text: buildVerificationText({ name, verifyUrl }),
         html: buildVerificationHtml({ name, verifyUrl }),
       });
-      // No se registra el enlace ni el token en logs de producción.
       console.log('BoletaMax Email: verificación enviada por SMTP', { channel: 'smtp' });
       return { delivered: true, channel: 'smtp' };
     },
@@ -94,7 +91,6 @@ export function createEmailService() {
 
   return {
     ...service,
-    // Construye el enlace absoluto de verificación desde la base pública.
     buildVerifyUrl(token, req) {
       const base = APP_BASE_URL || inferBaseUrl(req);
       return `${base.replace(/\/+$/, '')}/verify-email.html?token=${encodeURIComponent(token)}`;

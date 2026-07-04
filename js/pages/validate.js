@@ -52,9 +52,7 @@
                 fillFromPayload(parsed);
                 return parsed;
             } catch (_) {
-                // El QR impreso en el boleto contiene la URL pública
-                // (https://.../tickets/BM-TKT-XXXX): extraemos el ticketId de
-                // cualquier texto que lo contenga (URL, ID suelto, etc.).
+                // Extrae el ticketId de la URL del QR o de un ID suelto.
                 const idMatch = raw.match(/BM-TKT-[A-Za-z0-9]+/);
                 if (idMatch) {
                     ticketIdInput.value = idMatch[0];
@@ -210,10 +208,7 @@
                 return;
             }
 
-            // Pedimos la clave ANTES de mostrar "Validando...".
-            // window.prompt() es bloqueante: si lo invocamos después de poner
-            // el botón en "Validando...", el botón se queda congelado mientras
-            // el diálogo está abierto (o si el navegador lo bloquea).
+            // Pedir la clave antes de mostrar "Validando..." (prompt es bloqueante).
             const adminKey = getAdminApiKey();
             if (!adminKey) {
                 renderResult({

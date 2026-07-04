@@ -2,8 +2,7 @@ import { getSoldSeatsForEvent, resolveVenuePricingKey, SERVER_VENUE_PRICING } fr
 import { buildEventId } from '../domain/tickets.mjs';
 
 export function createAvailability({ catalog, ticketStore }) {
-  // Disponibilidad por descriptor (name/date/venue): el mapa de asientos del
-  // cliente no conoce el eventId (hash del servidor).
+  // Disponibilidad por descriptor (name/date/venue).
   function byDescriptor(rawEvent = {}) {
     const event = {
       name: String(rawEvent.name || '').trim(),
@@ -20,8 +19,7 @@ export function createAvailability({ catalog, ticketStore }) {
       return { outcome: 'not_found' };
     }
 
-    // Mismo descriptor que usa la cotización segura (datos del catálogo), para
-    // que el eventId coincida con el de los boletos ya vendidos.
+    // Mismo eventId que la cotización (datos del catálogo).
     const eventId = buildEventId({
       name: catalogEvent.name,
       date: catalogEvent.date,

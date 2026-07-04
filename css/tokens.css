@@ -1,11 +1,4 @@
-/* =====================================================================
-   BoletaMax · Tokens semánticos (tokens.css)
-   ---------------------------------------------------------------------
-   Fuente única de verdad para color y tipografía. Se carga ANTES que
-   style.css. Define tokens NUEVOS (--bmx-*) que consume enhancements.css
-   (cargado al final). No reescribe ni rompe el style.css existente.
-   Paleta alineada al tema activo: azul noche + dorado (E-commerce Luxury).
-   ===================================================================== */
+/* Tokens semánticos (color y tipografía) */
 
 :root {
   /* ── Superficies ───────────────────────────────────────────── */

@@ -1,5 +1,4 @@
-/* BoletaMax – seatmap.js: motor del mapa interactivo de asientos (v2),
-   carrito de selección, zoom/pan y redirección al checkout */
+/* seatmap.js: mapa interactivo de asientos, carrito, zoom/pan */
 
 import { showToast } from './toast.js';
 import { openModal, showCheckoutTransition } from './modals.js';
@@ -121,8 +120,7 @@ const VENUE_CONFIGS = {
 };
 
 /* ---- Event → venue mapping ---- */
-// Debe coincidir con SERVER_EVENT_VENUE_MAP (server/pricing.mjs): el servidor
-// cotiza con su propio mapa, y si divergen el precio mostrado no corresponde.
+// Debe coincidir con SERVER_EVENT_VENUE_MAP del servidor.
 const EVENT_VENUE_MAP = {
   'Gran Festival de Banda': 'palenque',
   'El Fantasma de la Ópera': 'teatro',
@@ -166,8 +164,7 @@ function svgEl(tag, attrs, text) {
    (boletos ya vendidos), no de una simulación aleatoria.
    ============================================================= */
 
-// Réplica exacta de normalizeZoneLabel + buildSeatKey del servidor
-// (server/text.mjs y server/pricing.mjs) para que las llaves coincidan.
+// Réplica de normalizeZoneLabel + buildSeatKey del servidor.
 function normalizeZoneKey(value = '') {
   return String(value)
     .normalize('NFD')
@@ -204,8 +201,7 @@ async function fetchSeatAvailability(event) {
       zoneLabels: payload.zoneLabels || null,
     };
   } catch (_) {
-    // Sin datos de disponibilidad mostramos todo libre; el servidor sigue
-    // validando el inventario real al comprar.
+    // Sin datos, todo libre; el servidor valida el inventario al comprar.
     return { soldKeys: new Set(), zoneLabels: null };
   }
 }
@@ -329,9 +325,7 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
         const mesaNum = Math.ceil(globalSeatInZone / zone.tableSize);
         const seatInMesa = ((globalSeatInZone - 1) % zone.tableSize) + 1;
 
-        // Ocupado = vendido de verdad según el inventario del servidor.
-        // La llave usa la etiqueta de zona del servidor (puede diferir de la
-        // local cuando el layout del venue difiere entre cliente y servidor).
+        // Ocupado = vendido según el inventario del servidor.
         const serverZoneLabel = availability.zoneLabels?.[zone.key] || zone.label;
         const seatKey = buildSeatKey({
           zoneLabel: serverZoneLabel,
@@ -782,8 +776,7 @@ export async function openTicketModal(name, date, venue, price, venueType) {
   if (group) {
     group.setAttribute('transform', 'translate(0,0) scale(1)');
     group.classList.remove('zoom-labels');
-    // Quitar de inmediato los asientos del evento anterior; los nuevos se
-    // generan cuando llega la disponibilidad real del servidor.
+    // Quitar los asientos del evento anterior.
     group.querySelectorAll('.seat-group, .row-label, .zone-label, .zone-sep, .zone-band').forEach(el => el.remove());
   }
 
@@ -799,8 +792,7 @@ export async function openTicketModal(name, date, venue, price, venueType) {
   _panLock = false;
   openModal('ticket-modal');
 
-  // Los asientos ocupados salen del inventario real del servidor; si otro
-  // openTicketModal se disparó mientras esperábamos, este render se descarta.
+  // Disponibilidad real del servidor; si hubo otro open, se descarta.
   const availability = await fetchSeatAvailability({ name, date, venue });
   if (openSeq !== _openTicketSeq) return;
 

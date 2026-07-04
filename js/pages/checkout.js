@@ -1,6 +1,4 @@
-        /* ============================================================
-           checkout.js – BoletaMax payment page logic
-           ============================================================ */
+        /* checkout.js: lógica de la página de pago */
 
         function safeParse(json, fallback) {
             try {
@@ -505,9 +503,7 @@
                 confirmOverlay.classList.remove('show');
                 window.location.href = `ticket.html?ticketIds=${encodeURIComponent(ticketIds.join(','))}`;
             } catch (error) {
-                // Cerramos el modal de pago para que el banner de error sea
-                // visible (antes quedaba tapado y parecía que el botón no hacía
-                // nada; típicamente por límite de compras 429 o cotización expirada).
+                // Cerrar el modal de pago para que el banner de error sea visible.
                 confirmOverlay.classList.remove('show');
                 showCheckoutAlert(error.message || 'No fue posible generar los boletos. Intenta nuevamente.');
             } finally {

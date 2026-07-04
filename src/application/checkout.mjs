@@ -167,7 +167,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
         },
         tickets: tickets.map(t => ({
           ...ticketStore.serializePublic(t),
-          token: t.token, // Retornamos el token criptográfico privado ÚNICAMENTE al comprador original en la respuesta del checkout
+          token: t.token, // token privado, solo al comprador
         })),
       },
     };

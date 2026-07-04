@@ -1,7 +1,4 @@
-/* BoletaMax – main.js: punto de entrada del landing.
-   La lógica vive en js/modules/ (toast, modals, ui, seatmap, search).
-   Este archivo solo importa los módulos y expone los globals que usan
-   los handlers inline (onclick/onsubmit) de index.html. */
+/* main.js: punto de entrada del landing. Expone los globals de los handlers inline. */
 
 import { showToast } from './modules/toast.js';
 import { openModal, closeModal, switchModal } from './modules/modals.js';
