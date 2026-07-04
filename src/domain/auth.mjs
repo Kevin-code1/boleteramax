@@ -11,6 +11,7 @@ const SCRYPT_KEYLEN = 64;
 
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
 export const SESSION_COOKIE_NAME = 'bm_session';
+export const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export const PASSWORD_MIN_LENGTH = 8;
@@ -94,10 +95,35 @@ export function getSessionExpiry(now = Date.now()) {
   return new Date(now + SESSION_TTL_MS).toISOString();
 }
 
-// Lo único que el frontend necesita saber del usuario.
+// ── Verificación de correo ──
+// Token aleatorio criptográficamente seguro; en la base solo vive su hash.
+export function createVerificationToken() {
+  return randomBytes(32).toString('hex');
+}
+
+export function hashVerificationToken(token) {
+  return createHash('sha256').update(String(token || '')).digest('hex');
+}
+
+export function getVerificationExpiry(now = Date.now()) {
+  return new Date(now + VERIFICATION_TTL_MS).toISOString();
+}
+
+export function isVerificationExpired(expiresAt, now = Date.now()) {
+  const ts = Date.parse(expiresAt);
+  return !Number.isFinite(ts) || ts <= now;
+}
+
+export function isUserVerified(user = {}) {
+  return Boolean(user.emailVerifiedAt);
+}
+
+// Lo único que el frontend necesita saber del usuario. emailVerified no es
+// dato privado; nunca se exponen hashes ni el id interno.
 export function serializeUserPublic(user = {}) {
   return {
     email: user.email,
     displayName: user.displayName,
+    emailVerified: Boolean(user.emailVerifiedAt),
   };
 }

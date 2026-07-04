@@ -1,8 +1,12 @@
 import {
   createSessionToken,
+  createVerificationToken,
   getSessionExpiry,
+  getVerificationExpiry,
   hashPassword,
   hashSessionToken,
+  hashVerificationToken,
+  isUserVerified,
   normalizeEmail,
   serializeUserPublic,
   validateRegistration,
@@ -13,7 +17,7 @@ import {
 // existe (evita enumerar cuentas midiendo latencia).
 const DUMMY_HASH_PROMISE = hashPassword('boletamax-dummy-password');
 
-export function createAuth({ userStore }) {
+export function createAuth({ userStore, emailService }) {
   async function startSession(user) {
     const sessionToken = createSessionToken();
     const expiresAt = getSessionExpiry();
@@ -25,7 +29,33 @@ export function createAuth({ userStore }) {
     return { sessionToken, expiresAt };
   }
 
-  async function register({ name, email, password }) {
+  // Emite un token nuevo (invalidando los pendientes) y envía el correo.
+  // El enlace NUNCA sale de aquí hacia el HTTP: solo lo conoce el EmailService
+  // (que en dev lo imprime en consola y en prod lo manda por SMTP).
+  async function issueVerification(user, { name, buildVerifyUrl }) {
+    const token = createVerificationToken();
+    await userStore.invalidatePendingVerificationTokens(user.id);
+    await userStore.saveVerificationToken({
+      userId: user.id,
+      tokenHash: hashVerificationToken(token),
+      expiresAt: getVerificationExpiry(),
+    });
+
+    try {
+      await emailService.sendVerificationEmail({
+        to: user.email,
+        name: name || user.displayName,
+        verifyUrl: buildVerifyUrl(token),
+      });
+    } catch (error) {
+      // No se rompe el registro por un fallo de envío: el usuario puede reenviar.
+      console.error('BoletaMax Auth: verification email failed', {
+        message: error?.message || 'Error desconocido',
+      });
+    }
+  }
+
+  async function register({ name, email, password, buildVerifyUrl }) {
     const errors = validateRegistration({ name, email, password });
     if (errors.length) {
       return { outcome: 'invalid', errors };
@@ -41,9 +71,12 @@ export function createAuth({ userStore }) {
       return { outcome: 'email_taken' };
     }
 
-    const session = await startSession(user);
-    console.log('BoletaMax Auth: cuenta creada', { userId: user.id });
-    return { outcome: 'ok', user: serializeUserPublic(user), ...session };
+    await issueVerification(user, { name: String(name).trim(), buildVerifyUrl });
+    console.log('BoletaMax Auth: cuenta creada (pendiente de verificación)', { userId: user.id });
+
+    // NO se inicia sesión: la cuenta no se puede usar hasta verificar.
+    // No se devuelve el enlace ni el token en ningún caso.
+    return { outcome: 'ok' };
   }
 
   async function login({ email, password }) {
@@ -57,6 +90,12 @@ export function createAuth({ userStore }) {
     const passwordOk = await verifyPassword(String(password || ''), user.passwordHash);
     if (!passwordOk) {
       return { outcome: 'invalid_credentials' };
+    }
+
+    // Solo tras confirmar la contraseña se revela el estado de verificación
+    // (evita filtrar el estado de una cuenta a quien no conoce la clave).
+    if (!isUserVerified(user)) {
+      return { outcome: 'email_not_verified' };
     }
 
     const session = await startSession(user);
@@ -78,5 +117,37 @@ export function createAuth({ userStore }) {
     return userStore.findSessionUser(hashSessionToken(token));
   }
 
-  return { register, login, logout, getSessionUser };
+  async function verifyEmail(rawToken) {
+    const token = String(rawToken || '').trim();
+    if (!token) return { outcome: 'invalid' };
+
+    const tokenHash = hashVerificationToken(token);
+    const userId = await userStore.consumeVerificationToken(tokenHash);
+
+    if (userId) {
+      await userStore.markUserVerified(userId);
+      return { outcome: 'ok' };
+    }
+
+    // El consumo atómico ya falló; solo categorizamos el motivo para el mensaje.
+    const existing = await userStore.findVerificationToken(tokenHash);
+    if (!existing) return { outcome: 'invalid' };
+    if (existing.usedAt) return { outcome: 'used' };
+    return { outcome: 'expired' };
+  }
+
+  // Anti-enumeración: siempre responde igual. Solo envía si el correo existe
+  // y aún no está verificado. Nunca devuelve el enlace ni el token.
+  async function resendVerification({ email, buildVerifyUrl }) {
+    const user = await userStore.findUserByEmail(normalizeEmail(email));
+
+    if (user && user.status === 'active' && !isUserVerified(user)) {
+      await issueVerification(user, { name: user.displayName, buildVerifyUrl });
+    }
+
+    // Correo inexistente o ya verificado: misma respuesta genérica.
+    return { outcome: 'ok' };
+  }
+
+  return { register, login, logout, getSessionUser, verifyEmail, resendVerification };
 }

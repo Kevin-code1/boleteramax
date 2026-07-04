@@ -1055,6 +1055,11 @@
                 <button type="submit" class="btn-modal-submit">
                     <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                 </button>
+                <div class="verify-notice" id="login-verify-notice" hidden>
+                    <p><i class="fas fa-envelope-circle-check"></i> Verifica tu correo antes de iniciar sesión.</p>
+                    <button type="button" class="verify-resend-btn" id="login-resend-btn">Reenviar correo de verificación</button>
+                    <span class="verify-notice-status" id="login-resend-status" role="status" aria-live="polite"></span>
+                </div>
                 <div class="modal-divider"><span>o continúa con</span></div>
                 <div class="social-auth">
                     <button type="button" class="btn-social google"><i class="fab fa-google"></i> Google</button>

@@ -14,6 +14,7 @@ import {
   blockSensitiveFiles,
   purchaseLimiter,
   requireAdminAuth,
+  resendVerificationLimiter,
   securityHeaders,
   ticketQueryLimiter,
   validationLimiter,
@@ -32,7 +33,9 @@ function getPublicBaseUrl(req) {
 }
 
 export function createApp({ services }) {
-  const { searchEvents, availability, checkout, ticketQueries, validateTicket, auth, account } = services;
+  const { searchEvents, availability, checkout, ticketQueries, validateTicket, auth, account, emailService } = services;
+
+  const verifyUrlBuilder = req => token => emailService.buildVerifyUrl(token, req);
 
   // Usuario de la sesión (cookie httpOnly) o null; nunca falla la request.
   async function resolveSessionUser(req) {
@@ -59,6 +62,7 @@ export function createApp({ services }) {
   const PUBLIC_HTML_FILES = new Map([
     ['/index.html', 'index.html'],
     ['/checkout.html', 'checkout.html'],
+    ['/verify-email.html', 'verify-email.html'],
     ['/ticket.html', 'ticket.html'],
     ['/ticket-public.html', 'ticket-public.html'],
     ['/validate.html', 'validate.html'],
@@ -95,12 +99,15 @@ export function createApp({ services }) {
   });
 
   // ── Cuentas de compradores (separadas del staff: x-admin-key) ──
+  // El registro NO inicia sesión: la cuenta queda pendiente de verificar el
+  // correo. No se setea cookie ni se devuelve el token de verificación en prod.
   app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
       const result = await auth.register({
         name: req.body?.name,
         email: req.body?.email,
         password: req.body?.password,
+        buildVerifyUrl: verifyUrlBuilder(req),
       });
 
       if (result.outcome === 'invalid') {
@@ -110,8 +117,11 @@ export function createApp({ services }) {
         return res.status(409).json({ ok: false, message: 'Ya existe una cuenta con ese correo.' });
       }
 
-      setSessionCookie(res, result.sessionToken, result.expiresAt);
-      return res.status(201).json({ ok: true, user: result.user });
+      return res.status(201).json({
+        ok: true,
+        pendingVerification: true,
+        message: 'Cuenta creada. Revisa tu correo para verificar tu cuenta antes de iniciar sesión.',
+      });
     } catch (error) {
       console.error('BoletaMax Auth: register failed', {
         message: error?.message || 'Error desconocido',
@@ -127,6 +137,15 @@ export function createApp({ services }) {
         password: req.body?.password,
       });
 
+      // Credenciales correctas pero correo sin verificar: 403, sin cookie.
+      if (result.outcome === 'email_not_verified') {
+        return res.status(403).json({
+          ok: false,
+          code: 'email_not_verified',
+          message: 'Verifica tu correo antes de iniciar sesión.',
+        });
+      }
+
       if (result.outcome !== 'ok') {
         return res.status(401).json({ ok: false, message: 'Correo o contraseña incorrectos.' });
       }
@@ -138,6 +157,52 @@ export function createApp({ services }) {
         message: error?.message || 'Error desconocido',
       });
       return res.status(500).json({ ok: false, message: 'No fue posible iniciar sesión en este momento.' });
+    }
+  });
+
+  app.post('/api/auth/resend-verification', resendVerificationLimiter, async (req, res) => {
+    try {
+      await auth.resendVerification({
+        email: req.body?.email,
+        buildVerifyUrl: verifyUrlBuilder(req),
+      });
+      // Respuesta genérica igual exista o no el correo (anti-enumeración).
+      // No se devuelve el enlace ni el token en ningún entorno.
+      return res.json({
+        ok: true,
+        message: 'Si tu correo está registrado y sin verificar, te enviamos un nuevo enlace.',
+      });
+    } catch (error) {
+      console.error('BoletaMax Auth: resend verification failed', {
+        message: error?.message || 'Error desconocido',
+      });
+      return res.status(500).json({ ok: false, message: 'No fue posible reenviar el correo en este momento.' });
+    }
+  });
+
+  app.get('/api/auth/verify-email', async (req, res) => {
+    try {
+      const result = await auth.verifyEmail(req.query?.token);
+
+      if (result.outcome === 'ok') {
+        return res.json({ ok: true, message: 'Tu correo fue verificado. Ya puedes iniciar sesión.' });
+      }
+
+      const messages = {
+        used: 'Este enlace ya fue utilizado. Si ya verificaste, inicia sesión.',
+        expired: 'El enlace de verificación expiró. Solicita uno nuevo.',
+        invalid: 'El enlace de verificación no es válido.',
+      };
+      return res.status(400).json({
+        ok: false,
+        code: result.outcome,
+        message: messages[result.outcome] || messages.invalid,
+      });
+    } catch (error) {
+      console.error('BoletaMax Auth: verify email failed', {
+        message: error?.message || 'Error desconocido',
+      });
+      return res.status(500).json({ ok: false, message: 'No fue posible verificar el correo en este momento.' });
     }
   });
 
@@ -158,7 +223,14 @@ export function createApp({ services }) {
     if (!user) {
       return res.status(401).json({ ok: false, message: 'No has iniciado sesión.' });
     }
-    return res.json({ ok: true, user: { email: user.email, displayName: user.displayName } });
+    return res.json({
+      ok: true,
+      user: {
+        email: user.email,
+        displayName: user.displayName,
+        emailVerified: Boolean(user.emailVerifiedAt),
+      },
+    });
   });
 
   app.get('/api/account/tickets', ticketQueryLimiter, async (req, res) => {

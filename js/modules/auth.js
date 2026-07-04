@@ -59,13 +59,34 @@ async function postJson(path, body) {
   return { response, payload };
 }
 
+// Último correo intentado, para el reenvío de verificación.
+let lastAuthEmail = '';
+
+function hideVerifyNotice() {
+  const notice = $('login-verify-notice');
+  if (notice) notice.hidden = true;
+  const status = $('login-resend-status');
+  if (status) status.textContent = '';
+}
+
 export function handleLogin(e) {
   e.preventDefault();
   (async () => {
     const email = $('login-email')?.value.trim() || '';
     const password = $('login-pass')?.value || '';
+    lastAuthEmail = email;
+    hideVerifyNotice();
 
     const { response, payload } = await postJson('/api/auth/login', { email, password });
+
+    // Credenciales correctas pero correo sin verificar.
+    if (response.status === 403 && payload.code === 'email_not_verified') {
+      const notice = $('login-verify-notice');
+      if (notice) notice.hidden = false;
+      showToast('Verifica tu correo antes de iniciar sesión.', 'error');
+      return;
+    }
+
     if (!response.ok || !payload.ok) {
       showToast(payload.message || 'No se pudo iniciar sesión.', 'error');
       return;
@@ -75,6 +96,7 @@ export function handleLogin(e) {
     updateHeaderUi();
     closeModal('login-modal');
     e.target.reset?.();
+    hideVerifyNotice();
     showToast(`✅ ¡Bienvenido de vuelta, ${currentUser.displayName}!`);
   })().catch(() => showToast('No se pudo iniciar sesión.', 'error'));
 }
@@ -87,6 +109,7 @@ export function handleRegister(e) {
       .join(' ');
     const email = $('reg-email')?.value.trim() || '';
     const password = $('reg-pass')?.value || '';
+    lastAuthEmail = email;
 
     const { response, payload } = await postJson('/api/auth/register', { name, email, password });
     if (!response.ok || !payload.ok) {
@@ -94,12 +117,35 @@ export function handleRegister(e) {
       return;
     }
 
-    currentUser = payload.user;
-    updateHeaderUi();
-    closeModal('register-modal');
+    // El registro NO inicia sesión: la cuenta queda pendiente de verificación.
     e.target.reset?.();
-    showToast('🎉 ¡Cuenta creada con éxito!');
+    closeModal('register-modal');
+    showToast('📧 Cuenta creada. Revisa tu correo para verificar tu cuenta.');
   })().catch(() => showToast('No se pudo crear la cuenta.', 'error'));
+}
+
+async function resendVerification() {
+  const email = lastAuthEmail || $('login-email')?.value.trim() || '';
+  const status = $('login-resend-status');
+  const button = $('login-resend-btn');
+
+  if (!email) {
+    if (status) status.textContent = 'Escribe tu correo arriba primero.';
+    return;
+  }
+
+  if (button) button.disabled = true;
+  if (status) status.textContent = 'Enviando...';
+
+  try {
+    const { payload } = await postJson('/api/auth/resend-verification', { email });
+    // Respuesta genérica (no revela si el correo existe).
+    if (status) status.textContent = payload.message || 'Si tu correo está registrado, te enviamos un enlace.';
+  } catch (_) {
+    if (status) status.textContent = 'No se pudo reenviar. Intenta más tarde.';
+  } finally {
+    if (button) button.disabled = false;
+  }
 }
 
 async function logout() {
@@ -199,5 +245,12 @@ $('btn-logout')?.addEventListener('click', logout);
 $('mobile-logout')?.addEventListener('click', logout);
 $('btn-my-tickets')?.addEventListener('click', openMyTickets);
 $('mobile-my-tickets')?.addEventListener('click', openMyTickets);
+$('login-resend-btn')?.addEventListener('click', resendVerification);
+
+// Tras verificar el correo, verify-email.html envía a /?login=1 para abrir
+// directamente el modal de inicio de sesión.
+if (new URLSearchParams(window.location.search).get('login') === '1') {
+  openModal('login-modal');
+}
 
 refreshSession();

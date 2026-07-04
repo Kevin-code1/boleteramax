@@ -114,3 +114,48 @@
 .ati-public-link:hover {
   border-color: var(--bmx-border-strong);
 }
+
+/* Aviso de verificación en el modal de login */
+.verify-notice {
+  margin: 14px 0 4px;
+  padding: 14px 16px;
+  border-radius: var(--bmx-radius-sm);
+  border: 1px solid rgba(231, 196, 107, 0.35);
+  background: rgba(231, 196, 107, 0.08);
+  text-align: center;
+}
+
+.verify-notice p {
+  margin: 0 0 10px;
+  color: var(--bmx-warning);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.verify-resend-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--bmx-border-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--bmx-on-surface);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.verify-resend-btn:hover {
+  background: rgba(214, 180, 95, 0.12);
+}
+
+.verify-resend-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.verify-notice-status {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--bmx-on-surface-muted);
+}

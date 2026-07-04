@@ -8,9 +8,14 @@ process.env.TICKETS_WRITE_MODE = 'json';
 
 const {
   createSessionToken,
+  createVerificationToken,
+  getVerificationExpiry,
   hashPassword,
   hashSessionToken,
+  hashVerificationToken,
+  isUserVerified,
   isValidEmail,
+  isVerificationExpired,
   normalizeEmail,
   serializeUserPublic,
   validateRegistration,
@@ -64,14 +69,41 @@ test('registration validation catches missing fields and short passwords', () =>
   assert.ok(validateRegistration({ name: 'Ana', email: 'ana@correo.mx', password: 'corta' }).length > 0);
 });
 
-test('public user serialization exposes only email and display name', async () => {
+test('public user serialization exposes email, display name and verification flag only', async () => {
   const user = {
     id: 'uuid-interno',
     email: 'ana@correo.mx',
     displayName: 'Ana',
     passwordHash: await hashPassword('MiClaveSegura123'),
     status: 'active',
+    emailVerifiedAt: null,
   };
   const serialized = serializeUserPublic(user);
-  assert.deepEqual(Object.keys(serialized).sort(), ['displayName', 'email']);
+  assert.deepEqual(Object.keys(serialized).sort(), ['displayName', 'email', 'emailVerified']);
+  assert.equal(serialized.emailVerified, false);
+  assert.equal(Object.hasOwn(serialized, 'passwordHash'), false);
+});
+
+test('verification tokens are unique, hashed deterministically, and never equal the hash', () => {
+  const token = createVerificationToken();
+  const other = createVerificationToken();
+  assert.equal(token.length, 64);
+  assert.notEqual(token, other);
+  assert.equal(hashVerificationToken(token), hashVerificationToken(token));
+  assert.notEqual(hashVerificationToken(token), token, 'stored hash must differ from the plaintext token');
+});
+
+test('verification expiry is 24h and expiry detection works', () => {
+  const now = Date.parse('2026-01-01T00:00:00.000Z');
+  const expiry = getVerificationExpiry(now);
+  assert.equal(Date.parse(expiry) - now, 24 * 60 * 60 * 1000);
+  assert.equal(isVerificationExpired(expiry, now), false);
+  assert.equal(isVerificationExpired(expiry, now + 25 * 60 * 60 * 1000), true);
+  assert.equal(isVerificationExpired('not-a-date', now), true);
+});
+
+test('isUserVerified reflects emailVerifiedAt', () => {
+  assert.equal(isUserVerified({ emailVerifiedAt: null }), false);
+  assert.equal(isUserVerified({ emailVerifiedAt: undefined }), false);
+  assert.equal(isUserVerified({ emailVerifiedAt: '2026-01-01T00:00:00.000Z' }), true);
 });

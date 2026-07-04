@@ -22,6 +22,24 @@ function getFreeishPort() {
   return 41_000 + Math.floor(Math.random() * 2_000);
 }
 
+// El token de verificación solo se imprime en el log del servidor (dev),
+// nunca en el JSON de la API. Lo leemos de stdout para completar el flujo.
+async function waitForVerifyToken(getOutput, email, { timeoutMs = 5000 } = {}) {
+  const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`Para:\\s*${escaped}[\\s\\S]*?token=([a-f0-9]+)`, 'g');
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const out = getOutput();
+    let match;
+    let last = null;
+    re.lastIndex = 0;
+    while ((match = re.exec(out)) !== null) last = match[1];
+    if (last) return last;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error(`verification token for ${email} not found in server logs`);
+}
+
 function extractSessionCookie(response) {
   const cookies = response.headers.getSetCookie?.() ||
     (response.headers.get('set-cookie') ? [response.headers.get('set-cookie')] : []);
@@ -135,20 +153,32 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     const getOutput = () => output.join('');
     await waitForServer(baseUrl, child, getOutput);
 
-    // ── Registro: crea sesión con cookie httpOnly ──
+    // ── Registro: NO inicia sesión (pendiente de verificación) ──
     const register = await requestJson(baseUrl, '/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name: `E2E Cuenta ${suffix}`, email, password }),
     });
     assert.equal(register.response.status, 201, sanitizeLog(JSON.stringify(register.payload)));
     assert.equal(register.payload.ok, true);
-    assert.equal(register.payload.user.email, email);
-    assert.equal(Object.hasOwn(register.payload.user, 'passwordHash'), false);
+    assert.equal(register.payload.pendingVerification, true);
+    assert.equal(extractSessionCookie(register.response), null, 'register must NOT set a session cookie');
+    assert.equal(register.payload.devVerifyUrl, undefined, 'register must not leak a verify link');
+    assert.equal(Object.hasOwn(register.payload, 'token'), false, 'register must not leak a token');
 
-    const registerCookie = extractSessionCookie(register.response);
-    assert.ok(registerCookie, 'register must set bm_session cookie');
-    assert.match(registerCookie.raw, /HttpOnly/i);
-    assert.match(registerCookie.raw, /SameSite=Lax/i);
+    // ── Login antes de verificar → 403 email_not_verified, sin cookie ──
+    const loginUnverified = await requestJson(baseUrl, '/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    assert.equal(loginUnverified.response.status, 403);
+    assert.equal(loginUnverified.payload.code, 'email_not_verified');
+    assert.equal(extractSessionCookie(loginUnverified.response), null, 'unverified login must NOT set a cookie');
+
+    // ── Verificar el correo con el token leído del log del servidor ──
+    const verifyToken = await waitForVerifyToken(getOutput, email);
+    const verify = await requestJson(baseUrl, `/api/auth/verify-email?token=${encodeURIComponent(verifyToken)}`);
+    assert.equal(verify.response.status, 200);
+    assert.equal(verify.payload.ok, true);
 
     // ── Registro duplicado → 409 ──
     const duplicate = await requestJson(baseUrl, '/api/auth/register', {
@@ -157,27 +187,7 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     });
     assert.equal(duplicate.response.status, 409);
 
-    // ── auth/me con y sin sesión ──
-    const meLoggedIn = await requestJson(baseUrl, '/api/auth/me', {
-      headers: { Cookie: registerCookie.header },
-    });
-    assert.equal(meLoggedIn.response.status, 200);
-    assert.equal(meLoggedIn.payload.user.email, email);
-
-    const meAnonymous = await requestJson(baseUrl, '/api/auth/me');
-    assert.equal(meAnonymous.response.status, 401);
-
-    // ── Logout invalida la sesión del lado del servidor ──
-    await requestJson(baseUrl, '/api/auth/logout', {
-      method: 'POST',
-      headers: { Cookie: registerCookie.header },
-    });
-    const meAfterLogout = await requestJson(baseUrl, '/api/auth/me', {
-      headers: { Cookie: registerCookie.header },
-    });
-    assert.equal(meAfterLogout.response.status, 401);
-
-    // ── Login: contraseña incorrecta 401, correcta 200 ──
+    // ── Login: contraseña incorrecta 401, correcta 200 (ya verificado) ──
     const badLogin = await requestJson(baseUrl, '/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password: 'incorrecta123' }),
@@ -191,6 +201,20 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     assert.equal(login.response.status, 200);
     const sessionCookie = extractSessionCookie(login.response);
     assert.ok(sessionCookie, 'login must set bm_session cookie');
+    assert.match(sessionCookie.raw, /HttpOnly/i);
+    assert.match(sessionCookie.raw, /SameSite=Lax/i);
+
+    // ── auth/me devuelve emailVerified true ──
+    const meLoggedIn = await requestJson(baseUrl, '/api/auth/me', {
+      headers: { Cookie: sessionCookie.header },
+    });
+    assert.equal(meLoggedIn.response.status, 200);
+    assert.equal(meLoggedIn.payload.user.email, email);
+    assert.equal(meLoggedIn.payload.user.emailVerified, true);
+    assert.equal(Object.hasOwn(meLoggedIn.payload.user, 'passwordHash'), false);
+
+    const meAnonymous = await requestJson(baseUrl, '/api/auth/me');
+    assert.equal(meAnonymous.response.status, 401);
 
     // ── Compras: invitado (sin cookie) y logueado (con cookie) ──
     const event = {

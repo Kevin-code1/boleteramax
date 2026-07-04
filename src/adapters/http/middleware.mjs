@@ -103,6 +103,15 @@ export const authLimiter = rateLimit({
   message: { ok: false, message: 'Demasiados intentos. Espera un momento.' },
 });
 
+// Reenvío de verificación: más estricto para evitar bombardeo de correos.
+export const resendVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, message: 'Demasiados reenvíos. Espera unos minutos.' },
+});
+
 // ── Middleware de autenticación para staff/admin ──
 export function requireAdminAuth(req, res, next) {
   if (!ADMIN_API_KEY) {

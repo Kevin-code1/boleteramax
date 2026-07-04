@@ -9,6 +9,7 @@ import { createUserStore } from './src/adapters/persistence/user-store.mjs';
 import { createAiFilterInference, hasOpenAIKey } from './src/adapters/ai/openai-filters.mjs';
 import { createTurnstileVerifier } from './src/adapters/captcha/turnstile.mjs';
 import { createQrCodeGenerator } from './src/adapters/qr/qr-codes.mjs';
+import { createEmailService } from './src/adapters/email/email-service.mjs';
 import { createSearchEvents } from './src/application/search-events.mjs';
 import { createAvailability } from './src/application/availability.mjs';
 import { createCheckout } from './src/application/checkout.mjs';
@@ -25,6 +26,7 @@ const userStore = await createUserStore();
 const aiFilters = createAiFilterInference({ catalog });
 const captcha = createTurnstileVerifier();
 const qr = createQrCodeGenerator();
+const emailService = createEmailService();
 
 ticketStore.ensureTicketsFile();
 
@@ -35,8 +37,9 @@ const services = {
   checkout: createCheckout({ catalog, ticketStore, captcha, qr }),
   ticketQueries: createTicketQueries({ ticketStore, qr }),
   validateTicket: createValidateTicket({ ticketStore }),
-  auth: createAuth({ userStore }),
+  auth: createAuth({ userStore, emailService }),
   account: createAccount({ ticketStore }),
+  emailService,
 };
 
 // ── Adaptador HTTP (puerto de entrada) ──

@@ -40,6 +40,18 @@ if (
 
 export const ADMIN_API_KEY = String(process.env.ADMIN_API_KEY || '').trim();
 
+// ── Correo (verificación de cuenta) ──
+export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+export const APP_BASE_URL = String(process.env.APP_BASE_URL || process.env.PUBLIC_BASE_URL || '').trim();
+export const SMTP_CONFIG = {
+  host: String(process.env.SMTP_HOST || '').trim(),
+  port: Number(process.env.SMTP_PORT) || 587,
+  user: String(process.env.SMTP_USER || '').trim(),
+  pass: String(process.env.SMTP_PASS || '').trim(),
+  from: String(process.env.SMTP_FROM || 'BoletaMax <no-reply@boletamax.local>').trim(),
+};
+export const SMTP_ENABLED = Boolean(SMTP_CONFIG.host);
+
 if (process.env.NODE_ENV === 'production' && !CHECKOUT_SIGNING_SECRET) {
   console.error('\n======================================================================');
   console.error('BoletaMax Security ERROR: CHECKOUT_SIGNING_SECRET no configurado en produccion.');
@@ -51,6 +63,13 @@ if (process.env.NODE_ENV === 'production' && !ADMIN_API_KEY) {
   console.error('\n======================================================================');
   console.error('BoletaMax Security ERROR: ADMIN_API_KEY no configurada en producción.');
   console.error('El servidor se detiene de forma segura para evitar accesos sin protección.');
+  console.error('======================================================================\n');
+  process.exit(1);
+}
+if (IS_PRODUCTION && !SMTP_ENABLED) {
+  console.error('\n======================================================================');
+  console.error('BoletaMax Email ERROR: proveedor de correo (SMTP_HOST) no configurado en producción.');
+  console.error('La verificación de correo es obligatoria; el servidor se detiene sin proveedor de envío.');
   console.error('======================================================================\n');
   process.exit(1);
 }
