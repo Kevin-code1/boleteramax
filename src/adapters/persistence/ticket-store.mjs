@@ -95,8 +95,7 @@ export function createTicketStore({ logger = console } = {}) {
         logger,
       }),
 
-    // Fuente de verdad de asientos vendidos según el modo de storage:
-    // postgres/postgres-primary → PostgreSQL; json → tickets.json; dual-read → unión.
+    // Asientos vendidos según el modo de storage.
     getSoldSeatKeys: eventId =>
       getSoldSeatKeysFromStorage({
         eventId,

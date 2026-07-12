@@ -132,7 +132,7 @@
 
                 if (!cloudflare.turnstileEnabled || !cloudflare.siteKey) {
                     turnstileRequired = false;
-                    pricingSecurityCopy.textContent = 'Modo demo: el backend ya recalcula y firma precios. Para produccion, configura TURNSTILE_SITE_KEY y TURNSTILE_SECRET_KEY.';
+                    pricingSecurityCopy.textContent = 'Los precios se calculan y firman en el servidor antes de habilitar el pago.';
                     return;
                 }
 
@@ -265,7 +265,7 @@
             description.style.marginBottom = '24px';
             description.style.lineHeight = '1.65';
             description.style.fontSize = '.9rem';
-            description.textContent = 'Tu pedido ha sido procesado correctamente. Recibirás tus boletos digitales con código QR en tu correo electrónico en los próximos minutos.';
+            description.textContent = 'Tu pedido ha sido procesado correctamente. Tus boletos digitales con código QR ya están disponibles.';
 
             const summary = document.createElement('div');
             summary.style.background = 'rgba(34,197,94,0.08)';
@@ -367,17 +367,17 @@
         const PM_INFO = {
             tarjeta: {
                 name: 'Tarjeta de Crédito / Débito',
-                instructions: 'Serás redirigido al portal de pago seguro. Ten a la mano tu tarjeta digital. La confirmación llegará a tu correo en los próximos minutos.',
+                instructions: 'Método seleccionado: tarjeta de crédito o débito. Al confirmar tu pedido, tus boletos digitales quedan disponibles de inmediato.',
                 totalFn: () => total,
             },
             spei: {
                 name: 'Transferencia SPEI',
-                instructions: 'Recibirás los datos bancarios por correo. Tienes 1 hora para realizar tu transferencia desde cualquier banco. CLABE y referencia en tu cuenta de BoletaMax.',
+                instructions: 'Método seleccionado: transferencia SPEI. El total ya incluye el ahorro en comisión. Al confirmar tu pedido, tus boletos quedan disponibles de inmediato.',
                 totalFn: () => speiTotal,
             },
             oxxo: {
                 name: 'OXXO Pay',
-                instructions: 'Recibirás una ficha de pago por correo y en la app. Preséntala en cualquier OXXO para pagar en efectivo. Vigencia 5 horas. Se agrega comisión de $17 del establecimiento.',
+                instructions: 'Método seleccionado: pago en efectivo en OXXO. El total incluye la comisión de $17 del establecimiento. Al confirmar tu pedido, tus boletos quedan disponibles de inmediato.',
                 totalFn: () => total + 17,
             },
         };
@@ -387,8 +387,6 @@
         let timerInterval = null;
 
         // ── Datos del comprador ──
-        // Con sesión, el servidor usa los datos de la cuenta e ignora el buyer
-        // del body; como invitado, nombre y correo reales son obligatorios.
         let sessionBuyer = null;
         const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 

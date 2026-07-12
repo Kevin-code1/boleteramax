@@ -956,10 +956,7 @@
             margin-top: 64px;
         }
 
-        /* ===================================================
-           BoletaMax Enterprise Checkout Refresh
-           Visual-only: keeps sessionStorage, IDs and payment flow intact.
-           =================================================== */
+        /* Ajustes visuales del checkout */
         :root {
             --bm-bg: #050B12;
             --bm-bg-2: #071018;
@@ -1170,7 +1167,7 @@
             }
         }
 
-        /* Editorial checkout pass: compact payment list, subtle timer, summary remains the main card. */
+        /* Distribución editorial del checkout */
         .co-steps {
             background: rgba(5, 11, 18, 0.7);
             border-bottom-color: rgba(255, 255, 255, 0.06);
@@ -1281,9 +1278,7 @@
             display: none;
         }
 
-        /* La tarjeta destacada (SPEI) reserva una franja superior para el
-           badge "AHORRA $X", que antes se encimaba con el precio (ambos
-           vivían arriba a la derecha). Así el badge queda despejado. */
+        /* Espacio para la etiqueta de ahorro SPEI */
         .pm-card.featured {
             padding-top: 36px;
         }
@@ -1626,7 +1621,7 @@
     <div class="confirmation-overlay" id="confirm-overlay">
         <div class="confirm-card">
             <div class="confirm-icon">🎟️</div>
-            <h2>¡Pago Iniciado!</h2>
+            <h2>Confirma tu pedido</h2>
             <div class="confirm-method-badge" id="confirm-method-badge">
                 <i class="fas fa-check-circle"></i> <span id="confirm-method-name">—</span>
             </div>

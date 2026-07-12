@@ -11,8 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, '..');
 
-// JSON de tickets aislado por corrida: los e2e no deben compartir
-// data/tickets.json entre sí ni ensuciar el archivo real.
+// JSON de tickets aislado por corrida de e2e.
 async function createTempTicketsPath(tag) {
   const dir = path.join(rootDir, '.tmp');
   await fs.mkdir(dir, { recursive: true });
@@ -31,8 +30,7 @@ function getFreeishPort() {
   return 41_000 + Math.floor(Math.random() * 2_000);
 }
 
-// El token de verificación solo se imprime en el log del servidor (dev),
-// nunca en el JSON de la API. Lo leemos de stdout para completar el flujo.
+// El token de verificación solo aparece en el log del servidor (dev).
 async function waitForVerifyToken(getOutput, email, { timeoutMs = 5000 } = {}) {
   const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`Para:\\s*${escaped}[\\s\\S]*?token=([a-f0-9]+)`, 'g');
@@ -263,8 +261,7 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
       return purchase.payload.tickets[0];
     }
 
-    // ── Flujo de invitado: una sola cotización para el intento sin buyer
-    // (400) y la compra real (201); quote y purchase comparten rate limit.
+    // ── Flujo de invitado (una cotización: quote y compra comparten rate limit) ──
     const guestSeats = [{ zone: 'LUNETA', fila: `GUEST${suffix}`, asiento: 1, tableSize: 1 }];
     const guestQuote = await requestJson(baseUrl, '/api/checkout/quote', {
       method: 'POST',
@@ -284,7 +281,7 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
       });
     }
 
-    // Invitado sin datos de comprador → 400 (nombre y correo obligatorios).
+    // Invitado sin datos de comprador → 400.
     const noBuyerPurchase = await requestJson(baseUrl, '/api/tickets', {
       method: 'POST',
       body: guestPurchaseBody(undefined),
@@ -304,7 +301,7 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     );
     orderIds.push(guestPurchase.payload.orderId);
     const guestTicket = guestPurchase.payload.tickets[0];
-    // Con sesión: se envía un buyer señuelo que el servidor debe ignorar.
+    // Con sesión, el buyer del body se ignora.
     const ownedTicket = await buyTicket(sessionCookie.header, `USER${suffix}`, {
       name: 'Nombre Señuelo',
       email: 'senuelo@ignorado.test',

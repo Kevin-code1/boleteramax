@@ -143,8 +143,7 @@ export function buildSeatKey(seat = {}) {
   return `${zone}|${fila}|A${seat.asiento || 1}`;
 }
 
-// Estados que ocupan el asiento: 'active' (por usar) y 'used' (ya ingresó).
-// 'cancelled' y demás estados liberan el lugar.
+// active y used ocupan el asiento; los demás estados lo liberan.
 const SEAT_BLOCKING_STATUSES = new Set(['active', 'used']);
 
 export function getSoldSeatsForEvent(eventId, existingTickets) {
@@ -161,7 +160,7 @@ export function validateSeatInventory(eventId, seats, existingTickets) {
   return findSeatConflicts(seats, getSoldSeatsForEvent(eventId, existingTickets));
 }
 
-// Conflictos de una selección contra un set de llaves vendidas (de cualquier fuente).
+// Conflictos contra un set de llaves vendidas.
 export function findSeatConflicts(seats, soldSeats) {
   const conflicts = [];
   const seenInOrder = new Set();
@@ -304,18 +303,17 @@ export function getAuthoritativePurchase(purchase) {
   };
 }
 
-// Desglose en centavos para persistir la orden, derivado de la cotización
-// firmada (nunca de montos del cliente). Cumple siempre:
-// subtotal + fee - discount = total.
+// Desglose en centavos desde la cotización firmada.
+// Invariante: subtotal + fee - discount = total.
 export function buildOrderPricingCents(authoritativePurchase, paymentMethod) {
   const toCents = value => Math.round(Number(value || 0) * 100);
 
   const subtotalCents = toCents(authoritativePurchase.subtotal);
   const baseFeeCents = toCents(authoritativePurchase.fee);
-  // OXXO agrega su comisión fija al cargo por servicio.
+  // OXXO suma su comisión fija al fee.
   const feeCents = paymentMethod === 'oxxo' ? baseFeeCents + toCents(OXXO_FEE) : baseFeeCents;
   const totalCents = toCents(authoritativePurchase.total);
-  // SPEI paga menos que subtotal+fee: la diferencia es descuento.
+  // El ahorro SPEI se registra como descuento.
   const discountCents = Math.max(0, subtotalCents + feeCents - totalCents);
 
   return { subtotalCents, feeCents, discountCents, totalCents, currency: 'MXN' };

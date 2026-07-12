@@ -258,9 +258,7 @@ export async function findTicketByCode(ticketCode, dbClient = null) {
   return tickets[0] || null;
 }
 
-// Boletos que ocupan asiento para un evento (por external_reference legacy).
-// Devuelve la forma mínima { eventId, status, seat } que espera el dominio
-// para calcular llaves de asiento; el dominio decide qué estados bloquean.
+// Asientos ocupados de un evento; el dominio decide qué estados bloquean.
 export async function findSoldSeatTicketsByEvent(eventReference, dbClient = null) {
   const reference = cleanText(eventReference, null);
   if (!reference) return [];
@@ -297,7 +295,7 @@ export async function findSoldSeatTicketsByEvent(eventReference, dbClient = null
         asiento: positiveInt(row.seat_number),
         mesa: row.table_label || null,
         seatInMesa: positiveInt(row.table_seat_number),
-        // Solo para construir la llave de asiento: >1 activa la rama de mesa.
+        // Solo para construir la llave de asiento.
         tableSize: row.table_label ? 2 : 1,
       },
     };
@@ -866,12 +864,10 @@ export async function markTicketUsedByCode(ticketCode, { usedAt = new Date().toI
   };
 }
 
-// ── Persistencia propia de compras nuevas (checkout) ──
-// importLegacyTicket queda únicamente para el script de migración de
-// tickets.json; las compras del checkout usan insertPurchaseOrder.
+// ── Persistencia de compras del checkout ──
+// importLegacyTicket queda solo para la migración de tickets.json.
 
-// Conflicto de asiento detectado dentro de la transacción de compra.
-// El mensaje es apto para el cliente; el adaptador HTTP lo mapea a 400.
+// Conflicto de asiento dentro de la transacción de compra.
 export class TicketSeatConflictError extends Error {
   constructor() {
     super('Asientos no disponibles: uno de los asientos seleccionados acaba de venderse. Selecciona otros asientos.');
@@ -879,9 +875,7 @@ export class TicketSeatConflictError extends Error {
   }
 }
 
-// Get-or-create sin DO UPDATE: no muta metadata ni updated_at de filas
-// existentes y es seguro ante carreras (el INSERT concurrente pierde y
-// el SELECT posterior encuentra la fila ganadora ya confirmada).
+// Get-or-create sin DO UPDATE; seguro ante inserciones concurrentes.
 async function getOrCreateId(dbClient, { insertSql, insertParams, selectSql, selectParams }) {
   const inserted = await run(dbClient, insertSql, insertParams);
   if (inserted.rowCount > 0) return inserted.rows[0].id;
@@ -977,8 +971,7 @@ async function getOrCreateTicketTypeId(dbClient, eventId, ticket) {
   });
 }
 
-// Inserta el asiento como vendido. Si ya existe y tiene un boleto que lo
-// ocupa (active/used), la compra es un conflicto controlado.
+// Marca el asiento como vendido; si ya está ocupado es conflicto.
 async function insertSoldSeat(dbClient, eventId, sectionId, ticket) {
   const seat = ticket.seat || {};
   const seatCode = getSeatCode(ticket);
@@ -1032,7 +1025,7 @@ async function insertSoldSeat(dbClient, eventId, sectionId, ticket) {
     throw new TicketSeatConflictError();
   }
 
-  // Asiento reciclado (venta previa cancelada/reembolsada): vuelve a venderse.
+  // Asiento liberado por una venta cancelada: vuelve a venderse.
   await run(dbClient, `UPDATE seats SET status = 'sold', updated_at = now() WHERE id = $1`, [seatId]);
   return seatId;
 }
@@ -1145,9 +1138,7 @@ async function insertPaymentRow(dbClient, { orderUuid, order }) {
   );
 }
 
-// Una compra = una orden con sus items, boletos y un pago simulado, en una
-// sola transacción: cualquier fallo (incluido conflicto de asiento) hace
-// rollback completo y no deja filas parciales.
+// Una compra = una orden con items, boletos y pago, en una transacción.
 export async function insertPurchaseOrder({ order, tickets } = {}, options = {}) {
   const records = Array.isArray(tickets) ? tickets.filter(Boolean) : [];
   if (!order || !records.length) {

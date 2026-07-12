@@ -1,7 +1,6 @@
 import { insertPurchaseOrder, TicketSeatConflictError } from './tickets.repository.mjs';
 
-// Re-export: el error nace en el repositorio (dentro de la transacción),
-// pero los consumidores históricos lo importan desde este módulo.
+// Re-export para los consumidores de este módulo.
 export { TicketSeatConflictError };
 
 const VALID_WRITE_MODES = new Set(['json', 'dual-write', 'postgres-primary']);
@@ -57,8 +56,7 @@ export class TicketPurchasePrimaryWriteError extends Error {
   }
 }
 
-// Conflicto de asiento que escapó al pre-chequeo y llegó a los índices
-// únicos de PostgreSQL (carrera entre compradores).
+// Conflicto de asiento detectado por los índices únicos.
 function isSeatConflictError(error = {}) {
   return error?.code === '23505' && /seat/i.test(String(error?.constraint || ''));
 }

@@ -1,4 +1,4 @@
-/* buyer.mjs: identidad del comprador de una orden (cuenta o invitado) */
+/* Comprador de una orden (cuenta o invitado) */
 
 import { isValidEmail, normalizeEmail } from './auth.mjs';
 
@@ -12,8 +12,7 @@ export function sanitizeBuyerPayload(rawBuyer) {
   };
 }
 
-// Con sesión, la orden usa exclusivamente los datos de la cuenta y se ignora
-// cualquier buyer del body. Sin sesión, nombre y correo reales son obligatorios.
+// Con sesión manda la cuenta; sin sesión el buyer es obligatorio.
 export function resolvePurchaseBuyer({ sessionUser = null, requestBuyer = null } = {}) {
   if (sessionUser) {
     return {

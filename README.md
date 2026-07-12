@@ -1,140 +1,121 @@
-# boletaMax
-Requisitos
+# BoletaMax
 
-- Node.js 18+
-- PostgreSQL 14+ para la infraestructura de base de datos
-- Una API key de OpenAI
+BoletaMax es una plataforma de venta y validación de boletos para eventos. Integra catálogo, búsqueda asistida por IA, selección de asientos, cotizaciones firmadas por el servidor, cuentas de compradores, persistencia de órdenes y boletos con QR.
 
-Configuración
+## Funcionalidades
 
-1. Instala dependencias:
-   `npm install`
-2. Crea tu archivo de entorno:
-   `copy .env.example .env`
-3. Agrega tu `OPENAI_API_KEY` en `.env`
-4. Configura PostgreSQL en `.env`:
-   `DATABASE_URL=postgres://postgres:postgres@localhost:5432/boletamax`
+- Catálogo de eventos con filtros y búsqueda en lenguaje natural mediante `/api/ai-search`.
+- Inventario de asientos consultado desde la fuente configurada y validado nuevamente al comprar.
+- Compras para invitados o usuarios registrados con correo verificado.
+- Una orden por compra, con comprador, importes en centavos, `order_items`, boletos y registro de pago.
+- Escritura atómica en PostgreSQL para evitar órdenes o boletos parciales.
+- Boletos con QR estático, QR dinámico y flujo de validación para staff.
+- Respaldo JSON y herramientas de migración y comparación con PostgreSQL.
 
-Base de datos PostgreSQL
+## Requisitos
 
-Fase 1 agrega infraestructura PostgreSQL empresarial sin cambiar el flujo actual de boletos en JSON.
+- Node.js 18 o posterior.
+- PostgreSQL 14 o posterior para los modos basados en base de datos.
+- Una clave de OpenAI para habilitar la búsqueda asistida por IA.
 
-1. Crea una base local llamada `boletamax`:
-   `createdb boletamax`
-2. Ejecuta migraciones:
-   `npm run db:migrate`
-3. Verifica conexion:
-   `npm run db:verify`
+## Instalación
 
-Si `db:verify` termina sin fallas, PostgreSQL conecta correctamente y la integridad base esta en buen estado.
+1. Instala las dependencias:
 
+   ```powershell
+   npm install
+   ```
 
-Fase 2 permite copiar `data/tickets.json` hacia PostgreSQL sin cambiar todavia el funcionamiento de la app. El backend sigue usando JSON hasta una fase posterior.
+2. Crea el archivo de entorno a partir del ejemplo:
 
-- Simular migracion sin escribir datos:
-  `npm run tickets:migrate:dry-run`
-- Ejecutar migracion real con backup previo:
-  `npm run tickets:migrate`
-- Verificar conteos entre JSON y PostgreSQL:
-  `npm run tickets:db:count`
+   ```powershell
+   Copy-Item .env.example .env
+   ```
 
-El migrador no imprime tokens privados completos y usa hashes para guardar tokens sensibles en PostgreSQL.
+3. Configura al menos `DATABASE_URL` y `OPENAI_API_KEY` en `.env`.
 
+4. Crea la base de datos y aplica las migraciones:
 
-BoletaMax usa PostgreSQL como fuente principal de lectura por defecto y conserva JSON como respaldo temporal.
+   ```powershell
+   createdb boletamax
+   npm run db:migrate
+   npm run db:verify
+   ```
 
-- Modo principal por defecto:
-  `TICKETS_STORAGE=postgres-primary`
-- Rollback temporal a JSON:
-  `TICKETS_STORAGE=json`
-- Leer tickets desde PostgreSQL:
-  `TICKETS_STORAGE=postgres`
-- Leer primero PostgreSQL y caer a JSON si falta el ticket:
-  `TICKETS_STORAGE=dual-read`
-- Leer estrictamente desde PostgreSQL:
-  `TICKETS_STORAGE=postgres-primary`
+5. Inicia la aplicación:
 
-Este flag solo afecta lectura en `GET /api/tickets`, `GET /api/tickets/:ticketId` y `GET /api/tickets/:ticketId/dynamic-qr`. La escritura de compras se controla con `TICKETS_WRITE_MODE`.
+   ```powershell
+   npm start
+   ```
 
- guarda compras primero en PostgreSQL por defecto. Despues de confirmar PostgreSQL, escribe una copia temporal en `data/tickets.json`.
+La interfaz queda disponible en [http://localhost:3000](http://localhost:3000).
 
-- Modo principal por defecto:
-  `TICKETS_WRITE_MODE=postgres-primary`
-- Rollback temporal a JSON:
-  `TICKETS_WRITE_MODE=json`
-- Guardar primero en JSON y luego intentar PostgreSQL:
-  `TICKETS_WRITE_MODE=dual-write`
-- Guardar primero en PostgreSQL y luego copia temporal en JSON:
-  `TICKETS_WRITE_MODE=postgres-primary`
+Para desarrollo con reinicio automático:
 
-Si PostgreSQL falla en `dual-write`, la compra sigue existiendo en JSON y el servidor registra solo un warning seguro.
-Si PostgreSQL falla en `postgres-primary`, la compra no emite boletos.
+```powershell
+npm run dev
+```
 
-Ejecutar pruebas:
-`npm test`
+## Configuración
 
-## Verificacion fuerte antes de retirar JSON
+Las variables disponibles están documentadas en `.env.example`. Las principales son:
 
-Auditar integridad interna de PostgreSQL:
-`npm run db:verify`
+- `DATABASE_URL`: conexión a PostgreSQL.
+- `OPENAI_API_KEY`: credencial para la búsqueda asistida por IA.
+- `TICKETS_STORAGE`: fuente de lectura (`postgres-primary`, `postgres`, `dual-read` o `json`).
+- `TICKETS_WRITE_MODE`: estrategia de escritura (`postgres-primary`, `dual-write` o `json`).
+- `CHECKOUT_SIGNING_SECRET`: secreto para firmar cotizaciones.
+- `TURNSTILE_SITE_KEY` y `TURNSTILE_SECRET_KEY`: protección de checkout con Cloudflare Turnstile.
+- `ADMIN_API_KEY`: autenticación del personal de validación.
+- `PUBLIC_BASE_URL` y `APP_BASE_URL`: URLs públicas para boletos y verificación de correo.
+- `SMTP_*`: entrega de correos de verificación.
 
-Comparar `data/tickets.json` contra PostgreSQL:
-`npm run db:compare-json`
+Los valores predeterminados usan PostgreSQL como fuente principal y conservan una copia JSON:
 
-Limitar la muestra de diferencias:
-`npm run db:compare-json -- --limit=20`
-
-Activar PostgreSQL como principal:
 ```env
 TICKETS_STORAGE=postgres-primary
 TICKETS_WRITE_MODE=postgres-primary
 ```
-Volver temporalmente a JSON:
-```powershell
-$env:TICKETS_STORAGE="json"
-$env:TICKETS_WRITE_MODE="json"
-npm start
-```
 
-Rollback en `.env`:
+Para operar temporalmente solo con JSON:
+
 ```env
 TICKETS_STORAGE=json
 TICKETS_WRITE_MODE=json
 ```
 
-Modo intermedio de observacion:
+## Base de datos y migración
+
 ```powershell
-$env:TICKETS_STORAGE="dual-read"
-$env:TICKETS_WRITE_MODE="dual-write"
-npm start
+npm run db:migrate
+npm run db:verify
+npm run db:compare-json -- --limit=50
 ```
 
-Checklist antes de produccion:
-- `npm run db:migrate` sin migraciones pendientes.
-- `npm run db:verify` sin errores.
-- `npm run db:compare-json -- --limit=50` con 0 faltantes, 0 extras y 0 diferencias publicas.
-- `npm test` con el e2e postgres-primary aprobado cuando `DATABASE_URL` este configurado.
-- `DATABASE_URL` configurado en el entorno real.
-- `ADMIN_API_KEY` configurada en produccion.
-- Defaults sin variables explicitas resuelven a `TICKETS_STORAGE=postgres-primary` y `TICKETS_WRITE_MODE=postgres-primary`.
-- Si falta `DATABASE_URL` en modo principal, el servidor debe fallar antes de iniciar sin imprimir secretos.
-- Rollback a `TICKETS_STORAGE=json` y `TICKETS_WRITE_MODE=json` probado antes del cambio.
+Para importar el respaldo histórico de boletos:
 
-## Ejecutar
-- Desarrollo:
-  `npm run dev`
-- Producción/local:
-  `npm start`
+```powershell
+npm run tickets:migrate:dry-run
+npm run tickets:migrate
+npm run tickets:db:count
+```
 
-Abre [http://localhost:3000](http://localhost:3000).
+El migrador crea un respaldo antes de escribir y evita mostrar tokens privados completos.
 
- Qué hace la búsqueda IA
+## Pruebas
 
-- Interpreta texto natural en `/api/ai-search`
-- Convierte la consulta en filtros estructurados
-- Busca sobre `data/events.json`
-- Reutiliza `openTicketModal(...)`, `bm_event` y `bm_cart` sin cambiar el flujo de compra existente
+```powershell
+npm test
+```
 
-- `checkout.html` no se modifica
-- El flujo de compra sigue guardando en `sessionStorage`
-- Al elegir un resultado de búsqueda se sigue abriendo el modal actual de compra
+La suite cubre inventario, precios, persistencia de compras, modos de almacenamiento, cuentas, verificación de correo, QR dinámico y validación de acceso.
+
+## Estructura
+
+- `src/domain`: reglas de negocio y validaciones.
+- `src/application`: casos de uso.
+- `src/ports`: contratos de servicios externos.
+- `src/adapters`: HTTP, persistencia, catálogo, correo, QR y búsqueda.
+- `db`: acceso a PostgreSQL, repositorios y modos de almacenamiento.
+- `js`: módulos del frontend.
+- `tests`: pruebas unitarias y flujos de integración.

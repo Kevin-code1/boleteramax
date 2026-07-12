@@ -207,9 +207,7 @@ export async function getTicketByIdFromStorage({
   return jsonTicket;
 }
 
-// Llaves de asientos vendidos por evento según el modo de storage.
-// `computeSoldSeatKeys(eventId, tickets)` viene del dominio (getSoldSeatsForEvent)
-// para que la regla de qué estados bloquean viva en un solo lugar.
+// Asientos vendidos por evento según el modo de storage.
 export async function getSoldSeatKeysFromStorage({
   eventId,
   mode = getTicketsStorageMode(),

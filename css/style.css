@@ -1,6 +1,4 @@
-/* ===================================================
-   BOLETAMAX – Main Stylesheet
-   =================================================== */
+/* Estilos principales de BoletaMax */
 
 /* ---------- CSS Variables ---------- */
 :root {
@@ -2957,9 +2955,7 @@ textarea {
   }
 }
 
-/* ========================================
-   VENUE MAP MODAL
-   ======================================== */
+/* Modal del recinto */
 .venue-modal-box {
   max-width: 860px !important;
   padding: 24px !important;
@@ -3395,9 +3391,7 @@ textarea {
   }
 }
 
-/* ========================================
-   FURNITURE COLLABORATION SECTION
-   ======================================== */
+/* Sección de colaboración */
 .collab-section {
   padding: 72px 24px;
   background: linear-gradient(180deg, #fff 0%, var(--light-bg) 100%);
@@ -3820,9 +3814,7 @@ textarea {
   }
 }
 
-/* ============================================================
-   INTERACTIVE SEAT MAP – New Ticket Modal Styles
-   ============================================================ */
+/* Mapa interactivo de asientos */
 
 /* --- Wider modal box --- */
 .ticket-modal-box {
@@ -4490,9 +4482,7 @@ textarea {
   }
 }
 
-/* ============================================================
-   SEAT MAP V2 – seat group, number text, sold state
-   ============================================================ */
+/* Grupos, números y estado de asientos */
 
 /* SVG canvas */
 #venue-svg {
@@ -4549,9 +4539,7 @@ textarea {
   user-select: none;
 }
 
-/* ============================================================
-   PREMIUM REFINEMENT OVERRIDES
-   ============================================================ */
+/* Ajustes visuales */
 
 body {
   background:
@@ -6064,10 +6052,7 @@ body {
   }
 }
 
-/* ===================================================
-   BoletaMax 2026 Premium Refresh
-   Visual-only layer for clearer ticketing UX
-   =================================================== */
+/* Capa visual 2026 */
 :root {
   --bm-night: #070d16;
   --bm-blue: #0b1627;
@@ -6451,9 +6436,7 @@ body {
   }
 }
 
-/* ===================================================
-   Seating UX Hotfix: compact, visible CTA, smoother SVG
-   =================================================== */
+/* Ajustes del selector de asientos */
 .modal-overlay {
   padding: 16px;
 }
@@ -6817,9 +6800,7 @@ body {
   }
 }
 
-/* ===================================================
-   Premium header alignment pass
-   =================================================== */
+/* Alineación del encabezado */
 #main-header {
   background:
     linear-gradient(180deg, rgba(13, 18, 27, 0.94), rgba(14, 15, 18, 0.88));
@@ -7010,10 +6991,7 @@ body {
   }
 }
 
-/* ===================================================
-   BoletaMax Enterprise Visual Refresh
-   Home + modal only. Keeps existing IDs/classes/JS hooks intact.
-   =================================================== */
+/* Ajustes visuales del inicio y el modal */
 :root {
   --bm-bg: #050b12;
   --bm-bg-2: #071018;
@@ -7415,10 +7393,7 @@ a:focus-visible,
   }
 }
 
-/* =====================================================
-   BoletaMax Editorial Desaturation Pass
-   Visual-only: reduces nested boxes/borders/shadows while keeping primary cards.
-   ===================================================== */
+/* Ajustes editoriales de color y profundidad */
 .header,
 .navbar {
   box-shadow: none;

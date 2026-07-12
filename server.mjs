@@ -1,6 +1,4 @@
-/* BoletaMax – raíz de composición.
-   Construye los adaptadores, los inyecta en los casos de uso (application)
-   y monta el adaptador HTTP. La lógica vive en src/domain y src/application. */
+/* Raíz de composición: adaptadores, casos de uso y HTTP */
 
 import { ADMIN_API_KEY, PORT, TURNSTILE_ENABLED } from './src/config/index.mjs';
 import { createEventsCatalog } from './src/adapters/catalog/events-catalog.mjs';

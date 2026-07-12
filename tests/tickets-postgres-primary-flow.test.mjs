@@ -11,8 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, '..');
 
-// JSON de tickets aislado por corrida: los e2e no deben compartir
-// data/tickets.json entre sí ni ensuciar el archivo real.
+// JSON de tickets aislado por corrida de e2e.
 async function createTempTicketsPath(tag) {
   const dir = path.join(rootDir, '.tmp');
   await fs.mkdir(dir, { recursive: true });
@@ -174,7 +173,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.ok(ticket.ticketId);
     assert.ok(ticket.token);
 
-    // ── B4: una sola orden con montos reales y un pago simulado ──
+    // ── Orden única con montos reales y pago ──
     const orderRow = (await query(
       `SELECT id, buyer_email, buyer_name, user_id, status, subtotal_cents, fee_cents,
               discount_cents, total_cents, checkout_quote_id, metadata
@@ -272,9 +271,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.equal(privateListResult.payload.tickets[0].ticketId, ticket.ticketId);
     assert.equal(Object.hasOwn(privateListResult.payload.tickets[0], 'token'), false);
 
-    // ── B1: PostgreSQL es la fuente de verdad del inventario ──
-    // Vaciamos el JSON de respaldo: la disponibilidad y el bloqueo de
-    // recompra deben seguir funcionando solo con PostgreSQL.
+    // ── Inventario desde PostgreSQL (con el respaldo JSON vacío) ──
     await fs.writeFile(ticketsPath, '[]');
 
     const availabilityResult = await requestJson(baseUrl, '/api/events/availability', {
@@ -372,8 +369,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     );
     assert.equal(duplicateCheck.rows[0]?.validation_count, 1);
 
-    // ── B2 + B1 e2e: el boleto ya está 'used'; su asiento debe seguir
-    // bloqueado en disponibilidad y recompra, leyendo desde PostgreSQL.
+    // ── El boleto usado debe seguir bloqueando su asiento ──
     const availabilityUsedResult = await requestJson(baseUrl, '/api/events/availability', {
       method: 'POST',
       body: JSON.stringify({ event }),

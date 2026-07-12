@@ -3,7 +3,7 @@
 import { showToast } from './toast.js';
 import { openModal, showCheckoutTransition } from './modals.js';
 
-/* ---- ZONE COLOUR PALETTE ---- */
+/* Paleta de zonas */
 const ZONE_COLORS = {
   fan: '#e2c46f',
   vip5: '#c99b3a',
@@ -12,17 +12,12 @@ const ZONE_COLORS = {
   gen: '#293a55',
 };
 
-/* ---- VENUE CONFIGS ---- */
-// Each venue defines zones with arc geometry:
-//   r       – base radius from center (SVG units)
-//   rows    – number of row arcs
-//   rowGap  – px between rows
-//   nSeats  – seats in first row (increments by +2 per row)
-//   startDeg / endDeg – arc span in degrees
-//   tableSize – seats grouped per mesa (2 or 4)
+/* ---- Configuración de recintos ---- */
+// Zonas por arcos: r (radio), rows, rowGap, nSeats (fila 1, +2 por fila),
+// startDeg/endDeg y tableSize (asientos por mesa).
 const VENUE_CONFIGS = {
 
-  /* ---- PALENQUE 360° — Escenario circular central ---- */
+  /* Palenque: escenario circular central */
   palenque: {
     cx: 360, cy: 310,        // Centro exacto del viewport
     viewBox: '0 0 720 640',
@@ -40,7 +35,7 @@ const VENUE_CONFIGS = {
     ],
   },
 
-  /* ---- ARENA 360° — Ring central ---- */
+  /* Arena: escenario circular central */
   arena: {
     cx: 360, cy: 310,
     viewBox: '0 0 720 640',
@@ -58,7 +53,7 @@ const VENUE_CONFIGS = {
     ],
   },
 
-  /* ---- TEATRO — Semicírculo frente al escenario ---- */
+  /* Teatro: semicírculo frente al escenario */
   teatro: {
     cx: 360, cy: 430,
     viewBox: '0 0 720 580',
@@ -78,7 +73,7 @@ const VENUE_CONFIGS = {
     ],
   },
 
-  /* ---- ESTADIO — escenario frontal amplio ---- */
+  /* Estadio: escenario frontal amplio */
   estadio: {
     cx: 360, cy: 505,
     viewBox: '0 0 720 640',
@@ -98,7 +93,7 @@ const VENUE_CONFIGS = {
     ],
   },
 
-  /* ---- FESTIVAL — campo abierto con escenario principal ---- */
+  /* Festival: campo abierto con escenario principal */
   festival: {
     cx: 360, cy: 500,
     viewBox: '0 0 720 640',
@@ -119,7 +114,7 @@ const VENUE_CONFIGS = {
   },
 };
 
-/* ---- Event → venue mapping ---- */
+/* Correspondencia entre eventos y recintos */
 // Debe coincidir con SERVER_EVENT_VENUE_MAP del servidor.
 const EVENT_VENUE_MAP = {
   'Gran Festival de Banda': 'palenque',
@@ -133,7 +128,7 @@ const EVENT_VENUE_MAP = {
   'Festival SolMaX': 'festival',
 };
 
-/* ---- State ---- */
+/* Estado */
 const FEE_RATE = 0.14;
 const AVAILABILITY_TIMEOUT_MS = 2500;
 let selectedSeats = [];
@@ -141,15 +136,15 @@ let seatData = {};       // id → seat object
 let currentVenueKey = 'palenque';
 let _idCounter = 0;
 
-// Zoom/pan state
+// Estado de zoom y desplazamiento.
 let svgScale = 1;
 let svgTx = 0, svgTy = 0;
 let _panLock = false; // prevent re-init
 
-/* ---- Degree → Radian ---- */
+/* Conversión de grados a radianes */
 const toRad = deg => (deg / 180) * Math.PI;
 
-/* ---- SVG Namespace shorthand ---- */
+/* Creación de elementos SVG */
 const NS = 'http://www.w3.org/2000/svg';
 function svgEl(tag, attrs, text) {
   const el = document.createElementNS(NS, tag);
@@ -158,11 +153,7 @@ function svgEl(tag, attrs, text) {
   return el;
 }
 
-/* =============================================================
-   REAL SEAT AVAILABILITY
-   Los asientos ocupados vienen del inventario real del servidor
-   (boletos ya vendidos), no de una simulación aleatoria.
-   ============================================================= */
+/* ── Disponibilidad de asientos ── */
 
 // Réplica de normalizeZoneLabel + buildSeatKey del servidor.
 function normalizeZoneKey(value = '') {
@@ -227,13 +218,10 @@ function renderMapLegend(prices = {}) {
   legend.innerHTML = items.join('');
 }
 
-/* =============================================================
-   generateSeats()
-   Builds all <g> (group per seat) elements inside #svg-pan-group
-   ============================================================= */
+/* Generación de asientos */
 function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels: null }) {
   const group = document.getElementById('svg-pan-group');
-  // Remove old seats, labels and separators
+  // Retira asientos, etiquetas y separadores anteriores.
   group.querySelectorAll('.seat-group, .row-label, .zone-label, .zone-sep, .zone-band').forEach(el => el.remove());
 
   seatData = {};
@@ -266,8 +254,8 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
       : svgEl('path', { ...bandAttrs, d: describeArc(cfg.cx, cfg.cy, bandR, zone.startDeg, zone.endDeg) });
     group.insertBefore(zoneBand, group.firstChild);
 
-    // ── Zone separator ring (subtle) ────────────────────────────
-    const sepR = zone.r - zone.rowGap * 0.5; // between this zone and previous
+    // Separador entre zonas.
+    const sepR = zone.r - zone.rowGap * 0.5;
     if (zone !== cfg.zones[0]) {
       const sep = svgEl('circle', {
         cx: cfg.cx, cy: cfg.cy, r: sepR.toFixed(1),
@@ -278,16 +266,16 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
       group.insertBefore(sep, group.firstChild);
     }
 
-    // ── Zone label (one per zone, outside outermost row) ─────────
+    // Etiqueta exterior de la zona.
     const outerR = zone.r + (zone.rows - 1) * zone.rowGap + 12;
     let labelAngle;
     if (full) {
-      // Place at 90° (below center, clear of seats on the ring)
+      // Debajo del centro, fuera del anillo de asientos.
       labelAngle = Math.PI / 2;
     } else {
-      // Place outside the midpoint of the arc
+      // Fuera del punto medio del arco.
       const midDeg = (zone.startDeg + zone.endDeg) / 2;
-      labelAngle = toRad(midDeg + 180); // opposite side → outside arc
+      labelAngle = toRad(midDeg + 180);
     }
     const zLx = (cfg.cx + outerR * Math.cos(labelAngle)).toFixed(1);
     const zLy = (cfg.cy + outerR * Math.sin(labelAngle)).toFixed(1);
@@ -301,18 +289,17 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
     }, zone.label);
     group.appendChild(zoneLbl);
 
-    // ── Seat rows ────────────────────────────────────────────────
+    // Filas de asientos.
     for (let row = 0; row < zone.rows; row++) {
       const r = zone.r + row * zone.rowGap;
-      const rowLabel = String.fromCharCode(65 + row); // A, B, C …
+      const rowLabel = String.fromCharCode(65 + row);
       const startRad = toRad(zone.startDeg);
       const endRad = toRad(zone.endDeg);
       const totalAngle = endRad - startRad;
-      const n = zone.nSeats + row * 2; // widen each row slightly
+      const n = zone.nSeats + row * 2;
 
       for (let i = 0; i < n; i++) {
-        // For last seat of full-circle arcs, use n (not n-1) so the last
-        // seat doesn't land on top of the first seat.
+        // En círculo completo se divide entre n para no encimar el último asiento.
         const divisor = full ? n : Math.max(n - 1, 1);
         const theta = startRad + (i / divisor) * totalAngle;
         const cx = cfg.cx + r * Math.cos(theta);
@@ -321,7 +308,7 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
         const id = ++_idCounter;
         globalSeatInZone++;
 
-        /* Mesa calculation */
+        /* Mesa */
         const mesaNum = Math.ceil(globalSeatInZone / zone.tableSize);
         const seatInMesa = ((globalSeatInZone - 1) % zone.tableSize) + 1;
 
@@ -337,7 +324,7 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
         });
         const sold = availability.soldKeys.has(seatKey);
 
-        /* The seat group: circle + number label */
+        /* Grupo SVG del asiento */
         const seatLabel = zone.tableSize > 1
           ? `${zone.label}, fila ${rowLabel}, mesa ${mesaNum}, lugar ${seatInMesa}`
           : `${zone.label}, fila ${rowLabel}, asiento ${i + 1}`;
@@ -358,7 +345,7 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
         });
         g.appendChild(circle);
 
-        // Store seat data
+        // Datos del asiento.
         seatData[id] = {
           id, zone: zone.key, zoneLabel: zone.label, color,
           fila: rowLabel, asiento: i + 1,
@@ -379,7 +366,7 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
           });
         } else {
           g.style.cursor = 'not-allowed';
-          // Show "Ocupado" on hover for sold seats
+          // Muestra el estado al pasar sobre un asiento vendido.
           g.addEventListener('mouseenter', () => showSoldTooltip(g, cx, cy));
           g.addEventListener('mouseleave', hideSeatTooltip);
         }
@@ -391,9 +378,7 @@ function generateSeats(prices, availability = { soldKeys: new Set(), zoneLabels:
 }
 
 
-/* =============================================================
-   TOOLTIP
-   ============================================================= */
+/* Información emergente */
 const tooltip = document.getElementById('seat-tooltip');
 const mapContainer = document.getElementById('seat-map-container');
 
@@ -437,7 +422,7 @@ function showSoldTooltip(g, cx, cy) {
   document.getElementById('st-asiento').textContent = 'OCUPADO';
   document.getElementById('st-precio').textContent = 'No disponible';
   tooltip.style.display = 'block';
-  // Position near the seat group element
+  // Posición cercana al asiento.
   const rect = mapContainer.getBoundingClientRect();
   const svg = document.getElementById('venue-svg');
   const svgRect = svg.getBoundingClientRect();
@@ -450,16 +435,14 @@ function showSoldTooltip(g, cx, cy) {
   tooltip.style.top = Math.max(0, screenY) + 'px';
 }
 
-/* =============================================================
-   SEAT SELECTION
-   ============================================================= */
+/* Selección de asientos */
 function onSeatClick(id) {
   const s = seatData[id];
   if (!s || s.sold) return;
 
   const idx = selectedSeats.findIndex(x => x.id === id);
   if (idx >= 0) {
-    // Deselect
+    // Deselecciona.
     selectedSeats.splice(idx, 1);
     s.circle.setAttribute('fill', s.color);
     s.circle.classList.remove('seat-selected');
@@ -477,9 +460,7 @@ function onSeatClick(id) {
   renderCart();
 }
 
-/* =============================================================
-   CART
-   ============================================================= */
+/* Carrito */
 function renderEmptyCart(list) {
   const empty = document.createElement('div');
   empty.className = 'cart-empty-msg';
@@ -567,9 +548,7 @@ export function removeSeat(id) {
   renderCart();
 }
 
-/* =============================================================
-   ZOOM + PAN  (Fixed: centered transform, wheel on cursor)
-   ============================================================= */
+/* Zoom y desplazamiento */
 function initZoomPan() {
   if (_panLock) return;
   _panLock = true;
@@ -580,14 +559,14 @@ function initZoomPan() {
 
   function applyTransform() {
     group.setAttribute('transform', `translate(${svgTx.toFixed(2)},${svgTy.toFixed(2)}) scale(${svgScale.toFixed(4)})`);
-    // Show seat numbers at high zoom
+    // Muestra números de asiento con zoom alto.
     group.classList.toggle('zoom-labels', svgScale >= 2.2);
   }
 
   function zoomAt(factor, originX, originY) {
     const newScale = Math.max(0.55, Math.min(5.5, svgScale * factor));
     if (newScale === svgScale) return;
-    // Adjust translation so the zoom is centred on (originX, originY) in svg coords
+    // Mantiene el zoom centrado en el punto de origen.
     const r = newScale / svgScale;
     svgTx = originX - r * (originX - svgTx);
     svgTy = originY - r * (originY - svgTy);
@@ -595,7 +574,7 @@ function initZoomPan() {
     applyTransform();
   }
 
-  // Button controls — zoom around SVG centre
+  // Controles centrados en el SVG.
   const vb = svg.getAttribute('viewBox').split(' ').map(Number);
   const vcx = vb[2] / 2, vcy = vb[3] / 2;
 
@@ -605,14 +584,14 @@ function initZoomPan() {
     svgScale = 1; svgTx = 0; svgTy = 0; applyTransform();
   };
 
-  // Mouse-wheel zoom (centered on cursor)
+  // Zoom con rueda centrado en el cursor.
   svg.addEventListener('wheel', e => {
     e.preventDefault();
     const rect = svg.getBoundingClientRect();
-    // Convert mouse position to SVG coordinate space
+    // Convierte el cursor a coordenadas SVG.
     const mouseX = (e.clientX - rect.left) / rect.width * vb[2];
     const mouseY = (e.clientY - rect.top) / rect.height * vb[3];
-    // cursor in group coordinate space
+    // Cursor dentro del grupo transformado.
     const gx = (mouseX - svgTx) / svgScale;
     const gy = (mouseY - svgTy) / svgScale;
     const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
@@ -623,7 +602,7 @@ function initZoomPan() {
     applyTransform();
   }, { passive: false });
 
-  // Mouse drag to pan
+  // Desplazamiento con el mouse.
   let dragging = false, dragSX, dragSY, dragTX, dragTY;
   svg.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
@@ -644,7 +623,7 @@ function initZoomPan() {
   });
   window.addEventListener('mouseup', () => { dragging = false; svg.style.cursor = 'grab'; });
 
-  // Touch
+  // Desplazamiento táctil.
   let tc0 = null, tTX, tTY;
   svg.addEventListener('touchstart', e => {
     if (e.touches.length === 1) { tc0 = e.touches[0]; tTX = svgTx; tTY = svgTy; }
@@ -659,7 +638,7 @@ function initZoomPan() {
     }
   }, { passive: true });
 
-  // Touch pinch‑zoom
+  // Zoom táctil.
   let lastPinchDist = null;
   svg.addEventListener('touchstart', e => {
     if (e.touches.length === 2) lastPinchDist = null;
@@ -683,9 +662,7 @@ function initZoomPan() {
   }, { passive: true });
 }
 
-/* =============================================================
-   UPDATE SVG VIEWBOX when venue changes
-   ============================================================= */
+/* Ajuste del SVG al cambiar de recinto */
 function updateSvgStructure() {
   const cfg = VENUE_CONFIGS[currentVenueKey];
   const svg = document.getElementById('venue-svg');
@@ -733,16 +710,14 @@ function updateSvgStructure() {
   }
 }
 
-/* =============================================================
-   OPEN TICKET MODAL (entry point from event cards)
-   ============================================================= */
+/* Apertura del selector desde las tarjetas de eventos */
 let _openTicketSeq = 0;
 
 export async function openTicketModal(name, date, venue, price, venueType) {
   const openSeq = ++_openTicketSeq;
   const base = parseInt(String(price).replace(/[^0-9]/g, '')) || 650;
 
-  // Pick venue layout
+  // Selecciona el plano del recinto.
   currentVenueKey = venueType || EVENT_VENUE_MAP[name] || 'palenque';
 
   const cfg = VENUE_CONFIGS[currentVenueKey];
@@ -752,25 +727,25 @@ export async function openTicketModal(name, date, venue, price, venueType) {
     prices[z.key] = Math.round(base * ratio);
   });
 
-  // Update header
+  // Actualiza el encabezado.
   document.getElementById('tm-event-name').textContent = name;
   document.getElementById('tm-date-text').textContent = date;
   document.getElementById('tm-venue-text').textContent = venue;
 
-  // Update legend bar
+  // Actualiza la leyenda.
   cfg.zones.forEach(z => {
     const el = document.getElementById(`plb-${z.key}`);
     if (el) el.textContent = `$${prices[z.key].toLocaleString('es-MX')}`;
   });
   renderMapLegend(prices);
 
-  // Save cart info in session for checkout page
+  // Guarda el evento para el checkout.
   sessionStorage.setItem('bm_event', JSON.stringify({ name, date, venue }));
 
-  // Reset SVG structure
+  // Restablece el SVG.
   updateSvgStructure();
 
-  // Reset zoom
+  // Restablece el zoom.
   svgScale = 1; svgTx = 0; svgTy = 0;
   const group = document.getElementById('svg-pan-group');
   if (group) {
@@ -780,7 +755,7 @@ export async function openTicketModal(name, date, venue, price, venueType) {
     group.querySelectorAll('.seat-group, .row-label, .zone-label, .zone-sep, .zone-band').forEach(el => el.remove());
   }
 
-  // Reset cart UI
+  // Restablece el carrito.
   selectedSeats = [];
   renderEmptyCart(document.getElementById('cart-items-list'));
   document.getElementById('cart-totals').style.display = 'none';
@@ -788,7 +763,7 @@ export async function openTicketModal(name, date, venue, price, venueType) {
   const btn = document.getElementById('btn-comprar');
   if (btn) btn.disabled = true;
 
-  // Allow zoom/pan re-init each time modal opens
+  // Permite reiniciar los controles al abrir el modal.
   _panLock = false;
   openModal('ticket-modal');
 
@@ -796,20 +771,18 @@ export async function openTicketModal(name, date, venue, price, venueType) {
   const availability = await fetchSeatAvailability({ name, date, venue });
   if (openSeq !== _openTicketSeq) return;
 
-  // Generate fresh seats
+  // Genera los asientos actuales.
   generateSeats(prices, availability);
 
-  // Init after modal is visible
+  // Inicia controles cuando el modal ya es visible.
   requestAnimationFrame(() => initZoomPan());
 }
 
-/* =============================================================
-   CHECKOUT REDIRECT
-   ============================================================= */
+/* Envío al checkout */
 export function proceedCheckout() {
   if (!selectedSeats.length) { showToast('⚠️ Selecciona al menos un asiento primero', 'error'); return; }
 
-  // Save cart to session storage
+  // Guarda el carrito en la sesión del navegador.
   const subtotal = selectedSeats.reduce((a, s) => a + s.price, 0);
   const fee = Math.round(subtotal * FEE_RATE);
   const total = subtotal + fee;

@@ -75,9 +75,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
   async function purchase(rawBody, { publicBaseUrl, requestContext, user = null }) {
     const purchaseRequest = sanitizePurchasePayload(rawBody);
 
-    // ── 1. Validar estructura del request y datos del comprador ──
-    // Con sesión: la orden usa los datos de la cuenta y se ignora el buyer
-    // del body. Invitado: nombre y correo reales son obligatorios.
+    // ── 1. Validar request y datos del comprador ──
     const catalogEvent = catalog.findCatalogEvent(purchaseRequest.event);
     const { buyer, errors: buyerErrors } = resolvePurchaseBuyer({
       sessionUser: user,
@@ -107,8 +105,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
     const orderId = createOrderId();
     const orderSeatCount = authoritativePurchase.seats.length;
 
-    // Orden única de la compra: comprador real, desglose en centavos desde
-    // la cotización firmada y referencia a la cotización.
+    // Orden de la compra.
     const order = {
       orderId,
       quoteId: authoritativePurchase.quoteId,
@@ -126,8 +123,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
 
     // ── 4. Validar inventario + escribir atómicamente con mutex ──
     const tickets = await ticketStore.withWriteLock(async () => {
-      // Asientos vendidos desde la fuente de verdad del modo configurado
-      // (PostgreSQL en postgres/postgres-primary, JSON en modo json).
+      // Inventario desde la fuente del modo configurado.
       const soldSeatKeys = await ticketStore.getSoldSeatKeys(eventId);
 
       const conflicts = findSeatConflicts(authoritativePurchase.seats, soldSeatKeys);
@@ -143,7 +139,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
         throw new Error('El evento ha alcanzado su capacidad maxima.');
       }
 
-      // El JSON solo se lee aquí para conservar el respaldo local completo.
+      // Lectura solo para el respaldo JSON local.
       const existingTickets = ticketStore.readTickets();
 
       const newTickets = await Promise.all(

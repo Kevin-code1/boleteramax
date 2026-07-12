@@ -2,8 +2,7 @@ import 'dotenv/config';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// src/config hace process.exit(1) si el modo postgres-primary no tiene
-// DATABASE_URL; estas pruebas unitarias no necesitan base de datos.
+// Sin DATABASE_URL se fuerza modo json (config aborta en postgres-primary).
 if (!process.env.DATABASE_URL) {
   process.env.TICKETS_STORAGE = process.env.TICKETS_STORAGE || 'json';
   process.env.TICKETS_WRITE_MODE = process.env.TICKETS_WRITE_MODE || 'json';

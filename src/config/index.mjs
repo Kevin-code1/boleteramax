@@ -9,8 +9,7 @@ export const ROOT_DIR = path.join(path.dirname(__filename), '..', '..');
 
 export const PORT = Number(process.env.PORT) || 3000;
 export const EVENTS_PATH = path.join(ROOT_DIR, 'data', 'events.json');
-// TICKETS_PATH solo se sobreescribe en pruebas para aislar el JSON por proceso;
-// en producción se usa siempre data/tickets.json.
+// Sobrescribible por entorno para aislar pruebas; producción usa data/tickets.json.
 export const TICKETS_PATH = String(process.env.TICKETS_PATH || '').trim()
   ? path.resolve(ROOT_DIR, String(process.env.TICKETS_PATH).trim())
   : path.join(ROOT_DIR, 'data', 'tickets.json');

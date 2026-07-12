@@ -1,6 +1,4 @@
-/* Puerto: contrato del servicio de correo.
-   La capa de aplicación depende de este contrato, no de un proveedor concreto.
-   Lo implementan los adaptadores en src/adapters/email/. */
+/* Contrato del servicio de correo (implementado en src/adapters/email) */
 
 /**
  * @typedef {Object} VerificationEmail

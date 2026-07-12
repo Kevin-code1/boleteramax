@@ -6,8 +6,7 @@ import { closePool, query } from '../db/pool.mjs';
 import { insertPurchaseOrder, TicketSeatConflictError } from '../db/tickets.repository.mjs';
 import { resolvePurchaseBuyer } from '../src/domain/buyer.mjs';
 
-// src/config hace process.exit(1) si el modo postgres-primary no tiene
-// DATABASE_URL; estas pruebas no lo necesitan para la parte unitaria.
+// Sin DATABASE_URL se fuerza modo json (config aborta en postgres-primary).
 if (!process.env.DATABASE_URL) {
   process.env.TICKETS_STORAGE = process.env.TICKETS_STORAGE || 'json';
   process.env.TICKETS_WRITE_MODE = process.env.TICKETS_WRITE_MODE || 'json';
@@ -277,8 +276,7 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
     assert.equal(order3Count.count, 0, 'el conflicto debe hacer rollback de la orden completa');
 
     // ── Rollback total ante fallo a mitad de transacción ──
-    // Dos boletos con el mismo ticket_code: el segundo INSERT viola la
-    // unicidad y toda la orden (incluido el primer asiento) debe revertirse.
+    // Dos boletos con el mismo ticket_code fuerzan el fallo.
     const order4 = makeOrder({ orderId: `BM-ORD-B4D-${suffix}`, buyer: guestBuyer });
     const dupCode = `BM-TKT-B4-DUP-${suffix}`;
     const tickets4 = [
@@ -297,8 +295,7 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
     )).rows[0];
     assert.deepEqual(rollbackChecks, { orders: 0, tickets: 0, seats: 0 });
   } finally {
-    // Limpieza: órdenes con sus dependencias, catálogo creado por la prueba
-    // y el usuario temporal.
+    // Limpieza de los datos creados por la prueba.
     for (const orderNumber of orderNumbers) {
       const orders = await query('SELECT id FROM orders WHERE order_number = $1', [orderNumber]);
       for (const row of orders.rows) {
