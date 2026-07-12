@@ -10,7 +10,16 @@ import { closePool, query } from '../db/pool.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, '..');
-const ticketsPath = path.join(rootDir, 'data', 'tickets.json');
+
+// JSON de tickets aislado por corrida: los e2e no deben compartir
+// data/tickets.json entre sí ni ensuciar el archivo real.
+async function createTempTicketsPath(tag) {
+  const dir = path.join(rootDir, '.tmp');
+  await fs.mkdir(dir, { recursive: true });
+  const filePath = path.join(dir, `tickets-e2e-${tag}-${Date.now()}-${Math.floor(Math.random() * 10_000)}.json`);
+  await fs.writeFile(filePath, '[]');
+  return filePath;
+}
 
 function sanitizeLog(value = '') {
   return String(value)
@@ -84,7 +93,7 @@ async function cleanupOrder(orderNumber) {
 test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
   skip: process.env.DATABASE_URL ? false : 'DATABASE_URL not configured; skipping postgres-primary e2e.',
 }, async () => {
-  const originalTicketsJson = await fs.readFile(ticketsPath, 'utf8');
+  const ticketsPath = await createTempTicketsPath('primary-flow');
   const port = getFreeishPort();
   const baseUrl = `http://127.0.0.1:${port}`;
   const adminKey = `TEST_ADMIN_${Date.now()}`;
@@ -108,6 +117,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
         TURNSTILE_SITE_KEY: '',
         TURNSTILE_SECRET_KEY: '',
         PUBLIC_BASE_URL: baseUrl,
+        TICKETS_PATH: ticketsPath,
       },
       windowsHide: true,
     });
@@ -276,7 +286,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.equal(duplicateCheck.rows[0]?.validation_count, 1);
   } finally {
     await stopServer(child);
-    await fs.writeFile(ticketsPath, originalTicketsJson);
+    await fs.rm(ticketsPath, { force: true });
     await cleanupOrder(orderId);
     await closePool();
   }

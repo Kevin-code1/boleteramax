@@ -9,7 +9,11 @@ export const ROOT_DIR = path.join(path.dirname(__filename), '..', '..');
 
 export const PORT = Number(process.env.PORT) || 3000;
 export const EVENTS_PATH = path.join(ROOT_DIR, 'data', 'events.json');
-export const TICKETS_PATH = path.join(ROOT_DIR, 'data', 'tickets.json');
+// TICKETS_PATH solo se sobreescribe en pruebas para aislar el JSON por proceso;
+// en producción se usa siempre data/tickets.json.
+export const TICKETS_PATH = String(process.env.TICKETS_PATH || '').trim()
+  ? path.resolve(ROOT_DIR, String(process.env.TICKETS_PATH).trim())
+  : path.join(ROOT_DIR, 'data', 'tickets.json');
 export const DYNAMIC_QR_WINDOW_MS = 30_000;
 export const DYNAMIC_QR_TOLERANCE_WINDOWS = 1;
 export const SERVICE_FEE_RATE = 0.14;
