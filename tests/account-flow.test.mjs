@@ -233,7 +233,7 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
       venue: 'Auditorio Puebla',
     };
 
-    async function buyTicket(cookieHeader, filaTag) {
+    async function buyTicket(cookieHeader, filaTag, buyer) {
       const seats = [{ zone: 'LUNETA', fila: filaTag, asiento: 1, tableSize: 1 }];
       const quote = await requestJson(baseUrl, '/api/checkout/quote', {
         method: 'POST',
@@ -251,6 +251,7 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
           paymentMethod: 'tarjeta',
           quote: quote.payload.quote,
           turnstileToken: '',
+          buyer,
         }),
       });
       assert.equal(
@@ -262,8 +263,86 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
       return purchase.payload.tickets[0];
     }
 
-    const guestTicket = await buyTicket(null, `GUEST${suffix}`);
-    const ownedTicket = await buyTicket(sessionCookie.header, `USER${suffix}`);
+    // ── Flujo de invitado: una sola cotización para el intento sin buyer
+    // (400) y la compra real (201); quote y purchase comparten rate limit.
+    const guestSeats = [{ zone: 'LUNETA', fila: `GUEST${suffix}`, asiento: 1, tableSize: 1 }];
+    const guestQuote = await requestJson(baseUrl, '/api/checkout/quote', {
+      method: 'POST',
+      body: JSON.stringify({ event, seats: guestSeats }),
+    });
+    assert.equal(guestQuote.response.status, 200);
+
+    function guestPurchaseBody(buyer) {
+      return JSON.stringify({
+        event,
+        seats: guestQuote.payload.quote.seats,
+        totalPaid: guestQuote.payload.quote.paymentTotals.tarjeta,
+        paymentMethod: 'tarjeta',
+        quote: guestQuote.payload.quote,
+        turnstileToken: '',
+        buyer,
+      });
+    }
+
+    // Invitado sin datos de comprador → 400 (nombre y correo obligatorios).
+    const noBuyerPurchase = await requestJson(baseUrl, '/api/tickets', {
+      method: 'POST',
+      body: guestPurchaseBody(undefined),
+    });
+    assert.equal(noBuyerPurchase.response.status, 400, 'guest purchase without buyer must be rejected');
+    assert.match(String(noBuyerPurchase.payload.message || ''), /nombre|correo/i);
+
+    const guestEmail = `guest+${suffix}@boletamax.test`;
+    const guestPurchase = await requestJson(baseUrl, '/api/tickets', {
+      method: 'POST',
+      body: guestPurchaseBody({ name: 'Invitado E2E', email: guestEmail }),
+    });
+    assert.equal(
+      guestPurchase.response.status,
+      201,
+      `guest purchase failed: ${sanitizeLog(JSON.stringify(guestPurchase.payload))}`,
+    );
+    orderIds.push(guestPurchase.payload.orderId);
+    const guestTicket = guestPurchase.payload.tickets[0];
+    // Con sesión: se envía un buyer señuelo que el servidor debe ignorar.
+    const ownedTicket = await buyTicket(sessionCookie.header, `USER${suffix}`, {
+      name: 'Nombre Señuelo',
+      email: 'senuelo@ignorado.test',
+    });
+
+    // ── Órdenes en PostgreSQL: comprador real, user_id y desglose ──
+    const guestOrder = (await query(
+      `SELECT buyer_email, buyer_name, user_id, checkout_quote_id, status,
+              subtotal_cents, fee_cents, total_cents, metadata
+       FROM orders WHERE order_number = $1`,
+      [orderIds[0]],
+    )).rows[0];
+    assert.ok(guestOrder, 'guest order must exist');
+    assert.equal(guestOrder.buyer_email, guestEmail);
+    assert.equal(guestOrder.buyer_name, 'Invitado E2E');
+    assert.equal(guestOrder.user_id, null, 'guest order must not have user_id');
+    assert.equal(guestOrder.metadata.guestPurchase, true);
+    assert.equal(guestOrder.status, 'paid');
+    assert.ok(guestOrder.checkout_quote_id, 'order must reference the signed quote');
+    assert.ok(guestOrder.subtotal_cents > 0 && guestOrder.fee_cents > 0);
+    assert.equal(guestOrder.subtotal_cents + guestOrder.fee_cents, guestOrder.total_cents);
+
+    const userOrder = (await query(
+      `SELECT buyer_email, buyer_name, user_id, metadata FROM orders WHERE order_number = $1`,
+      [orderIds[1]],
+    )).rows[0];
+    assert.equal(userOrder.buyer_email, email, 'session order must use account email, not body buyer');
+    assert.equal(userOrder.buyer_name, `E2E Cuenta ${suffix}`);
+    assert.ok(userOrder.user_id, 'session order must be linked to the user');
+    assert.equal(userOrder.metadata.guestPurchase, false);
+
+    const userPayment = (await query(
+      `SELECT p.provider, p.status FROM payments p
+       JOIN orders o ON o.id = p.order_id WHERE o.order_number = $1`,
+      [orderIds[1]],
+    )).rows[0];
+    assert.equal(userPayment.provider, 'simulated');
+    assert.equal(userPayment.status, 'paid');
 
     // ── Mis boletos: solo los del usuario ──
     const myTickets = await requestJson(baseUrl, '/api/account/tickets', {

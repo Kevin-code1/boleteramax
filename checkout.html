@@ -1302,6 +1302,99 @@
             box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
         }
 
+        .buyer-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin: 18px 0;
+        }
+
+        .buyer-title {
+            font-weight: 800;
+            font-size: .95rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .buyer-title i {
+            color: var(--accent, #d4af37);
+        }
+
+        .buyer-hint {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: .8rem;
+            margin: 6px 0 14px;
+        }
+
+        .buyer-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 620px) {
+            .buyer-fields {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .buyer-field label {
+            display: block;
+            font-size: .75rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px;
+        }
+
+        .buyer-field input {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: .9rem;
+            font-family: inherit;
+        }
+
+        .buyer-field input:focus-visible {
+            outline: 2px solid var(--accent, #d4af37);
+            outline-offset: 1px;
+        }
+
+        .buyer-field input[aria-invalid="true"] {
+            border-color: #ef4444;
+        }
+
+        .buyer-session[hidden] {
+            display: none;
+        }
+
+        .buyer-session {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.22);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: .85rem;
+        }
+
+        .buyer-session i {
+            color: #22c55e;
+        }
+
+        .buyer-error {
+            color: #fca5a5;
+            font-size: .8rem;
+            margin-top: 10px;
+        }
+
         @media (max-width: 620px) {
             .pm-card {
                 grid-template-columns: 42px minmax(0, 1fr);
@@ -1410,6 +1503,30 @@
             <div class="security-status-pill warning" id="security-status-pill">
                 <i class="fas fa-shield-halved"></i> Verificando
             </div>
+        </section>
+
+        <!-- Datos del comprador -->
+        <section class="buyer-card" id="buyer-card" aria-labelledby="buyer-card-title">
+            <div class="buyer-title" id="buyer-card-title"><i class="fas fa-user"></i> Datos del comprador</div>
+            <p class="buyer-hint" id="buyer-hint">Tus boletos y la confirmación de compra quedarán asociados a estos
+                datos.</p>
+            <div class="buyer-fields" id="buyer-fields">
+                <div class="buyer-field">
+                    <label for="buyer-name">Nombre completo</label>
+                    <input id="buyer-name" name="buyer-name" type="text" maxlength="80" autocomplete="name"
+                        placeholder="Nombre y apellido" required />
+                </div>
+                <div class="buyer-field">
+                    <label for="buyer-email">Correo electrónico</label>
+                    <input id="buyer-email" name="buyer-email" type="email" maxlength="254" autocomplete="email"
+                        placeholder="tucorreo@ejemplo.com" required />
+                </div>
+            </div>
+            <div class="buyer-session" id="buyer-session" hidden>
+                <i class="fas fa-circle-check"></i>
+                <span id="buyer-session-copy">Comprando con tu cuenta</span>
+            </div>
+            <div class="buyer-error" id="buyer-error" role="alert" hidden></div>
         </section>
 
         <!-- Payment methods -->

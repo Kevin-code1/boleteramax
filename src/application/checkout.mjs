@@ -1,10 +1,12 @@
 import {
   buildCheckoutQuote,
+  buildOrderPricingCents,
   findSeatConflicts,
   getAuthoritativePurchase,
   sanitizePurchasePayload,
   validatePurchaseRequest,
 } from '../domain/pricing.mjs';
+import { resolvePurchaseBuyer } from '../domain/buyer.mjs';
 import {
   buildEventId,
   buildPublicTicketPath,
@@ -70,12 +72,21 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
     return { outcome: 'ok', quote: checkoutQuote };
   }
 
-  async function purchase(rawBody, { publicBaseUrl, requestContext, userId = null }) {
+  async function purchase(rawBody, { publicBaseUrl, requestContext, user = null }) {
     const purchaseRequest = sanitizePurchasePayload(rawBody);
 
-    // ── 1. Validar estructura del request ──
+    // ── 1. Validar estructura del request y datos del comprador ──
+    // Con sesión: la orden usa los datos de la cuenta y se ignora el buyer
+    // del body. Invitado: nombre y correo reales son obligatorios.
     const catalogEvent = catalog.findCatalogEvent(purchaseRequest.event);
-    const validationErrors = validatePurchaseRequest(purchaseRequest, catalogEvent);
+    const { buyer, errors: buyerErrors } = resolvePurchaseBuyer({
+      sessionUser: user,
+      requestBuyer: purchaseRequest.buyer,
+    });
+    const validationErrors = [
+      ...validatePurchaseRequest(purchaseRequest, catalogEvent),
+      ...buyerErrors,
+    ];
     if (validationErrors.length) {
       console.warn('BoletaMax Tickets: validation failed', { errors: validationErrors });
       return { outcome: 'invalid', errors: validationErrors };
@@ -95,6 +106,23 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
     const eventId = buildEventId(authoritativePurchase.event);
     const orderId = createOrderId();
     const orderSeatCount = authoritativePurchase.seats.length;
+
+    // Orden única de la compra: comprador real, desglose en centavos desde
+    // la cotización firmada y referencia a la cotización.
+    const order = {
+      orderId,
+      quoteId: authoritativePurchase.quoteId,
+      buyer,
+      paymentMethod: purchaseRequest.paymentMethod,
+      pricing: buildOrderPricingCents(authoritativePurchase, purchaseRequest.paymentMethod),
+      event: {
+        eventId,
+        name: authoritativePurchase.event.name,
+        date: authoritativePurchase.event.date,
+        venue: authoritativePurchase.event.venue,
+      },
+      orderSeatCount,
+    };
 
     // ── 4. Validar inventario + escribir atómicamente con mutex ──
     const tickets = await ticketStore.withWriteLock(async () => {
@@ -128,15 +156,15 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
             paymentMethod: purchaseRequest.paymentMethod,
             orderSeatCount,
             publicBaseUrl,
-            userId,
+            userId: buyer.userId,
           }),
         ),
       );
-      await ticketStore.saveNewTickets({ existingTickets, newTickets });
+      await ticketStore.saveNewTickets({ existingTickets, newTickets, order });
       return newTickets;
     });
 
-    await ticketStore.syncDualWrite(tickets);
+    await ticketStore.syncDualWrite(tickets, order);
 
     console.log('BoletaMax Tickets: orden creada', {
       orderId,

@@ -183,12 +183,28 @@ test('un 23505 sobre índice de asiento se convierte en TicketSeatConflictError'
   await assert.rejects(
     writeTicketPurchaseToPostgresPrimary({
       ticketRecords: [{ orderId: 'BM-ORD-X', ticketId: 'BM-TKT-X' }],
-      repository: { insertTicketPurchase: async () => { throw conflict; } },
+      repository: { insertPurchaseOrder: async () => { throw conflict; } },
       logger: { warn: () => {}, error: () => {} },
     }),
     error => {
       assert.equal(error instanceof TicketSeatConflictError, true);
       assert.match(error.message, /Asientos no disponibles/);
+      return true;
+    },
+  );
+});
+
+test('un TicketSeatConflictError del pre-chequeo se propaga sin envolverse', async () => {
+  const conflict = new TicketSeatConflictError();
+
+  await assert.rejects(
+    writeTicketPurchaseToPostgresPrimary({
+      ticketRecords: [{ orderId: 'BM-ORD-Z', ticketId: 'BM-TKT-Z' }],
+      repository: { insertPurchaseOrder: async () => { throw conflict; } },
+      logger: { warn: () => {}, error: () => {} },
+    }),
+    error => {
+      assert.equal(error, conflict);
       return true;
     },
   );
@@ -200,7 +216,7 @@ test('otros errores de PostgreSQL siguen siendo TicketPurchasePrimaryWriteError'
   await assert.rejects(
     writeTicketPurchaseToPostgresPrimary({
       ticketRecords: [{ orderId: 'BM-ORD-Y', ticketId: 'BM-TKT-Y' }],
-      repository: { insertTicketPurchase: async () => { throw genericError; } },
+      repository: { insertPurchaseOrder: async () => { throw genericError; } },
       logger: { warn: () => {}, error: () => {} },
     }),
     error => {

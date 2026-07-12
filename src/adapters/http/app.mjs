@@ -319,11 +319,13 @@ export function createApp({ services }) {
   app.post('/api/tickets', purchaseLimiter, async (req, res) => {
     try {
       // La sesión solo asocia la orden; nunca bloquea la compra.
+      // Con sesión, la orden usa los datos de la cuenta (se ignora el buyer
+      // del body); como invitado, el buyer del body es obligatorio.
       const sessionUser = await resolveSessionUser(req);
       const result = await checkout.purchase(req.body, {
         publicBaseUrl: getPublicBaseUrl(req),
         requestContext: req,
-        userId: sessionUser?.id || null,
+        user: sessionUser,
       });
 
       if (result.outcome === 'invalid') {

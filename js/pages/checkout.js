@@ -22,6 +22,13 @@
         let turnstileRequired = false;
 
         const alertEl = document.getElementById('checkout-alert');
+        const buyerNameInput = document.getElementById('buyer-name');
+        const buyerEmailInput = document.getElementById('buyer-email');
+        const buyerFieldsEl = document.getElementById('buyer-fields');
+        const buyerHintEl = document.getElementById('buyer-hint');
+        const buyerSessionEl = document.getElementById('buyer-session');
+        const buyerSessionCopyEl = document.getElementById('buyer-session-copy');
+        const buyerErrorEl = document.getElementById('buyer-error');
         const seatsList = document.getElementById('co-seats-list');
         const timerEl = document.getElementById('timer-countdown');
         const paymentCards = Array.from(document.querySelectorAll('.pm-card'));
@@ -331,6 +338,7 @@
                     paymentMethod: selectedMethod,
                     quote: checkoutQuote,
                     turnstileToken,
+                    buyer: getBuyerPayload(),
                 }),
             });
 
@@ -378,6 +386,77 @@
         let timerSecs = 9 * 60 + 55;
         let timerInterval = null;
 
+        // ── Datos del comprador ──
+        // Con sesión, el servidor usa los datos de la cuenta e ignora el buyer
+        // del body; como invitado, nombre y correo reales son obligatorios.
+        let sessionBuyer = null;
+        const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+        function setBuyerError(message) {
+            if (!buyerErrorEl) return;
+            buyerErrorEl.textContent = message || '';
+            buyerErrorEl.hidden = !message;
+        }
+
+        async function loadBuyerContext() {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) return;
+                const payload = await response.json();
+                if (!payload.ok || !payload.user) return;
+
+                sessionBuyer = payload.user;
+                if (buyerFieldsEl) buyerFieldsEl.hidden = true;
+                if (buyerHintEl) buyerHintEl.textContent = 'Tus boletos quedarán asociados a tu cuenta.';
+                if (buyerSessionCopyEl) {
+                    buyerSessionCopyEl.textContent =
+                        `Comprando con tu cuenta: ${sessionBuyer.displayName} (${sessionBuyer.email})`;
+                }
+                if (buyerSessionEl) buyerSessionEl.hidden = false;
+                setBuyerError('');
+            } catch (_) {
+                // Sin sesión detectable: se mantiene el formulario de invitado.
+            }
+        }
+
+        function validateBuyer({ focusInvalid = false } = {}) {
+            if (sessionBuyer) return true;
+
+            const name = buyerNameInput?.value.trim() || '';
+            const email = buyerEmailInput?.value.trim().toLowerCase() || '';
+            const nameValid = Boolean(name) && name.length <= 80;
+            const emailValid = email.length <= 254 && EMAIL_PATTERN.test(email);
+
+            buyerNameInput?.setAttribute('aria-invalid', String(!nameValid));
+            buyerEmailInput?.setAttribute('aria-invalid', String(!emailValid));
+
+            if (nameValid && emailValid) {
+                setBuyerError('');
+                return true;
+            }
+
+            setBuyerError(!nameValid
+                ? 'Escribe el nombre completo del comprador.'
+                : 'Escribe un correo electrónico válido para recibir tus boletos.');
+            if (focusInvalid) (!nameValid ? buyerNameInput : buyerEmailInput)?.focus();
+            return false;
+        }
+
+        function getBuyerPayload() {
+            if (sessionBuyer) return undefined;
+            return {
+                name: buyerNameInput?.value.trim() || '',
+                email: buyerEmailInput?.value.trim().toLowerCase() || '',
+            };
+        }
+
+        [buyerNameInput, buyerEmailInput].forEach(input => {
+            input?.addEventListener('input', () => {
+                input.removeAttribute('aria-invalid');
+                setBuyerError('');
+            });
+        });
+
         function formatTime(s) {
             const m = Math.floor(s / 60);
             const sec = s % 60;
@@ -415,6 +494,7 @@
             }
 
             try {
+                await loadBuyerContext();
                 await loadServerQuote();
                 await loadCloudflareSecurity();
                 setPaymentEnabled(true);
@@ -454,6 +534,11 @@
                 return;
             }
 
+            if (!validateBuyer({ focusInvalid: true })) {
+                showCheckoutAlert('Completa tus datos de comprador antes de elegir el método de pago.');
+                return;
+            }
+
             const info = PM_INFO[method];
             if (!info) return;
 
@@ -482,6 +567,12 @@
 
             if (turnstileRequired && !turnstileToken) {
                 showCheckoutAlert('Completa la verificacion Cloudflare para continuar con el pago.');
+                confirmOverlay.classList.remove('show');
+                return;
+            }
+
+            if (!validateBuyer({ focusInvalid: true })) {
+                showCheckoutAlert('Completa tus datos de comprador para generar los boletos.');
                 confirmOverlay.classList.remove('show');
                 return;
             }

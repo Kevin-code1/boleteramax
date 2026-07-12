@@ -304,6 +304,23 @@ export function getAuthoritativePurchase(purchase) {
   };
 }
 
+// Desglose en centavos para persistir la orden, derivado de la cotización
+// firmada (nunca de montos del cliente). Cumple siempre:
+// subtotal + fee - discount = total.
+export function buildOrderPricingCents(authoritativePurchase, paymentMethod) {
+  const toCents = value => Math.round(Number(value || 0) * 100);
+
+  const subtotalCents = toCents(authoritativePurchase.subtotal);
+  const baseFeeCents = toCents(authoritativePurchase.fee);
+  // OXXO agrega su comisión fija al cargo por servicio.
+  const feeCents = paymentMethod === 'oxxo' ? baseFeeCents + toCents(OXXO_FEE) : baseFeeCents;
+  const totalCents = toCents(authoritativePurchase.total);
+  // SPEI paga menos que subtotal+fee: la diferencia es descuento.
+  const discountCents = Math.max(0, subtotalCents + feeCents - totalCents);
+
+  return { subtotalCents, feeCents, discountCents, totalCents, currency: 'MXN' };
+}
+
 export function sanitizePurchasePayload(rawBody = {}) {
   const event = rawBody.event && typeof rawBody.event === 'object' ? rawBody.event : {};
   const seats = Array.isArray(rawBody.seats) ? rawBody.seats.filter(Boolean) : [];
@@ -321,5 +338,6 @@ export function sanitizePurchasePayload(rawBody = {}) {
     paymentMethod: PAYMENT_METHODS.has(paymentMethod) ? paymentMethod : 'tarjeta',
     quote: rawBody.quote && typeof rawBody.quote === 'object' ? rawBody.quote : null,
     turnstileToken: String(rawBody.turnstileToken || '').trim(),
+    buyer: rawBody.buyer && typeof rawBody.buyer === 'object' ? rawBody.buyer : null,
   };
 }

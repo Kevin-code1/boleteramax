@@ -136,10 +136,11 @@ export function createTicketStore({ logger = console } = {}) {
       return findTicketsByUserId(cleanUserId);
     },
 
-    saveNewTickets: async ({ existingTickets, newTickets }) => {
+    saveNewTickets: async ({ existingTickets, newTickets, order = null }) => {
       if (TICKETS_WRITE_MODE === 'postgres-primary') {
         await persistTicketPurchaseByWriteMode({
           ticketRecords: newTickets,
+          order,
           mode: TICKETS_WRITE_MODE,
           saveJsonBackup: () => writeTickets([...existingTickets, ...newTickets]),
           logger,
@@ -149,10 +150,11 @@ export function createTicketStore({ logger = console } = {}) {
       }
     },
 
-    syncDualWrite: async tickets => {
+    syncDualWrite: async (tickets, order = null) => {
       if (TICKETS_WRITE_MODE !== 'dual-write') return;
       await writeTicketPurchaseToPostgresIfEnabled({
         ticketRecords: tickets,
+        order,
         mode: TICKETS_WRITE_MODE,
         logger,
       });

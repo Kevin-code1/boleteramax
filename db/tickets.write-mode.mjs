@@ -1,4 +1,8 @@
-import { insertTicketPurchase } from './tickets.repository.mjs';
+import { insertPurchaseOrder, TicketSeatConflictError } from './tickets.repository.mjs';
+
+// Re-export: el error nace en el repositorio (dentro de la transacción),
+// pero los consumidores históricos lo importan desde este módulo.
+export { TicketSeatConflictError };
 
 const VALID_WRITE_MODES = new Set(['json', 'dual-write', 'postgres-primary']);
 export const DEFAULT_TICKETS_WRITE_MODE = 'postgres-primary';
@@ -53,16 +57,8 @@ export class TicketPurchasePrimaryWriteError extends Error {
   }
 }
 
-// Conflicto de asiento detectado por los índices únicos de PostgreSQL
-// (carrera entre compradores). El mensaje es apto para el cliente y el
-// adaptador HTTP lo clasifica como error 400, no 500.
-export class TicketSeatConflictError extends Error {
-  constructor() {
-    super('Asientos no disponibles: uno de los asientos seleccionados acaba de venderse. Selecciona otros asientos.');
-    this.name = 'TicketSeatConflictError';
-  }
-}
-
+// Conflicto de asiento que escapó al pre-chequeo y llegó a los índices
+// únicos de PostgreSQL (carrera entre compradores).
 function isSeatConflictError(error = {}) {
   return error?.code === '23505' && /seat/i.test(String(error?.constraint || ''));
 }
@@ -86,8 +82,9 @@ export function getTicketsWriteMode(rawMode = process.env.TICKETS_WRITE_MODE) {
 
 export async function writeTicketPurchaseToPostgresIfEnabled({
   ticketRecords,
+  order = null,
   mode = getTicketsWriteMode(),
-  repository = { insertTicketPurchase },
+  repository = { insertPurchaseOrder },
   logger = console,
 } = {}) {
   const writeMode = getTicketsWriteMode(mode);
@@ -103,7 +100,7 @@ export async function writeTicketPurchaseToPostgresIfEnabled({
   }
 
   try {
-    const result = await repository.insertTicketPurchase(ticketRecords);
+    const result = await repository.insertPurchaseOrder({ order, tickets: ticketRecords });
     return {
       mode: writeMode,
       enabled: true,
@@ -125,11 +122,12 @@ export async function writeTicketPurchaseToPostgresIfEnabled({
 
 export async function writeTicketPurchaseToPostgresPrimary({
   ticketRecords,
-  repository = { insertTicketPurchase },
+  order = null,
+  repository = { insertPurchaseOrder },
   logger = console,
 } = {}) {
   try {
-    const result = await repository.insertTicketPurchase(ticketRecords);
+    const result = await repository.insertPurchaseOrder({ order, tickets: ticketRecords });
     return {
       mode: 'postgres-primary',
       enabled: true,
@@ -137,12 +135,12 @@ export async function writeTicketPurchaseToPostgresPrimary({
       ...result,
     };
   } catch (error) {
-    if (isSeatConflictError(error)) {
-      logger?.warn?.('BoletaMax Tickets: seat conflict detected by PostgreSQL unique index', {
+    if (error instanceof TicketSeatConflictError || isSeatConflictError(error)) {
+      logger?.warn?.('BoletaMax Tickets: seat conflict detected during PostgreSQL purchase write', {
         orderId: maskReference(ticketRecords?.[0]?.orderId),
         constraint: error?.constraint || null,
       });
-      throw new TicketSeatConflictError();
+      throw error instanceof TicketSeatConflictError ? error : new TicketSeatConflictError();
     }
     logPostgresPrimaryError(logger, ticketRecords, error);
     throw new TicketPurchasePrimaryWriteError();
@@ -151,9 +149,10 @@ export async function writeTicketPurchaseToPostgresPrimary({
 
 export async function persistTicketPurchaseByWriteMode({
   ticketRecords,
+  order = null,
   mode = getTicketsWriteMode(),
   saveJsonBackup,
-  repository = { insertTicketPurchase },
+  repository = { insertPurchaseOrder },
   logger = console,
 } = {}) {
   const writeMode = getTicketsWriteMode(mode);
@@ -173,6 +172,7 @@ export async function persistTicketPurchaseByWriteMode({
     await saveJsonBackup?.();
     return writeTicketPurchaseToPostgresIfEnabled({
       ticketRecords,
+      order,
       mode: writeMode,
       repository,
       logger,
@@ -181,6 +181,7 @@ export async function persistTicketPurchaseByWriteMode({
 
   const postgresResult = await writeTicketPurchaseToPostgresPrimary({
     ticketRecords,
+    order,
     repository,
     logger,
   });

@@ -132,12 +132,13 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
       date: '18 Junio 2025',
       venue: 'Auditorio Puebla',
     };
-    const seats = [{
-      zone: 'LUNETA',
-      fila: `E2E${suffix}`,
-      asiento: Number(String(suffix).slice(-4)) || 1,
-      tableSize: 1,
-    }];
+    const buyer = { name: 'Invitado Flow', email: `e2e-flow-${suffix}@boletamax.test` };
+    const baseSeatNumber = Number(String(suffix).slice(-4)) || 1;
+    // Orden de dos asientos en una sola compra.
+    const seats = [
+      { zone: 'LUNETA', fila: `E2E${suffix}`, asiento: baseSeatNumber, tableSize: 1 },
+      { zone: 'LUNETA', fila: `E2E${suffix}`, asiento: baseSeatNumber + 1, tableSize: 1 },
+    ];
 
     const quoteResult = await requestJson(baseUrl, '/api/checkout/quote', {
       method: 'POST',
@@ -156,6 +157,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
         paymentMethod: 'tarjeta',
         quote: quoteResult.payload.quote,
         turnstileToken: '',
+        buyer,
       }),
     });
     assert.equal(
@@ -165,12 +167,48 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     );
     assert.equal(purchaseResult.payload.ok, true);
     assert.equal(Array.isArray(purchaseResult.payload.tickets), true);
-    assert.equal(purchaseResult.payload.tickets.length, 1);
+    assert.equal(purchaseResult.payload.tickets.length, 2);
 
     orderId = purchaseResult.payload.orderId;
     const ticket = purchaseResult.payload.tickets[0];
     assert.ok(ticket.ticketId);
     assert.ok(ticket.token);
+
+    // ── B4: una sola orden con montos reales y un pago simulado ──
+    const orderRow = (await query(
+      `SELECT id, buyer_email, buyer_name, user_id, status, subtotal_cents, fee_cents,
+              discount_cents, total_cents, checkout_quote_id, metadata
+       FROM orders WHERE order_number = $1`,
+      [orderId],
+    )).rows[0];
+    assert.ok(orderRow, 'purchase must create exactly one order row');
+    assert.equal(orderRow.buyer_email, buyer.email);
+    assert.equal(orderRow.buyer_name, buyer.name);
+    assert.equal(orderRow.user_id, null);
+    assert.equal(orderRow.status, 'paid');
+    assert.equal(orderRow.checkout_quote_id, quoteResult.payload.quote.quoteId);
+    assert.equal(orderRow.subtotal_cents, Math.round(quoteResult.payload.quote.subtotal * 100));
+    assert.equal(orderRow.fee_cents, Math.round(quoteResult.payload.quote.fee * 100));
+    assert.equal(orderRow.total_cents, Math.round(quoteResult.payload.quote.paymentTotals.tarjeta * 100));
+    assert.equal(orderRow.metadata.source, 'checkout');
+
+    const purchaseCounts = (await query(
+      `SELECT
+         (SELECT count(*)::int FROM order_items WHERE order_id = $1) AS items,
+         (SELECT count(*)::int FROM tickets WHERE order_id = $1) AS tickets,
+         (SELECT count(*)::int FROM payments WHERE order_id = $1) AS payments`,
+      [orderRow.id],
+    )).rows[0];
+    assert.deepEqual(purchaseCounts, { items: 2, tickets: 2, payments: 1 });
+
+    const paymentRow = (await query(
+      'SELECT provider, status, method, amount_cents FROM payments WHERE order_id = $1',
+      [orderRow.id],
+    )).rows[0];
+    assert.equal(paymentRow.provider, 'simulated');
+    assert.equal(paymentRow.status, 'paid');
+    assert.equal(paymentRow.method, 'tarjeta');
+    assert.equal(paymentRow.amount_cents, orderRow.total_cents);
 
     const privateReadWithoutToken = await requestJson(
       baseUrl,
@@ -272,6 +310,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
         paymentMethod: 'tarjeta',
         quote: quoteResult.payload.quote,
         turnstileToken: '',
+        buyer,
       }),
     });
     assert.equal(
@@ -354,6 +393,7 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
         paymentMethod: 'tarjeta',
         quote: quoteResult.payload.quote,
         turnstileToken: '',
+        buyer,
       }),
     });
     assert.equal(

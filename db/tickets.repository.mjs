@@ -866,32 +866,333 @@ export async function markTicketUsedByCode(ticketCode, { usedAt = new Date().toI
   };
 }
 
-export async function insertTicketPurchase(ticketRecords, options = {}) {
-  const records = Array.isArray(ticketRecords) ? ticketRecords.filter(Boolean) : [];
-  const runInTransaction = options.withTransaction || withTransaction;
+// ── Persistencia propia de compras nuevas (checkout) ──
+// importLegacyTicket queda únicamente para el script de migración de
+// tickets.json; las compras del checkout usan insertPurchaseOrder.
 
-  if (!records.length) {
-    return {
-      attempted: 0,
-      inserted: 0,
-      skipped: 0,
-    };
+// Conflicto de asiento detectado dentro de la transacción de compra.
+// El mensaje es apto para el cliente; el adaptador HTTP lo mapea a 400.
+export class TicketSeatConflictError extends Error {
+  constructor() {
+    super('Asientos no disponibles: uno de los asientos seleccionados acaba de venderse. Selecciona otros asientos.');
+    this.name = 'TicketSeatConflictError';
+  }
+}
+
+// Get-or-create sin DO UPDATE: no muta metadata ni updated_at de filas
+// existentes y es seguro ante carreras (el INSERT concurrente pierde y
+// el SELECT posterior encuentra la fila ganadora ya confirmada).
+async function getOrCreateId(dbClient, { insertSql, insertParams, selectSql, selectParams }) {
+  const inserted = await run(dbClient, insertSql, insertParams);
+  if (inserted.rowCount > 0) return inserted.rows[0].id;
+
+  const existing = await run(dbClient, selectSql, selectParams);
+  if (!existing.rowCount) {
+    throw new Error('Catalog row lookup failed after insert attempt.');
+  }
+  return existing.rows[0].id;
+}
+
+async function getOrCreateVenueId(dbClient, venueName) {
+  const name = cleanText(venueName, 'Venue BoletaMax');
+  const slug = slugify(name, 'venue-boletamax');
+
+  return getOrCreateId(dbClient, {
+    insertSql: `
+      INSERT INTO venues (slug, name, city, metadata)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (slug) DO NOTHING
+      RETURNING id
+    `,
+    insertParams: [slug, name, parseVenueCity(name), { source: 'checkout' }],
+    selectSql: 'SELECT id FROM venues WHERE slug = $1',
+    selectParams: [slug],
+  });
+}
+
+async function getOrCreateEventId(dbClient, orderEvent, venueId) {
+  const externalReference = cleanText(orderEvent.eventId, slugify(orderEvent.name || 'evento', 'evento'));
+  const slug = slugify(externalReference, 'evento');
+
+  return getOrCreateId(dbClient, {
+    insertSql: `
+      INSERT INTO events (venue_id, slug, name, status, external_reference, metadata)
+      VALUES ($1, $2, $3, 'on_sale', $4, $5)
+      ON CONFLICT (venue_id, slug) DO NOTHING
+      RETURNING id
+    `,
+    insertParams: [
+      venueId,
+      slug,
+      cleanText(orderEvent.name, 'Evento'),
+      externalReference,
+      {
+        source: 'checkout',
+        legacyEventId: externalReference,
+        legacyDate: cleanText(orderEvent.date, null),
+      },
+    ],
+    selectSql: 'SELECT id FROM events WHERE venue_id = $1 AND slug = $2',
+    selectParams: [venueId, slug],
+  });
+}
+
+async function getOrCreateSectionId(dbClient, eventId, ticket) {
+  const zone = cleanText(ticket.zone || ticket.seat?.zone, 'General');
+  const code = slugify(zone, 'general');
+
+  return getOrCreateId(dbClient, {
+    insertSql: `
+      INSERT INTO sections (event_id, code, name, section_type, status, metadata)
+      VALUES ($1, $2, $3, $4, 'active', $5)
+      ON CONFLICT (event_id, code) DO NOTHING
+      RETURNING id
+    `,
+    insertParams: [
+      eventId,
+      code,
+      zone,
+      ticket.seat?.tableSize > 1 ? 'table' : 'seated',
+      { source: 'checkout' },
+    ],
+    selectSql: 'SELECT id FROM sections WHERE event_id = $1 AND code = $2',
+    selectParams: [eventId, code],
+  });
+}
+
+async function getOrCreateTicketTypeId(dbClient, eventId, ticket) {
+  const zone = cleanText(ticket.zone || ticket.seat?.zone, 'General');
+  const code = slugify(zone, 'general');
+
+  return getOrCreateId(dbClient, {
+    insertSql: `
+      INSERT INTO ticket_types (event_id, code, name, price_cents, status, metadata)
+      VALUES ($1, $2, $3, $4, 'active', $5)
+      ON CONFLICT (event_id, code) DO NOTHING
+      RETURNING id
+    `,
+    insertParams: [eventId, code, zone, getUnitPriceCents(ticket), { source: 'checkout' }],
+    selectSql: 'SELECT id FROM ticket_types WHERE event_id = $1 AND code = $2',
+    selectParams: [eventId, code],
+  });
+}
+
+// Inserta el asiento como vendido. Si ya existe y tiene un boleto que lo
+// ocupa (active/used), la compra es un conflicto controlado.
+async function insertSoldSeat(dbClient, eventId, sectionId, ticket) {
+  const seat = ticket.seat || {};
+  const seatCode = getSeatCode(ticket);
+  const rowLabel = cleanText(seat.fila || seat.row, null);
+
+  const inserted = await run(
+    dbClient,
+    `
+      INSERT INTO seats (
+        event_id, section_id, seat_code, row_label, seat_number,
+        table_label, table_seat_number, status, metadata
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'sold', $8)
+      ON CONFLICT (event_id, seat_code) DO NOTHING
+      RETURNING id
+    `,
+    [
+      eventId,
+      sectionId,
+      seatCode,
+      rowLabel,
+      positiveInt(seat.asiento),
+      seat.mesa ? String(seat.mesa) : null,
+      positiveInt(seat.seatInMesa),
+      { source: 'checkout', legacySeatLabel: cleanText(ticket.seatLabel, null) },
+    ],
+  );
+  if (inserted.rowCount > 0) return inserted.rows[0].id;
+
+  const existing = await run(
+    dbClient,
+    'SELECT id FROM seats WHERE event_id = $1 AND seat_code = $2',
+    [eventId, seatCode],
+  );
+  if (!existing.rowCount) {
+    throw new Error('Seat lookup failed after insert attempt.');
+  }
+  const seatId = existing.rows[0].id;
+
+  const assigned = await run(
+    dbClient,
+    `
+      SELECT EXISTS (
+        SELECT 1 FROM tickets
+        WHERE seat_id = $1 AND status IN ('issued', 'active', 'used')
+      ) AS assigned
+    `,
+    [seatId],
+  );
+  if (assigned.rows[0]?.assigned) {
+    throw new TicketSeatConflictError();
   }
 
+  // Asiento reciclado (venta previa cancelada/reembolsada): vuelve a venderse.
+  await run(dbClient, `UPDATE seats SET status = 'sold', updated_at = now() WHERE id = $1`, [seatId]);
+  return seatId;
+}
+
+async function insertOrderRow(dbClient, order) {
+  const pricing = order.pricing || {};
+  const result = await run(
+    dbClient,
+    `
+      INSERT INTO orders (
+        order_number, buyer_email, buyer_name, status, subtotal_cents, fee_cents,
+        discount_cents, total_cents, currency, payment_method, checkout_quote_id,
+        user_id, metadata
+      )
+      VALUES ($1, $2, $3, 'paid', $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING id
+    `,
+    [
+      order.orderId,
+      order.buyer.email,
+      order.buyer.name,
+      pricing.subtotalCents,
+      pricing.feeCents,
+      pricing.discountCents,
+      pricing.totalCents,
+      pricing.currency || 'MXN',
+      order.paymentMethod,
+      cleanText(order.quoteId, null),
+      order.buyer.userId || null,
+      {
+        source: 'checkout',
+        legacyOrderSeatCount: positiveInt(order.orderSeatCount),
+        guestPurchase: Boolean(order.buyer.isGuest),
+      },
+    ],
+  );
+  return result.rows[0].id;
+}
+
+async function insertOrderItemRow(dbClient, { orderUuid, eventId, ticketTypeId, seatId, ticket }) {
+  const unitPriceCents = getUnitPriceCents(ticket);
+  const result = await run(
+    dbClient,
+    `
+      INSERT INTO order_items (
+        order_id, event_id, ticket_type_id, seat_id, unit_price_cents,
+        fee_cents, total_cents, status, metadata
+      )
+      VALUES ($1, $2, $3, $4, $5, 0, $5, 'issued', $6)
+      RETURNING id
+    `,
+    [
+      orderUuid,
+      eventId,
+      ticketTypeId,
+      seatId,
+      unitPriceCents,
+      { source: 'checkout', legacyTicketId: ticket.ticketId },
+    ],
+  );
+  return result.rows[0].id;
+}
+
+async function insertTicketRow(dbClient, { orderUuid, orderItemId, eventId, seatId, ticketTypeId, ticket }) {
+  await run(
+    dbClient,
+    `
+      INSERT INTO tickets (
+        order_id, order_item_id, event_id, seat_id, ticket_type_id,
+        ticket_code, private_view_token_hash, status, validation_count, metadata
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', 0, $8)
+    `,
+    [
+      orderUuid,
+      orderItemId,
+      eventId,
+      seatId,
+      ticketTypeId,
+      ticket.ticketId,
+      sha256(ticket.token),
+      {
+        source: 'checkout',
+        legacyVenue: cleanText(ticket.venue, null),
+        legacyZone: cleanText(ticket.zone || ticket.seat?.zone, null),
+        legacySeatLabel: cleanText(ticket.seatLabel, null),
+      },
+    ],
+  );
+}
+
+async function insertPaymentRow(dbClient, { orderUuid, order }) {
+  await run(
+    dbClient,
+    `
+      INSERT INTO payments (
+        order_id, provider, provider_payment_id, method, status,
+        amount_cents, currency, paid_at, raw_payload
+      )
+      VALUES ($1, 'simulated', $2, $3, 'paid', $4, $5, now(), $6)
+    `,
+    [
+      orderUuid,
+      `sim:${order.orderId}`,
+      cleanText(order.paymentMethod, 'unknown'),
+      order.pricing?.totalCents ?? 0,
+      order.pricing?.currency || 'MXN',
+      { simulated: true, quoteId: cleanText(order.quoteId, null) },
+    ],
+  );
+}
+
+// Una compra = una orden con sus items, boletos y un pago simulado, en una
+// sola transacción: cualquier fallo (incluido conflicto de asiento) hace
+// rollback completo y no deja filas parciales.
+export async function insertPurchaseOrder({ order, tickets } = {}, options = {}) {
+  const records = Array.isArray(tickets) ? tickets.filter(Boolean) : [];
+  if (!order || !records.length) {
+    return { attempted: 0, inserted: 0, skipped: 0 };
+  }
+
+  const runInTransaction = options.withTransaction || withTransaction;
+
   return runInTransaction(async client => {
-    let inserted = 0;
-    let skipped = 0;
+    const venueId = await getOrCreateVenueId(client, order.event?.venue);
+    const eventId = await getOrCreateEventId(client, order.event || {}, venueId);
+    const orderUuid = await insertOrderRow(client, order);
+
+    const sectionIdsByZone = new Map();
+    const ticketTypeIdsByZone = new Map();
 
     for (const ticket of records) {
-      const result = await importLegacyTicket(client, ticket);
-      if (result.inserted) inserted++;
-      else skipped++;
+      const zoneKey = slugify(cleanText(ticket.zone || ticket.seat?.zone, 'General'), 'general');
+      if (!sectionIdsByZone.has(zoneKey)) {
+        sectionIdsByZone.set(zoneKey, await getOrCreateSectionId(client, eventId, ticket));
+      }
+      if (!ticketTypeIdsByZone.has(zoneKey)) {
+        ticketTypeIdsByZone.set(zoneKey, await getOrCreateTicketTypeId(client, eventId, ticket));
+      }
+
+      const seatId = await insertSoldSeat(client, eventId, sectionIdsByZone.get(zoneKey), ticket);
+      const orderItemId = await insertOrderItemRow(client, {
+        orderUuid,
+        eventId,
+        ticketTypeId: ticketTypeIdsByZone.get(zoneKey),
+        seatId,
+        ticket,
+      });
+      await insertTicketRow(client, {
+        orderUuid,
+        orderItemId,
+        eventId,
+        seatId,
+        ticketTypeId: ticketTypeIdsByZone.get(zoneKey),
+        ticket,
+      });
     }
 
-    return {
-      attempted: records.length,
-      inserted,
-      skipped,
-    };
+    await insertPaymentRow(client, { orderUuid, order });
+
+    return { attempted: records.length, inserted: records.length, skipped: 0 };
   });
 }
