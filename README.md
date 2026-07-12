@@ -1,14 +1,11 @@
-# BoletaMax
-
-Frontend premium de boletera con búsqueda asistida por IA en lenguaje natural.
-
-## Requisitos
+# boletaMax
+Requisitos
 
 - Node.js 18+
 - PostgreSQL 14+ para la infraestructura de base de datos
 - Una API key de OpenAI
 
-## Configuración
+Configuración
 
 1. Instala dependencias:
    `npm install`
@@ -18,7 +15,7 @@ Frontend premium de boletera con búsqueda asistida por IA en lenguaje natural.
 4. Configura PostgreSQL en `.env`:
    `DATABASE_URL=postgres://postgres:postgres@localhost:5432/boletamax`
 
-## Base de datos PostgreSQL
+Base de datos PostgreSQL
 
 Fase 1 agrega infraestructura PostgreSQL empresarial sin cambiar el flujo actual de boletos en JSON.
 
@@ -31,7 +28,6 @@ Fase 1 agrega infraestructura PostgreSQL empresarial sin cambiar el flujo actual
 
 Si `db:verify` termina sin fallas, PostgreSQL conecta correctamente y la integridad base esta en buen estado.
 
-## Migracion paralela de boletos
 
 Fase 2 permite copiar `data/tickets.json` hacia PostgreSQL sin cambiar todavia el funcionamiento de la app. El backend sigue usando JSON hasta una fase posterior.
 
@@ -44,7 +40,6 @@ Fase 2 permite copiar `data/tickets.json` hacia PostgreSQL sin cambiar todavia e
 
 El migrador no imprime tokens privados completos y usa hashes para guardar tokens sensibles en PostgreSQL.
 
-## Storage de tickets
 
 BoletaMax usa PostgreSQL como fuente principal de lectura por defecto y conserva JSON como respaldo temporal.
 
@@ -61,9 +56,7 @@ BoletaMax usa PostgreSQL como fuente principal de lectura por defecto y conserva
 
 Este flag solo afecta lectura en `GET /api/tickets`, `GET /api/tickets/:ticketId` y `GET /api/tickets/:ticketId/dynamic-qr`. La escritura de compras se controla con `TICKETS_WRITE_MODE`.
 
-## Escritura de compras
-
-BoletaMax guarda compras primero en PostgreSQL por defecto. Despues de confirmar PostgreSQL, escribe una copia temporal en `data/tickets.json`.
+ guarda compras primero en PostgreSQL por defecto. Despues de confirmar PostgreSQL, escribe una copia temporal en `data/tickets.json`.
 
 - Modo principal por defecto:
   `TICKETS_WRITE_MODE=postgres-primary`
@@ -96,7 +89,6 @@ Activar PostgreSQL como principal:
 TICKETS_STORAGE=postgres-primary
 TICKETS_WRITE_MODE=postgres-primary
 ```
-
 Volver temporalmente a JSON:
 ```powershell
 $env:TICKETS_STORAGE="json"
@@ -129,7 +121,6 @@ Checklist antes de produccion:
 - Rollback a `TICKETS_STORAGE=json` y `TICKETS_WRITE_MODE=json` probado antes del cambio.
 
 ## Ejecutar
-
 - Desarrollo:
   `npm run dev`
 - Producción/local:
@@ -137,14 +128,12 @@ Checklist antes de produccion:
 
 Abre [http://localhost:3000](http://localhost:3000).
 
-## Qué hace la búsqueda IA
+ Qué hace la búsqueda IA
 
 - Interpreta texto natural en `/api/ai-search`
 - Convierte la consulta en filtros estructurados
 - Busca sobre `data/events.json`
 - Reutiliza `openTicketModal(...)`, `bm_event` y `bm_cart` sin cambiar el flujo de compra existente
-
-## Flujo intacto
 
 - `checkout.html` no se modifica
 - El flujo de compra sigue guardando en `sessionStorage`
