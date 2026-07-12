@@ -234,6 +234,54 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.equal(privateListResult.payload.tickets[0].ticketId, ticket.ticketId);
     assert.equal(Object.hasOwn(privateListResult.payload.tickets[0], 'token'), false);
 
+    // ── B1: PostgreSQL es la fuente de verdad del inventario ──
+    // Vaciamos el JSON de respaldo: la disponibilidad y el bloqueo de
+    // recompra deben seguir funcionando solo con PostgreSQL.
+    await fs.writeFile(ticketsPath, '[]');
+
+    const availabilityResult = await requestJson(baseUrl, '/api/events/availability', {
+      method: 'POST',
+      body: JSON.stringify({ event }),
+    });
+    assert.equal(availabilityResult.response.status, 200);
+    assert.equal(availabilityResult.payload.ok, true);
+    assert.equal(availabilityResult.payload.eventId, purchaseResult.payload.eventId);
+    assert.ok(
+      availabilityResult.payload.soldSeatKeys.some(key => key.includes(`E2E${suffix}`)),
+      `sold seat missing from availability: ${JSON.stringify(availabilityResult.payload.soldSeatKeys)}`,
+    );
+    assert.ok(availabilityResult.payload.totalSold >= 1);
+
+    const availabilityByIdResult = await requestJson(
+      baseUrl,
+      `/api/events/${encodeURIComponent(purchaseResult.payload.eventId)}/availability`,
+    );
+    assert.equal(availabilityByIdResult.response.status, 200);
+    assert.ok(
+      availabilityByIdResult.payload.soldSeatKeys.some(key => key.includes(`E2E${suffix}`)),
+      'sold seat missing from availability by eventId',
+    );
+
+    // Recomprar el mismo asiento (boleto active) → conflicto controlado, no 500.
+    const rebuyActiveResult = await requestJson(baseUrl, '/api/tickets', {
+      method: 'POST',
+      body: JSON.stringify({
+        event,
+        seats: quoteResult.payload.quote.seats,
+        totalPaid: quoteResult.payload.quote.paymentTotals.tarjeta,
+        paymentMethod: 'tarjeta',
+        quote: quoteResult.payload.quote,
+        turnstileToken: '',
+      }),
+    });
+    assert.equal(
+      rebuyActiveResult.response.status,
+      400,
+      `rebuy of active seat must be a controlled 400: ${sanitizeLog(JSON.stringify(rebuyActiveResult.payload))}`,
+    );
+    assert.equal(rebuyActiveResult.payload.ok, false);
+    assert.match(String(rebuyActiveResult.payload.message || ''), /no disponibles/i);
+
     const qrResult = await requestJson(
       baseUrl,
       `/api/tickets/${encodeURIComponent(ticket.ticketId)}/dynamic-qr`,
@@ -284,6 +332,37 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
       [ticket.ticketId],
     );
     assert.equal(duplicateCheck.rows[0]?.validation_count, 1);
+
+    // ── B2 + B1 e2e: el boleto ya está 'used'; su asiento debe seguir
+    // bloqueado en disponibilidad y recompra, leyendo desde PostgreSQL.
+    const availabilityUsedResult = await requestJson(baseUrl, '/api/events/availability', {
+      method: 'POST',
+      body: JSON.stringify({ event }),
+    });
+    assert.equal(availabilityUsedResult.response.status, 200);
+    assert.ok(
+      availabilityUsedResult.payload.soldSeatKeys.some(key => key.includes(`E2E${suffix}`)),
+      'used ticket seat must still be reported as sold',
+    );
+
+    const rebuyUsedResult = await requestJson(baseUrl, '/api/tickets', {
+      method: 'POST',
+      body: JSON.stringify({
+        event,
+        seats: quoteResult.payload.quote.seats,
+        totalPaid: quoteResult.payload.quote.paymentTotals.tarjeta,
+        paymentMethod: 'tarjeta',
+        quote: quoteResult.payload.quote,
+        turnstileToken: '',
+      }),
+    });
+    assert.equal(
+      rebuyUsedResult.response.status,
+      400,
+      `rebuy of used seat must be a controlled 400: ${sanitizeLog(JSON.stringify(rebuyUsedResult.payload))}`,
+    );
+    assert.equal(rebuyUsedResult.payload.ok, false);
+    assert.match(String(rebuyUsedResult.payload.message || ''), /no disponibles/i);
   } finally {
     await stopServer(child);
     await fs.rm(ticketsPath, { force: true });

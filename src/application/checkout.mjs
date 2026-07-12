@@ -1,9 +1,9 @@
 import {
   buildCheckoutQuote,
+  findSeatConflicts,
   getAuthoritativePurchase,
   sanitizePurchasePayload,
   validatePurchaseRequest,
-  validateSeatInventory,
 } from '../domain/pricing.mjs';
 import {
   buildEventId,
@@ -98,10 +98,11 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
 
     // ── 4. Validar inventario + escribir atómicamente con mutex ──
     const tickets = await ticketStore.withWriteLock(async () => {
-      const existingTickets = ticketStore.readTickets();
+      // Asientos vendidos desde la fuente de verdad del modo configurado
+      // (PostgreSQL en postgres/postgres-primary, JSON en modo json).
+      const soldSeatKeys = await ticketStore.getSoldSeatKeys(eventId);
 
-      // Verificar que los asientos no están ya vendidos
-      const conflicts = validateSeatInventory(eventId, authoritativePurchase.seats, existingTickets);
+      const conflicts = findSeatConflicts(authoritativePurchase.seats, soldSeatKeys);
       if (conflicts.length) {
         const labels = conflicts.map(c =>
           `${c.seat.zone} Fila ${c.seat.fila} Asiento ${c.seat.asiento || c.seat.seatInMesa || '?'} (${c.reason})`,
@@ -109,13 +110,13 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
         throw new Error(`Asientos no disponibles: ${labels.join(', ')}. Selecciona otros asientos.`);
       }
 
-      // Verificar límite de boletos por evento (mismo IP o misma sesión)
-      const ticketsForEvent = existingTickets.filter(
-        t => t.eventId === eventId && t.status === 'active',
-      );
-      if (ticketsForEvent.length + orderSeatCount > 500) {
+      // Límite global de asientos ocupados por evento.
+      if (soldSeatKeys.size + orderSeatCount > 500) {
         throw new Error('El evento ha alcanzado su capacidad maxima.');
       }
+
+      // El JSON solo se lee aquí para conservar el respaldo local completo.
+      const existingTickets = ticketStore.readTickets();
 
       const newTickets = await Promise.all(
         authoritativePurchase.seats.map(seat =>

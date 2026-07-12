@@ -1,9 +1,9 @@
-import { getSoldSeatsForEvent, resolveVenuePricingKey, SERVER_VENUE_PRICING } from '../domain/pricing.mjs';
+import { resolveVenuePricingKey, SERVER_VENUE_PRICING } from '../domain/pricing.mjs';
 import { buildEventId } from '../domain/tickets.mjs';
 
 export function createAvailability({ catalog, ticketStore }) {
   // Disponibilidad por descriptor (name/date/venue).
-  function byDescriptor(rawEvent = {}) {
+  async function byDescriptor(rawEvent = {}) {
     const event = {
       name: String(rawEvent.name || '').trim(),
       date: String(rawEvent.date || '').trim(),
@@ -29,7 +29,7 @@ export function createAvailability({ catalog, ticketStore }) {
     const zoneLabels = Object.fromEntries(
       (SERVER_VENUE_PRICING[venueKey]?.zones || []).map(zone => [zone.key, zone.label]),
     );
-    const soldSeats = getSoldSeatsForEvent(eventId, ticketStore.readTickets());
+    const soldSeats = await ticketStore.getSoldSeatKeys(eventId);
 
     return {
       outcome: 'ok',
@@ -44,14 +44,13 @@ export function createAvailability({ catalog, ticketStore }) {
     };
   }
 
-  function byEventId(rawEventId) {
+  async function byEventId(rawEventId) {
     const eventId = String(rawEventId || '').trim();
     if (!eventId) {
       return { outcome: 'missing_id' };
     }
 
-    const existingTickets = ticketStore.readTickets();
-    const soldSeats = getSoldSeatsForEvent(eventId, existingTickets);
+    const soldSeats = await ticketStore.getSoldSeatKeys(eventId);
     const totalSold = soldSeats.size;
 
     return {

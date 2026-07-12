@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from 'crypto';
 import {
+  findSoldSeatTicketsByEvent,
   findTicketByCode,
   findTicketsByCodes,
   markTicketUsedByCode,
@@ -74,6 +75,7 @@ function getRepository(repository = {}) {
     findTicketByCode: repository.findTicketByCode || findTicketByCode,
     findTicketsByCodes: repository.findTicketsByCodes || findTicketsByCodes,
     markTicketUsedByCode: repository.markTicketUsedByCode || markTicketUsedByCode,
+    findSoldSeatTicketsByEvent: repository.findSoldSeatTicketsByEvent || findSoldSeatTicketsByEvent,
   };
 }
 
@@ -203,6 +205,47 @@ export async function getTicketByIdFromStorage({
   }
 
   return jsonTicket;
+}
+
+// Llaves de asientos vendidos por evento según el modo de storage.
+// `computeSoldSeatKeys(eventId, tickets)` viene del dominio (getSoldSeatsForEvent)
+// para que la regla de qué estados bloquean viva en un solo lugar.
+export async function getSoldSeatKeysFromStorage({
+  eventId,
+  mode = getTicketsStorageMode(),
+  readJsonTickets: readJsonTicketsFn,
+  repository,
+  computeSoldSeatKeys,
+  logger = console,
+}) {
+  const cleanEventId = String(eventId || '').trim();
+  if (!cleanEventId) return new Set();
+
+  const storageMode = getTicketsStorageMode(mode);
+  const repo = getRepository(repository);
+  const jsonKeys = () => computeSoldSeatKeys(cleanEventId, readJsonTickets(readJsonTicketsFn));
+
+  if (storageMode === 'json') {
+    return jsonKeys();
+  }
+
+  if (storageMode === 'postgres' || storageMode === 'postgres-primary') {
+    const tickets = await repo.findSoldSeatTicketsByEvent(cleanEventId);
+    return computeSoldSeatKeys(cleanEventId, tickets);
+  }
+
+  // dual-read: unión de ambas fuentes; si PostgreSQL falla, JSON sigue protegiendo.
+  let postgresKeys = new Set();
+  try {
+    const tickets = await repo.findSoldSeatTicketsByEvent(cleanEventId);
+    postgresKeys = computeSoldSeatKeys(cleanEventId, tickets);
+  } catch (error) {
+    logStorageWarning(logger, 'BoletaMax Tickets storage: postgres sold-seats read failed during dual-read', {
+      message: error?.message || 'unknown database error',
+    });
+  }
+
+  return new Set([...postgresKeys, ...jsonKeys()]);
 }
 
 export function getTicketDynamicSecret(ticket = {}) {

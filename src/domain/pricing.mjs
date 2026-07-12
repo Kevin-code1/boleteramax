@@ -143,10 +143,14 @@ export function buildSeatKey(seat = {}) {
   return `${zone}|${fila}|A${seat.asiento || 1}`;
 }
 
+// Estados que ocupan el asiento: 'active' (por usar) y 'used' (ya ingresó).
+// 'cancelled' y demás estados liberan el lugar.
+const SEAT_BLOCKING_STATUSES = new Set(['active', 'used']);
+
 export function getSoldSeatsForEvent(eventId, existingTickets) {
   const sold = new Set();
   for (const ticket of existingTickets) {
-    if (ticket.eventId === eventId && ticket.status === 'active') {
+    if (ticket.eventId === eventId && SEAT_BLOCKING_STATUSES.has(ticket.status)) {
       sold.add(buildSeatKey(ticket.seat));
     }
   }
@@ -154,7 +158,11 @@ export function getSoldSeatsForEvent(eventId, existingTickets) {
 }
 
 export function validateSeatInventory(eventId, seats, existingTickets) {
-  const soldSeats = getSoldSeatsForEvent(eventId, existingTickets);
+  return findSeatConflicts(seats, getSoldSeatsForEvent(eventId, existingTickets));
+}
+
+// Conflictos de una selección contra un set de llaves vendidas (de cualquier fuente).
+export function findSeatConflicts(seats, soldSeats) {
   const conflicts = [];
   const seenInOrder = new Set();
 

@@ -1,7 +1,9 @@
 import fs from 'fs';
 import { TICKETS_PATH, TICKETS_STORAGE_MODE, TICKETS_WRITE_MODE } from '../../config/index.mjs';
 import { buildPublicTicketPath } from '../../domain/tickets.mjs';
+import { getSoldSeatsForEvent } from '../../domain/pricing.mjs';
 import {
+  getSoldSeatKeysFromStorage,
   getTicketByIdFromStorage,
   getTicketsByIdsFromStorage,
   getTicketDynamicSecret,
@@ -90,6 +92,17 @@ export function createTicketStore({ logger = console } = {}) {
         ids,
         mode: TICKETS_STORAGE_MODE,
         readJsonTickets: readTickets,
+        logger,
+      }),
+
+    // Fuente de verdad de asientos vendidos según el modo de storage:
+    // postgres/postgres-primary → PostgreSQL; json → tickets.json; dual-read → unión.
+    getSoldSeatKeys: eventId =>
+      getSoldSeatKeysFromStorage({
+        eventId,
+        mode: TICKETS_STORAGE_MODE,
+        readJsonTickets: readTickets,
+        computeSoldSeatKeys: getSoldSeatsForEvent,
         logger,
       }),
 

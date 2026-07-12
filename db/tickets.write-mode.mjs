@@ -53,6 +53,20 @@ export class TicketPurchasePrimaryWriteError extends Error {
   }
 }
 
+// Conflicto de asiento detectado por los índices únicos de PostgreSQL
+// (carrera entre compradores). El mensaje es apto para el cliente y el
+// adaptador HTTP lo clasifica como error 400, no 500.
+export class TicketSeatConflictError extends Error {
+  constructor() {
+    super('Asientos no disponibles: uno de los asientos seleccionados acaba de venderse. Selecciona otros asientos.');
+    this.name = 'TicketSeatConflictError';
+  }
+}
+
+function isSeatConflictError(error = {}) {
+  return error?.code === '23505' && /seat/i.test(String(error?.constraint || ''));
+}
+
 function logDualWriteWarning(logger, ticketRecords, error) {
   if (!logger?.warn) return;
 
@@ -123,6 +137,13 @@ export async function writeTicketPurchaseToPostgresPrimary({
       ...result,
     };
   } catch (error) {
+    if (isSeatConflictError(error)) {
+      logger?.warn?.('BoletaMax Tickets: seat conflict detected by PostgreSQL unique index', {
+        orderId: maskReference(ticketRecords?.[0]?.orderId),
+        constraint: error?.constraint || null,
+      });
+      throw new TicketSeatConflictError();
+    }
     logPostgresPrimaryError(logger, ticketRecords, error);
     throw new TicketPurchasePrimaryWriteError();
   }

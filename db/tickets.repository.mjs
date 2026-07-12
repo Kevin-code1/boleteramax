@@ -258,6 +258,52 @@ export async function findTicketByCode(ticketCode, dbClient = null) {
   return tickets[0] || null;
 }
 
+// Boletos que ocupan asiento para un evento (por external_reference legacy).
+// Devuelve la forma mínima { eventId, status, seat } que espera el dominio
+// para calcular llaves de asiento; el dominio decide qué estados bloquean.
+export async function findSoldSeatTicketsByEvent(eventReference, dbClient = null) {
+  const reference = cleanText(eventReference, null);
+  if (!reference) return [];
+
+  const result = await run(
+    dbClient,
+    `
+      SELECT
+        t.status AS ticket_status,
+        t.metadata AS ticket_metadata,
+        sec.name AS section_name,
+        s.row_label,
+        s.seat_number,
+        s.table_label,
+        s.table_seat_number
+      FROM tickets t
+      JOIN events e ON e.id = t.event_id
+      JOIN seats s ON s.id = t.seat_id
+      LEFT JOIN sections sec ON sec.id = s.section_id
+      WHERE e.external_reference = $1
+        AND t.status IN ('issued', 'active', 'used')
+    `,
+    [reference],
+  );
+
+  return result.rows.map(row => {
+    const ticketMetadata = row.ticket_metadata || {};
+    return {
+      eventId: reference,
+      status: normalizePublicStatus(row.ticket_status),
+      seat: {
+        zone: ticketMetadata.legacyZone || row.section_name,
+        fila: row.row_label || null,
+        asiento: positiveInt(row.seat_number),
+        mesa: row.table_label || null,
+        seatInMesa: positiveInt(row.table_seat_number),
+        // Solo para construir la llave de asiento: >1 activa la rama de mesa.
+        tableSize: row.table_label ? 2 : 1,
+      },
+    };
+  });
+}
+
 export async function findTicketsByUserId(userId, dbClient = null) {
   const cleanUserId = String(userId || '').trim();
   if (!cleanUserId) return [];

@@ -250,27 +250,43 @@ export function createApp({ services }) {
   });
 
   // ── Disponibilidad por descriptor de evento (name/date/venue) ──
-  app.post('/api/events/availability', (req, res) => {
-    const rawEvent = req.body?.event && typeof req.body.event === 'object' ? req.body.event : {};
-    const result = availability.byDescriptor(rawEvent);
+  app.post('/api/events/availability', async (req, res) => {
+    try {
+      const rawEvent = req.body?.event && typeof req.body.event === 'object' ? req.body.event : {};
+      const result = await availability.byDescriptor(rawEvent);
 
-    if (result.outcome === 'missing_name') {
-      return res.status(400).json({ ok: false, message: 'event.name requerido.' });
+      if (result.outcome === 'missing_name') {
+        return res.status(400).json({ ok: false, message: 'event.name requerido.' });
+      }
+      if (result.outcome === 'not_found') {
+        return res.status(404).json({ ok: false, message: 'Evento no encontrado en el catalogo.' });
+      }
+      return res.json(result.body);
+    } catch (error) {
+      console.error('BoletaMax Availability: read failed', {
+        mode: TICKETS_STORAGE_MODE,
+        message: error?.message || 'Error desconocido',
+      });
+      return res.status(500).json({ ok: false, message: 'No fue posible consultar la disponibilidad en este momento.' });
     }
-    if (result.outcome === 'not_found') {
-      return res.status(404).json({ ok: false, message: 'Evento no encontrado en el catalogo.' });
-    }
-    return res.json(result.body);
   });
 
   // ── Disponibilidad de asientos por eventId ──
-  app.get('/api/events/:eventId/availability', (req, res) => {
-    const result = availability.byEventId(req.params.eventId);
+  app.get('/api/events/:eventId/availability', async (req, res) => {
+    try {
+      const result = await availability.byEventId(req.params.eventId);
 
-    if (result.outcome === 'missing_id') {
-      return res.status(400).json({ ok: false, message: 'eventId requerido.' });
+      if (result.outcome === 'missing_id') {
+        return res.status(400).json({ ok: false, message: 'eventId requerido.' });
+      }
+      return res.json(result.body);
+    } catch (error) {
+      console.error('BoletaMax Availability: read failed', {
+        mode: TICKETS_STORAGE_MODE,
+        message: error?.message || 'Error desconocido',
+      });
+      return res.status(500).json({ ok: false, message: 'No fue posible consultar la disponibilidad en este momento.' });
     }
-    return res.json(result.body);
   });
 
   app.post('/api/checkout/quote', purchaseLimiter, (req, res) => {
