@@ -1,6 +1,7 @@
 # BoletaMax
 
 BoletaMax es una plataforma de venta y validación de boletos para eventos. Integra catálogo, búsqueda asistida por IA, selección de asientos, cotizaciones firmadas por el servidor, cuentas de compradores, persistencia de órdenes y boletos con QR.
+inspirada en boletito.com My friend
 
 ## Funcionalidades
 
