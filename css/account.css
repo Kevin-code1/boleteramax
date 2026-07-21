@@ -1,10 +1,8 @@
-/* Cuenta */
 .header-cta [hidden],
 .mobile-menu [hidden] {
   display: none !important;
 }
 
-/* Mis Boletos */
 .account-modal-box {
   max-width: 560px;
 }
@@ -113,7 +111,6 @@
   border-color: var(--bmx-border-strong);
 }
 
-/* Verificación */
 .verify-notice {
   margin: 14px 0 4px;
   padding: 14px 16px;

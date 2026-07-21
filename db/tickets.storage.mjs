@@ -207,7 +207,6 @@ export async function getTicketByIdFromStorage({
   return jsonTicket;
 }
 
-// Asientos vendidos por evento según el modo de storage.
 export async function getSoldSeatKeysFromStorage({
   eventId,
   mode = getTicketsStorageMode(),
@@ -232,7 +231,6 @@ export async function getSoldSeatKeysFromStorage({
     return computeSoldSeatKeys(cleanEventId, tickets);
   }
 
-  // dual-read: unión de ambas fuentes; si PostgreSQL falla, JSON sigue protegiendo.
   let postgresKeys = new Set();
   try {
     const tickets = await repo.findSoldSeatTicketsByEvent(cleanEventId);

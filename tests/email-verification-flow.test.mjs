@@ -57,8 +57,6 @@ async function stopServer(child) {
   });
 }
 
-// El token plano SOLO aparece en el log del EmailService (consola en dev).
-// Nunca viaja en el JSON de la API. Los tests lo leen desde stdout del server.
 async function waitForVerifyToken(getOutput, email, { timeoutMs = 5000, excludeToken = null } = {}) {
   const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`Para:\\s*${escaped}[\\s\\S]*?token=([a-f0-9]+)`, 'g');
@@ -69,7 +67,6 @@ async function waitForVerifyToken(getOutput, email, { timeoutMs = 5000, excludeT
     let match;
     let last = null;
     re.lastIndex = 0;
-    // El más reciente distinto de excludeToken (espera al token nuevo tras un resend).
     while ((match = re.exec(out)) !== null) {
       if (!excludeToken || match[1] !== excludeToken) last = match[1];
     }
@@ -118,7 +115,6 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     child.stderr.on('data', chunk => output.push(String(chunk)));
     await waitForServer(baseUrl, child, getOutput);
 
-    // ── register: no session, user unverified, NO token in the response ──
     const register = await requestJson(baseUrl, '/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name: 'Verify E2E', email, password }),
@@ -133,7 +129,6 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     assert.equal(userRow.rows[0].email_verified_at, null, 'new user must be unverified');
     const userId = userRow.rows[0].id;
 
-    // ── token stored hashed, plaintext never persisted (token leído del log) ──
     const plainToken = await waitForVerifyToken(getOutput, email);
     const expectedHash = createHash('sha256').update(plainToken).digest('hex');
     const tokenRows = await query(
@@ -145,7 +140,6 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     assert.notEqual(tokenRows.rows[0].token_hash, plainToken, 'plaintext token must not be stored');
     assert.equal(tokenRows.rows[0].used_at, null);
 
-    // ── login before verifying → 403, no cookie ──
     const loginBefore = await requestJson(baseUrl, '/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
@@ -154,12 +148,10 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     assert.equal(loginBefore.payload.code, 'email_not_verified');
     assert.equal(hasSessionCookie(loginBefore.response), false);
 
-    // ── invalid token fails safe ──
     const invalid = await requestJson(baseUrl, '/api/auth/verify-email?token=no-existe-1234');
     assert.equal(invalid.response.status, 400);
     assert.equal(invalid.payload.code, 'invalid');
 
-    // ── verify with valid token → ok, marks verified, consumes token ──
     const verify = await requestJson(baseUrl, `/api/auth/verify-email?token=${encodeURIComponent(plainToken)}`);
     assert.equal(verify.response.status, 200);
     assert.equal(verify.payload.ok, true);
@@ -170,12 +162,10 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     const usedRow = await query('SELECT used_at FROM email_verification_tokens WHERE token_hash = $1', [expectedHash]);
     assert.ok(usedRow.rows[0].used_at, 'token must be marked used');
 
-    // ── used token cannot be reused ──
     const reuse = await requestJson(baseUrl, `/api/auth/verify-email?token=${encodeURIComponent(plainToken)}`);
     assert.equal(reuse.response.status, 400);
     assert.equal(reuse.payload.code, 'used');
 
-    // ── login after verifying works, sets cookie ──
     const loginAfter = await requestJson(baseUrl, '/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
@@ -183,7 +173,6 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     assert.equal(loginAfter.response.status, 200);
     assert.equal(hasSessionCookie(loginAfter.response), true);
 
-    // ── resend for an already-verified account is safe & generic (no token) ──
     const resendVerified = await requestJson(baseUrl, '/api/auth/resend-verification', {
       method: 'POST',
       body: JSON.stringify({ email }),
@@ -192,7 +181,6 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     assert.equal(resendVerified.payload.ok, true);
     assertNoLeakedToken(resendVerified.payload);
 
-    // ── resend for an unverified account issues a NEW token and invalidates pending ──
     const email2 = `verify2+${suffix}@boletamax.test`;
     const register2 = await requestJson(baseUrl, '/api/auth/register', {
       method: 'POST',
@@ -208,19 +196,15 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     });
     assert.equal(resend.response.status, 200);
     assertNoLeakedToken(resend.payload);
-    // El token nuevo solo aparece en el log; debe diferir del anterior.
     const secondToken = await waitForVerifyToken(getOutput, email2, { timeoutMs: 6000, excludeToken: firstToken });
     assert.notEqual(secondToken, firstToken, 'resend must issue a different token');
 
-    // El token anterior queda invalidado (usado).
     const firstTokenState = await query('SELECT used_at FROM email_verification_tokens WHERE token_hash = $1', [firstHash]);
     assert.ok(firstTokenState.rows[0].used_at, 'previous pending token must be invalidated on resend');
 
-    // El token viejo ya no verifica.
     const oldTokenTry = await requestJson(baseUrl, `/api/auth/verify-email?token=${encodeURIComponent(firstToken)}`);
     assert.equal(oldTokenTry.response.status, 400);
 
-    // ── expired token fails ──
     const secondHash = createHash('sha256').update(secondToken).digest('hex');
     await query(
       "UPDATE email_verification_tokens SET expires_at = now() - interval '1 hour' WHERE token_hash = $1",
@@ -230,7 +214,6 @@ test('email verification flow: register, tokens, verify, reuse, expiry, resend',
     assert.equal(expired.response.status, 400);
     assert.equal(expired.payload.code, 'expired');
 
-    // ── logout still works ──
     const logout = await requestJson(baseUrl, '/api/auth/logout', { method: 'POST' });
     assert.equal(logout.response.status, 200);
     assert.equal(logout.payload.ok, true);

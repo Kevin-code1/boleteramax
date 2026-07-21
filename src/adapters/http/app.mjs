@@ -37,7 +37,6 @@ export function createApp({ services }) {
 
   const verifyUrlBuilder = req => token => emailService.buildVerifyUrl(token, req);
 
-  // Usuario de la sesión o null.
   async function resolveSessionUser(req) {
     try {
       return await auth.getSessionUser(getSessionCookie(req));
@@ -53,12 +52,10 @@ export function createApp({ services }) {
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
 
-  // ── Middleware base ──
   app.use(securityHeaders);
   app.use(blockSensitiveFiles);
   app.use(express.json({ limit: '64kb' }));
 
-  // ── Archivos estáticos ──
   const PUBLIC_HTML_FILES = new Map([
     ['/index.html', 'index.html'],
     ['/checkout.html', 'checkout.html'],
@@ -79,7 +76,6 @@ export function createApp({ services }) {
 
   app.use('/api/', apiGeneralLimiter);
 
-  // ── Búsqueda con IA ──
   app.post('/api/ai-search', aiSearchLimiter, async (req, res) => {
     return res.json(await searchEvents(req.body?.query));
   });
@@ -98,7 +94,6 @@ export function createApp({ services }) {
     });
   });
 
-  // Cuentas de compradores (separadas del staff)
   app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
       const result = await auth.register({
@@ -135,7 +130,6 @@ export function createApp({ services }) {
         password: req.body?.password,
       });
 
-      // Credenciales correctas pero correo sin verificar: 403, sin cookie.
       if (result.outcome === 'email_not_verified') {
         return res.status(403).json({
           ok: false,
@@ -249,7 +243,6 @@ export function createApp({ services }) {
     }
   });
 
-  // ── Disponibilidad por descriptor de evento (name/date/venue) ──
   app.post('/api/events/availability', async (req, res) => {
     try {
       const rawEvent = req.body?.event && typeof req.body.event === 'object' ? req.body.event : {};
@@ -271,7 +264,6 @@ export function createApp({ services }) {
     }
   });
 
-  // ── Disponibilidad de asientos por eventId ──
   app.get('/api/events/:eventId/availability', async (req, res) => {
     try {
       const result = await availability.byEventId(req.params.eventId);
@@ -318,7 +310,6 @@ export function createApp({ services }) {
 
   app.post('/api/tickets', purchaseLimiter, async (req, res) => {
     try {
-      // Con sesión manda la cuenta; como invitado el buyer es obligatorio.
       const sessionUser = await resolveSessionUser(req);
       const result = await checkout.purchase(req.body, {
         publicBaseUrl: getPublicBaseUrl(req),
@@ -544,7 +535,6 @@ export function createApp({ services }) {
     return res.json(result);
   });
 
-  // ── Páginas ──
   app.get('/ticket', (req, res) => {
     res.sendFile(path.join(ROOT_DIR, 'ticket.html'));
   });

@@ -1,10 +1,5 @@
--- Verificación de correo obligatoria para cuentas de compradores (users).
--- No toca staff_users (que sigue independiente), ni orders, ni tickets.
-
--- Marca de verificación: NULL = correo no verificado todavía.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
 
--- Tokens de verificación. Solo se guarda el hash del token, nunca el token plano.
 CREATE TABLE IF NOT EXISTS email_verification_tokens (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -17,7 +12,6 @@ CREATE TABLE IF NOT EXISTS email_verification_tokens (
 CREATE INDEX IF NOT EXISTS email_verification_tokens_user_id_idx
   ON email_verification_tokens (user_id);
 
--- Consulta rápida de tokens pendientes (no usados) al reenviar/consumir.
 CREATE INDEX IF NOT EXISTS email_verification_tokens_pending_idx
   ON email_verification_tokens (user_id)
   WHERE used_at IS NULL;

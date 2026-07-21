@@ -1,12 +1,10 @@
-/* search.js: búsqueda IA del header */
-
 import { showToast } from './toast.js';
 import { openTicketModal } from './seatmap.js';
 
 const searchInput = document.getElementById('search-input');
 const searchResultsEl = document.getElementById('search-results');
 const SEARCH_DEBOUNCE_MS = 420;
-const AI_SEARCH_TIMEOUT_MS = 6000; // si /api/ai-search no responde, caemos al fallback local
+const AI_SEARCH_TIMEOUT_MS = 6000;
 const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
 const SEARCH_CATEGORY_ICONS = {
   musica: 'fas fa-music',
@@ -112,7 +110,6 @@ function renderSearchAiLabel() {
   return label;
 }
 
-// Skeleton mientras la búsqueda IA responde.
 function renderSearchSkeleton(rows = 3) {
   searchResultsEl.replaceChildren();
   searchResultsEl.appendChild(renderSearchAiLabel());
@@ -280,7 +277,6 @@ async function runAiSearch(query) {
 
   if (aiSearchController) aiSearchController.abort();
   aiSearchController = new AbortController();
-  // Timeout de red: si no responde a tiempo, fallback local.
   const controller = aiSearchController;
   let timedOut = false;
   const timeoutId = setTimeout(() => {
@@ -316,7 +312,6 @@ async function runAiSearch(query) {
       SEARCH_SUGGESTIONS,
     );
   } catch (error) {
-    // Abort por una búsqueda más nueva: no hacer nada. Timeout/red: fallback.
     if (error.name === 'AbortError' && !timedOut) return;
 
     await loadLocalEventsCatalog();
@@ -378,7 +373,6 @@ if (searchInput && searchResultsEl) {
     }
   });
 
-  // Navegación con flechas ↑/↓ entre resultados.
   searchResultsEl.addEventListener('keydown', e => {
     const items = [...searchResultsEl.querySelectorAll('.search-result-item:not(:disabled)')];
     if (!items.length) return;

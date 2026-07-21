@@ -109,7 +109,6 @@ test('insertPurchaseOrder crea una sola orden con items, tickets y un pago por c
   assert.equal(countCalls(fakeClient, 'INSERT INTO tickets'), 2);
   assert.equal(countCalls(fakeClient, 'INSERT INTO payments'), 1);
 
-  // La orden lleva comprador real, desglose y referencia de cotización.
   const orderCall = fakeClient.queryCalls.find(call => call.sql.includes('INSERT INTO orders'));
   assert.equal(orderCall.params.includes('repo@boletamax.test'), true);
   assert.equal(orderCall.params.includes('Comprador Repo'), true);
@@ -118,7 +117,6 @@ test('insertPurchaseOrder crea una sola orden con items, tickets y un pago por c
   assert.equal(orderCall.params.includes(1400), true);
   assert.equal(orderCall.params.includes(11400), true);
 
-  // El pago simulado referencia la orden.
   const paymentCall = fakeClient.queryCalls.find(call => call.sql.includes('INSERT INTO payments'));
   assert.equal(paymentCall.sql.includes(`'simulated'`), true);
   assert.equal(paymentCall.sql.includes(`'paid'`), true);
@@ -168,7 +166,6 @@ test('insertPurchaseOrder lanza TicketSeatConflictError si el asiento ya está o
     },
   );
 
-  // El conflicto se detecta antes de insertar items, tickets o pagos.
   assert.equal(countCalls(fakeClient, 'INSERT INTO order_items'), 0);
   assert.equal(countCalls(fakeClient, 'INSERT INTO tickets'), 0);
   assert.equal(countCalls(fakeClient, 'INSERT INTO payments'), 0);

@@ -1,5 +1,3 @@
-/* Contrato del servicio de correo (implementado en src/adapters/email) */
-
 /**
  * @typedef {Object} VerificationEmail
  * @property {string} to        Correo destino.

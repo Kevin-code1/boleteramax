@@ -11,7 +11,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, '..');
 
-// JSON de tickets aislado por corrida de e2e.
 async function createTempTicketsPath(tag) {
   const dir = path.join(rootDir, '.tmp');
   await fs.mkdir(dir, { recursive: true });
@@ -53,7 +52,6 @@ async function waitForServer(baseUrl, child, getOutput) {
       const response = await fetch(`${baseUrl}/api/security-config`);
       if (response.ok) return;
     } catch (_) {
-      // Keep polling until the server is ready.
     }
 
     await new Promise(resolve => setTimeout(resolve, 250));
@@ -133,7 +131,6 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     };
     const buyer = { name: 'Invitado Flow', email: `e2e-flow-${suffix}@boletamax.test` };
     const baseSeatNumber = Number(String(suffix).slice(-4)) || 1;
-    // Orden de dos asientos en una sola compra.
     const seats = [
       { zone: 'LUNETA', fila: `E2E${suffix}`, asiento: baseSeatNumber, tableSize: 1 },
       { zone: 'LUNETA', fila: `E2E${suffix}`, asiento: baseSeatNumber + 1, tableSize: 1 },
@@ -173,7 +170,6 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.ok(ticket.ticketId);
     assert.ok(ticket.token);
 
-    // ── Orden única con montos reales y pago ──
     const orderRow = (await query(
       `SELECT id, buyer_email, buyer_name, user_id, status, subtotal_cents, fee_cents,
               discount_cents, total_cents, checkout_quote_id, metadata
@@ -271,7 +267,6 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.equal(privateListResult.payload.tickets[0].ticketId, ticket.ticketId);
     assert.equal(Object.hasOwn(privateListResult.payload.tickets[0], 'token'), false);
 
-    // ── Inventario desde PostgreSQL (con el respaldo JSON vacío) ──
     await fs.writeFile(ticketsPath, '[]');
 
     const availabilityResult = await requestJson(baseUrl, '/api/events/availability', {
@@ -297,7 +292,6 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
       'sold seat missing from availability by eventId',
     );
 
-    // Recomprar el mismo asiento (boleto active) → conflicto controlado, no 500.
     const rebuyActiveResult = await requestJson(baseUrl, '/api/tickets', {
       method: 'POST',
       body: JSON.stringify({
@@ -369,7 +363,6 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     );
     assert.equal(duplicateCheck.rows[0]?.validation_count, 1);
 
-    // ── El boleto usado debe seguir bloqueando su asiento ──
     const availabilityUsedResult = await requestJson(baseUrl, '/api/events/availability', {
       method: 'POST',
       body: JSON.stringify({ event }),

@@ -9,7 +9,7 @@
     "db:verify": "node scripts/db-verify.mjs",
     "dev": "node --watch server.mjs",
     "start": "node server.mjs",
-    "test": "node --test --test-concurrency=1 tests/seat-inventory.test.mjs tests/purchase-persistence.test.mjs tests/tickets-storage.test.mjs tests/tickets-write-mode.test.mjs tests/tickets-repository.test.mjs tests/startup-config.test.mjs tests/tickets-postgres-primary-flow.test.mjs tests/events-catalog.test.mjs tests/auth-units.test.mjs tests/account-flow.test.mjs tests/email-verification-flow.test.mjs",
+    "test": "node --test --test-concurrency=1 tests/seat-inventory.test.mjs tests/catalog-consistency.test.mjs tests/venue-capacity.test.mjs tests/event-dates.test.mjs tests/purchase-persistence.test.mjs tests/session-last-seen.test.mjs tests/tickets-storage.test.mjs tests/tickets-write-mode.test.mjs tests/tickets-repository.test.mjs tests/startup-config.test.mjs tests/tickets-postgres-primary-flow.test.mjs tests/events-catalog.test.mjs tests/auth-units.test.mjs tests/account-flow.test.mjs tests/email-verification-flow.test.mjs",
     "tickets:db:count": "node scripts/migrate-tickets-json-to-db.mjs --count",
     "tickets:migrate": "node scripts/migrate-tickets-json-to-db.mjs",
     "tickets:migrate:dry-run": "node scripts/migrate-tickets-json-to-db.mjs --dry-run"

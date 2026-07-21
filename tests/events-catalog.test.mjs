@@ -1,8 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Evitar el fail-fast de postgres-primary al importar src/config
-// en entornos sin DATABASE_URL.
 process.env.TICKETS_STORAGE = 'json';
 process.env.TICKETS_WRITE_MODE = 'json';
 
@@ -32,7 +30,7 @@ test('event name matches ignoring accents and case', () => {
 test('name + date + venue matches the right event (checkout flow shape)', () => {
   const match = findCatalogEvent({
     name: 'Comedy Night Puebla',
-    date: '18 Junio 2025',
+    date: '19 Diciembre 2026',
     venue: 'Auditorio Puebla',
   });
   assert.equal(match?.name, 'Comedy Night Puebla');
@@ -41,7 +39,7 @@ test('name + date + venue matches the right event (checkout flow shape)', () => 
 test('venue + date still identify an event when the name has a typo', () => {
   const match = findCatalogEvent({
     name: 'Comedy Nigth Pueblaa',
-    date: '18 Junio 2025',
+    date: '19 Diciembre 2026',
     venue: 'Auditorio Puebla',
   });
   assert.equal(match?.name, 'Comedy Night Puebla');

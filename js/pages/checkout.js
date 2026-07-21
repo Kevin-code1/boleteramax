@@ -1,5 +1,3 @@
-        /* checkout.js: lógica de la página de pago */
-
         function safeParse(json, fallback) {
             try {
                 return JSON.parse(json);
@@ -383,10 +381,8 @@
         };
 
         let selectedMethod = null;
-        let timerSecs = 9 * 60 + 55;
         let timerInterval = null;
 
-        // ── Datos del comprador ──
         let sessionBuyer = null;
         const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -413,7 +409,6 @@
                 if (buyerSessionEl) buyerSessionEl.hidden = false;
                 setBuyerError('');
             } catch (_) {
-                // Sin sesión detectable: se mantiene el formulario de invitado.
             }
         }
 
@@ -461,23 +456,53 @@
             return `${m}:${sec.toString().padStart(2, '0')}`;
         }
 
+        function getQuoteSecondsRemaining() {
+            const expiresAtMs = Date.parse(checkoutQuote?.expiresAt || '');
+            if (!Number.isFinite(expiresAtMs)) return null;
+            return Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000));
+        }
+
+        function renderTimer(secs) {
+            timerEl.textContent = formatTime(secs);
+            if (secs <= 60) timerEl.style.color = '#ef4444';
+        }
+
+        function handleQuoteExpired() {
+            timerEl.textContent = '0:00';
+            sessionStorage.removeItem('bm_cart');
+            sessionStorage.removeItem('bm_event');
+            confirmOverlay.classList.remove('show');
+            showCheckoutAlert('Tu cotización expiró. Vuelve a seleccionar tus asientos.');
+            setPaymentEnabled(false);
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1800);
+        }
+
         function startTimer() {
-            timerEl.textContent = formatTime(timerSecs);
+            const initialSecs = getQuoteSecondsRemaining();
+            if (initialSecs === null) {
+                timerEl.textContent = '--:--';
+                return;
+            }
+
+            renderTimer(initialSecs);
+            if (initialSecs <= 0) {
+                handleQuoteExpired();
+                return;
+            }
+
             timerInterval = setInterval(() => {
-                timerSecs--;
-                timerEl.textContent = formatTime(timerSecs);
-                if (timerSecs <= 60) timerEl.style.color = '#ef4444';
-                if (timerSecs <= 0) {
+                const secs = getQuoteSecondsRemaining();
+                if (secs === null) {
                     clearInterval(timerInterval);
-                    timerEl.textContent = '0:00';
-                    sessionStorage.removeItem('bm_cart');
-                    sessionStorage.removeItem('bm_event');
-                    confirmOverlay.classList.remove('show');
-                    showCheckoutAlert('El tiempo de reserva expiró. Tus asientos fueron liberados y te llevaremos al inicio.');
-                    setPaymentEnabled(false);
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1800);
+                    timerEl.textContent = '--:--';
+                    return;
+                }
+                renderTimer(secs);
+                if (secs <= 0) {
+                    clearInterval(timerInterval);
+                    handleQuoteExpired();
                 }
             }, 1000);
         }
@@ -486,7 +511,7 @@
             if (!hasValidCart) {
                 timerEl.textContent = '--:--';
                 showCheckoutAlert('Tu carrito ya no esta disponible o se abrio el checkout sin asientos. Vuelve al inicio para seleccionar lugares.');
-                setSecurityStatus('Sin reserva', 'danger', 'fa-circle-xmark');
+                setSecurityStatus('Sin asientos', 'danger', 'fa-circle-xmark');
                 setPaymentEnabled(false);
                 return;
             }
@@ -518,7 +543,7 @@
 
         function selectPayment(method, card) {
             if (!hasValidCart) {
-                showCheckoutAlert('No encontramos una reservación activa. Regresa a la selección de asientos para continuar.');
+                showCheckoutAlert('No encontramos asientos seleccionados. Regresa a la selección de asientos para continuar.');
                 return;
             }
 
@@ -552,7 +577,7 @@
 
         async function finishCheckout() {
             if (!hasValidCart || !selectedMethod) {
-                showCheckoutAlert('Selecciona primero una reservación y un método de pago válido.');
+                showCheckoutAlert('Selecciona primero tus asientos y un método de pago válido.');
                 confirmOverlay.classList.remove('show');
                 return;
             }
@@ -582,7 +607,6 @@
 
                 if (timerInterval) clearInterval(timerInterval);
 
-                // Guardamos los tickets con sus tokens criptográficos en sesión
                 const ticketsData = payload.tickets.map(t => ({ ticketId: t.ticketId, token: t.token }));
                 sessionStorage.setItem('bm_last_tickets', JSON.stringify(ticketsData));
                 sessionStorage.setItem('bm_last_ticket_ids', JSON.stringify(ticketIds));
@@ -592,7 +616,6 @@
                 confirmOverlay.classList.remove('show');
                 window.location.href = `ticket.html?ticketIds=${encodeURIComponent(ticketIds.join(','))}`;
             } catch (error) {
-                // Cerrar el modal de pago para que el banner de error sea visible.
                 confirmOverlay.classList.remove('show');
                 showCheckoutAlert(error.message || 'No fue posible generar los boletos. Intenta nuevamente.');
             } finally {
@@ -619,4 +642,4 @@
 
         window.selectPayment = selectPayment;
         window.finishCheckout = finishCheckout;
-    
+

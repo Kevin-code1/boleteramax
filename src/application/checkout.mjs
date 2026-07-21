@@ -3,6 +3,7 @@ import {
   buildOrderPricingCents,
   findSeatConflicts,
   getAuthoritativePurchase,
+  getVenueCapacity,
   sanitizePurchasePayload,
   validatePurchaseRequest,
 } from '../domain/pricing.mjs';
@@ -42,7 +43,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
       orderSeatCount,
       status: 'active',
       validationCount: 0,
-      userId: userId || null, // dueño de la compra; null = invitado
+      userId: userId || null,
       publicPath,
       publicUrl,
       createdAt: new Date().toISOString(),
@@ -56,7 +57,6 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
   function quote(rawBody) {
     const purchase = sanitizePurchasePayload(rawBody);
 
-    // ── Validación server-side del evento ──
     const catalogEvent = catalog.findCatalogEvent(purchase.event);
     const validationErrors = validatePurchaseRequest(purchase, catalogEvent);
     if (validationErrors.length) {
@@ -75,7 +75,6 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
   async function purchase(rawBody, { publicBaseUrl, requestContext, user = null }) {
     const purchaseRequest = sanitizePurchasePayload(rawBody);
 
-    // ── 1. Validar request y datos del comprador ──
     const catalogEvent = catalog.findCatalogEvent(purchaseRequest.event);
     const { buyer, errors: buyerErrors } = resolvePurchaseBuyer({
       sessionUser: user,
@@ -90,7 +89,6 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
       return { outcome: 'invalid', errors: validationErrors };
     }
 
-    // ── 2. Verificar protección Cloudflare ──
     const turnstileResult = await captcha.verifyToken(requestContext, purchaseRequest.turnstileToken);
     if (!turnstileResult.ok) {
       console.warn('BoletaMax Cloudflare: request rejected', {
@@ -99,13 +97,11 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
       return { outcome: 'captcha_rejected' };
     }
 
-    // ── 3. Precios autoritativos del servidor ──
     const authoritativePurchase = getAuthoritativePurchase(purchaseRequest);
     const eventId = buildEventId(authoritativePurchase.event);
     const orderId = createOrderId();
     const orderSeatCount = authoritativePurchase.seats.length;
 
-    // Orden de la compra.
     const order = {
       orderId,
       quoteId: authoritativePurchase.quoteId,
@@ -121,9 +117,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
       orderSeatCount,
     };
 
-    // ── 4. Validar inventario + escribir atómicamente con mutex ──
     const tickets = await ticketStore.withWriteLock(async () => {
-      // Inventario desde la fuente del modo configurado.
       const soldSeatKeys = await ticketStore.getSoldSeatKeys(eventId);
 
       const conflicts = findSeatConflicts(authoritativePurchase.seats, soldSeatKeys);
@@ -134,12 +128,11 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
         throw new Error(`Asientos no disponibles: ${labels.join(', ')}. Selecciona otros asientos.`);
       }
 
-      // Límite global de asientos ocupados por evento.
-      if (soldSeatKeys.size + orderSeatCount > 500) {
+      const venueCapacity = getVenueCapacity(authoritativePurchase.event?.venueKey);
+      if (soldSeatKeys.size + orderSeatCount > venueCapacity) {
         throw new Error('El evento ha alcanzado su capacidad maxima.');
       }
 
-      // Lectura solo para el respaldo JSON local.
       const existingTickets = ticketStore.readTickets();
 
       const newTickets = await Promise.all(
@@ -192,7 +185,7 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
         },
         tickets: tickets.map(t => ({
           ...ticketStore.serializePublic(t),
-          token: t.token, // token privado, solo al comprador
+          token: t.token,
         })),
       },
     };

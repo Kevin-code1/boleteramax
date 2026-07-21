@@ -2,7 +2,6 @@ import 'dotenv/config';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Sin DATABASE_URL se fuerza modo json (config aborta en postgres-primary).
 if (!process.env.DATABASE_URL) {
   process.env.TICKETS_STORAGE = process.env.TICKETS_STORAGE || 'json';
   process.env.TICKETS_WRITE_MODE = process.env.TICKETS_WRITE_MODE || 'json';
@@ -30,8 +29,6 @@ function makeTicket({ status, zone = 'LUNETA', fila = 'B', asiento = 4 }) {
     seat: { zone, fila, asiento, tableSize: 1 },
   };
 }
-
-// ── Dominio: qué estados bloquean el asiento ──
 
 test('un boleto active bloquea su asiento', () => {
   const ticket = makeTicket({ status: 'active' });
@@ -94,8 +91,6 @@ test('findSeatConflicts detecta conflictos contra un set de llaves vendidas', ()
   assert.equal(conflicts[0].reason, 'ya vendido');
   assert.equal(findSeatConflicts([{ ...seat, asiento: 10 }], soldKeys).length, 0);
 });
-
-// ── Storage: fuente de asientos vendidos según el modo ──
 
 function storageDeps({ jsonTickets = [], postgresTickets = [], failPostgres = false } = {}) {
   const calls = { postgres: 0, json: 0 };
@@ -170,8 +165,6 @@ test('eventId vacío devuelve un set vacío sin consultar nada', async () => {
   assert.equal(deps.calls.postgres, 0);
   assert.equal(deps.calls.json, 0);
 });
-
-// ── Write-mode: conflicto de asiento en PostgreSQL → error controlado ──
 
 test('un 23505 sobre índice de asiento se convierte en TicketSeatConflictError', async () => {
   const conflict = Object.assign(new Error('duplicate key value violates unique constraint'), {

@@ -61,7 +61,6 @@ export function createTicketQueries({ ticketStore, qr }) {
     return { outcome: 'ok', tickets: validTickets };
   }
 
-  // Autorización privada: token del boleto, o sesión del dueño de la compra.
   function isAuthorizedForPrivateView(ticket, token, sessionUserId) {
     return (
       ticketStore.verifyPrivateToken(ticket, token) ||

@@ -33,7 +33,7 @@ async function createPostgresUserStore() {
         );
         return mapUserRow(result.rows[0]);
       } catch (error) {
-        if (error?.code === '23505') return null; // email duplicado
+        if (error?.code === '23505') return null;
         throw error;
       }
     },
@@ -77,7 +77,12 @@ async function createPostgresUserStore() {
       const user = mapUserRow(result.rows[0]);
       if (user) {
         await query(
-          'UPDATE user_sessions SET last_seen_at = now() WHERE session_token_hash = $1',
+          `
+            UPDATE user_sessions
+            SET last_seen_at = now()
+            WHERE session_token_hash = $1
+              AND last_seen_at < now() - interval '5 minutes'
+          `,
           [tokenHash],
         );
       }
@@ -88,7 +93,6 @@ async function createPostgresUserStore() {
       await query('DELETE FROM user_sessions WHERE session_token_hash = $1', [tokenHash]);
     },
 
-    // Verificación de correo
     async invalidatePendingVerificationTokens(userId) {
       await query(
         `
@@ -110,7 +114,6 @@ async function createPostgresUserStore() {
       );
     },
 
-    // Consumo atómico del token.
     async consumeVerificationToken(tokenHash) {
       const result = await query(
         `
@@ -147,11 +150,9 @@ async function createPostgresUserStore() {
   };
 }
 
-// Modo dev sin base de datos: usuarios en data/users.json, sesiones y tokens
-// en memoria.
 function createJsonUserStore() {
-  const sessions = new Map(); // tokenHash → { userId, expiresAt }
-  const verificationTokens = new Map(); // tokenHash → { userId, expiresAt, usedAt }
+  const sessions = new Map();
+  const verificationTokens = new Map();
 
   function readUsers() {
     if (!fs.existsSync(USERS_JSON_PATH)) return [];

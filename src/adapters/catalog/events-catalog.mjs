@@ -10,7 +10,6 @@ export function findCatalogEventIn(eventsCatalog = [], event = {}) {
     const nameMatches = textValuesMatch(item.name, event.name);
     const venueMatches = !eventVenue || textValuesMatch(item.venue, eventVenue);
     const dateMatches = !eventDate || textValuesMatch(item.date, eventDate);
-    // venue+fecha solo identifican si ambos vienen en el request.
     const venueAndDateIdentify = Boolean(eventVenue) && Boolean(eventDate) && venueMatches && dateMatches;
     return (nameMatches && venueMatches) || (nameMatches && dateMatches) || venueAndDateIdentify;
   }) || null;

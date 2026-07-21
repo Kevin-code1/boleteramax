@@ -1,5 +1,3 @@
-/* Raíz de composición: adaptadores, casos de uso y HTTP */
-
 import { ADMIN_API_KEY, PORT, TURNSTILE_ENABLED } from './src/config/index.mjs';
 import { createEventsCatalog } from './src/adapters/catalog/events-catalog.mjs';
 import { createTicketStore } from './src/adapters/persistence/ticket-store.mjs';
@@ -17,7 +15,6 @@ import { createAuth } from './src/application/auth.mjs';
 import { createAccount } from './src/application/account.mjs';
 import { createApp } from './src/adapters/http/app.mjs';
 
-// ── Adaptadores (puertos de salida) ──
 const catalog = createEventsCatalog();
 const ticketStore = createTicketStore({ logger: console });
 const userStore = await createUserStore();
@@ -28,7 +25,6 @@ const emailService = createEmailService();
 
 ticketStore.ensureTicketsFile();
 
-// ── Casos de uso (application) ──
 const services = {
   searchEvents: createSearchEvents({ aiFilters, catalog }),
   availability: createAvailability({ catalog, ticketStore }),
@@ -40,7 +36,6 @@ const services = {
   emailService,
 };
 
-// ── Adaptador HTTP (puerto de entrada) ──
 const app = createApp({ services });
 
 app.listen(PORT, () => {

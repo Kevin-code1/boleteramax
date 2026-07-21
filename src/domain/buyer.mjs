@@ -1,5 +1,3 @@
-/* Comprador de una orden (cuenta o invitado) */
-
 import { isValidEmail, normalizeEmail } from './auth.mjs';
 
 export const BUYER_NAME_MAX_LENGTH = 80;
@@ -12,7 +10,6 @@ export function sanitizeBuyerPayload(rawBuyer) {
   };
 }
 
-// Con sesión manda la cuenta; sin sesión el buyer es obligatorio.
 export function resolvePurchaseBuyer({ sessionUser = null, requestBuyer = null } = {}) {
   if (sessionUser) {
     return {

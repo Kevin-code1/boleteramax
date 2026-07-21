@@ -6,7 +6,6 @@ import { closePool, query } from '../db/pool.mjs';
 import { insertPurchaseOrder, TicketSeatConflictError } from '../db/tickets.repository.mjs';
 import { resolvePurchaseBuyer } from '../src/domain/buyer.mjs';
 
-// Sin DATABASE_URL se fuerza modo json (config aborta en postgres-primary).
 if (!process.env.DATABASE_URL) {
   process.env.TICKETS_STORAGE = process.env.TICKETS_STORAGE || 'json';
   process.env.TICKETS_WRITE_MODE = process.env.TICKETS_WRITE_MODE || 'json';
@@ -15,8 +14,6 @@ if (!process.env.DATABASE_URL) {
 const { buildOrderPricingCents } = await import('../src/domain/pricing.mjs');
 
 const HAS_DB = Boolean(process.env.DATABASE_URL);
-
-// ── Unidad: desglose de importes desde la cotización firmada ──
 
 const QUOTE_LIKE = {
   subtotal: 1000,
@@ -65,8 +62,6 @@ test('buildOrderPricingCents cumple subtotal + fee - discount = total en todos l
   }
 });
 
-// ── Unidad: resolución del comprador ──
-
 test('con sesión se usan los datos de la cuenta y se ignora el buyer del body', () => {
   const sessionUser = { id: 'user-1', email: 'Cuenta@Boletamax.Test', displayName: 'Cuenta Real' };
   const { buyer, errors } = resolvePurchaseBuyer({
@@ -113,13 +108,11 @@ test('invitado sin nombre o con correo inválido es rechazado', () => {
   assert.match(nombreLargo.errors[0], /largo/i);
 });
 
-// ── Integración PostgreSQL ──
-
 function makeTicketRecord({ orderId, eventName, date, venue, fila, asiento, token }) {
   return {
     ticketId: `BM-TKT-B4-${randomBytes(6).toString('hex').toUpperCase()}`,
     orderId,
-    eventId: null, // el repo usa order.event.eventId
+    eventId: null,
     eventName,
     date,
     venue,
@@ -161,7 +154,6 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
   const guestBuyer = { name: 'Invitado B4', email: `b4-guest-${suffix}@boletamax.test`, userId: null, isGuest: true };
 
   try {
-    // ── Compra invitada de 2 asientos ──
     const order1 = makeOrder({ orderId: `BM-ORD-B4A-${suffix}`, buyer: guestBuyer });
     const tickets1 = [
       makeTicketRecord({ orderId: order1.orderId, eventName, date, venue: venueName, fila: 'A', asiento: 1 }),
@@ -209,7 +201,6 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
     assert.equal(payment.amount_cents, 114000);
     assert.ok(payment.paid_at);
 
-    // Vínculos: cada ticket apunta a un order_item de la misma orden.
     const linkCheck = (await query(
       `SELECT count(*)::int AS linked
        FROM tickets t JOIN order_items oi ON oi.id = t.order_item_id
@@ -218,14 +209,12 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
     )).rows[0];
     assert.equal(linkCheck.linked, 2);
 
-    // ── Lookup estable: otra compra no modifica la fila del evento ──
     const eventBefore = (await query(
       'SELECT id, updated_at FROM events WHERE external_reference = $1',
       [eventRef],
     )).rows[0];
     assert.ok(eventBefore, 'el evento debe haberse creado');
 
-    // ── Compra con cuenta (user_id) ──
     const userResult = await query(
       `INSERT INTO users (email, password_hash, display_name)
        VALUES ($1, 'scrypt:test', 'Cuenta B4') RETURNING id`,
@@ -260,7 +249,6 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
       'la segunda compra no debe hacer upsert sobre el evento existente',
     );
 
-    // ── Conflicto de asiento: mismo asiento A1 → error controlado + rollback ──
     const order3 = makeOrder({ orderId: `BM-ORD-B4C-${suffix}`, buyer: guestBuyer, seatCount: 1 });
     const conflictTicket = makeTicketRecord({
       orderId: order3.orderId, eventName, date, venue: venueName, fila: 'A', asiento: 1,
@@ -275,8 +263,6 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
     )).rows[0];
     assert.equal(order3Count.count, 0, 'el conflicto debe hacer rollback de la orden completa');
 
-    // ── Rollback total ante fallo a mitad de transacción ──
-    // Dos boletos con el mismo ticket_code fuerzan el fallo.
     const order4 = makeOrder({ orderId: `BM-ORD-B4D-${suffix}`, buyer: guestBuyer });
     const dupCode = `BM-TKT-B4-DUP-${suffix}`;
     const tickets4 = [
@@ -295,7 +281,6 @@ test('insertPurchaseOrder integración: orden única, lookup estable, conflicto 
     )).rows[0];
     assert.deepEqual(rollbackChecks, { orders: 0, tickets: 0, seats: 0 });
   } finally {
-    // Limpieza de los datos creados por la prueba.
     for (const orderNumber of orderNumbers) {
       const orders = await query('SELECT id FROM orders WHERE order_number = $1', [orderNumber]);
       for (const row of orders.rows) {

@@ -3,7 +3,6 @@ import { randomBytes } from 'crypto';
 import { ADMIN_API_KEY } from '../../config/index.mjs';
 import { safeEqualString } from '../../domain/text.mjs';
 
-// ── Headers de seguridad ──
 export function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -25,7 +24,6 @@ export function securityHeaders(req, res, next) {
   next();
 }
 
-// ── Archivos sensibles que nunca deben ser servidos por express.static ──
 const BLOCKED_FILE_PATTERNS = [
   /^\/data\/backups(?:\/|$)/i,
   /^\/data(?:$|\/(?!events\.json$))/i,
@@ -54,7 +52,6 @@ export function blockSensitiveFiles(req, res, next) {
   next();
 }
 
-// ── Rate limiting ──
 export const apiGeneralLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 150,
@@ -103,7 +100,6 @@ export const authLimiter = rateLimit({
   message: { ok: false, message: 'Demasiados intentos. Espera un momento.' },
 });
 
-// Reenvío de verificación: más estricto para evitar bombardeo de correos.
 export const resendVerificationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -112,14 +108,12 @@ export const resendVerificationLimiter = rateLimit({
   message: { ok: false, message: 'Demasiados reenvíos. Espera unos minutos.' },
 });
 
-// ── Middleware de autenticación para staff/admin ──
 export function requireAdminAuth(req, res, next) {
   if (!ADMIN_API_KEY) {
     if (process.env.NODE_ENV === 'production') {
       console.error('BoletaMax Security ERROR: ADMIN_API_KEY no configurada en producción. Acceso bloqueado.');
       return res.status(500).json({ ok: false, message: 'Error de configuración de seguridad del servidor.' });
     }
-    // Si no está configurada y es local, usamos la clave autogenerada de desarrollo
     if (!global.DEV_ADMIN_API_KEY) {
       global.DEV_ADMIN_API_KEY = randomBytes(16).toString('hex').toUpperCase();
       console.warn('\n======================================================================');

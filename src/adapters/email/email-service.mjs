@@ -34,7 +34,6 @@ function buildVerificationHtml({ name, verifyUrl }) {
   `;
 }
 
-// Consola: imprime el enlace en desarrollo.
 function createConsoleEmailService() {
   return {
     async sendVerificationEmail({ to, name, verifyUrl }) {
@@ -50,7 +49,6 @@ function createConsoleEmailService() {
   };
 }
 
-// SMTP: importa nodemailer de forma perezosa.
 function createSmtpEmailService() {
   let transporterPromise = null;
 

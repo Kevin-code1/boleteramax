@@ -1,5 +1,3 @@
-/* Pantalla de verificación de correo */
-
 (function () {
   const card = document.getElementById('card');
   const spinner = document.getElementById('spinner');
@@ -18,7 +16,6 @@
     message.textContent = messageText;
     actions.hidden = false;
     if (showLogin) {
-      // El login vive en el modal del home; lo abrimos al llegar.
       loginLink.hidden = false;
       loginLink.href = '/?login=1';
     }

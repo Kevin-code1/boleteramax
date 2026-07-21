@@ -24,14 +24,12 @@
     <title>BoletaMax – Boletos en Línea con Total Seguridad</title>
     <link rel="preload" as="image" href="assets/images/hero_concert.png" fetchpriority="high" />
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap"
         rel="stylesheet" />
 
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <link rel="stylesheet" href="css/tokens.css" />
@@ -44,7 +42,6 @@
 <body>
     <a class="skip-link" href="#eventos">Saltar al contenido principal</a>
 
-    <!-- ======================== PRELOADER ======================== -->
     <div id="preloader">
         <div class="preloader-inner">
             <div class="preloader-logo">
@@ -58,7 +55,6 @@
         </div>
     </div>
 
-    <!-- ======================== SECURITY TRUST BAR ======================== -->
     <div class="trust-bar">
         <div class="trust-bar-inner">
             <span><i class="fas fa-shield-halved"></i> Compra 100% Segura</span>
@@ -69,16 +65,13 @@
         </div>
     </div>
 
-    <!-- ======================== HEADER ======================== -->
     <header id="main-header">
         <div class="header-container">
-            <!-- Logo -->
             <a href="#hero" class="logo" id="logo-link">
                 <span class="logo-icon"><i class="fas fa-bolt"></i></span>
                 <span class="logo-text">Boleta<strong>Max</strong></span>
             </a>
 
-            <!-- Search Bar -->
             <div class="header-search" id="header-search">
                 <i class="fas fa-search"></i>
                 <input type="text" id="search-input" placeholder="Buscar eventos, artistas, venues..."
@@ -87,7 +80,6 @@
                 <div class="search-results" id="search-results" role="listbox" aria-live="polite"></div>
             </div>
 
-            <!-- Nav Links -->
             <nav class="main-nav" id="main-nav">
                 <a href="#eventos" class="nav-link">Eventos</a>
                 <a href="#categorias" class="nav-link">Categorías</a>
@@ -95,7 +87,6 @@
                 <a href="#contacto" class="nav-link">Contacto</a>
             </nav>
 
-            <!-- CTA Buttons -->
             <div class="header-cta">
                 <button class="btn-login" id="btn-login-header" onclick="openModal('login-modal')">
                     <i class="fas fa-user-circle"></i>
@@ -113,13 +104,11 @@
                 </button>
             </div>
 
-            <!-- Hamburger -->
             <button class="hamburger" id="hamburger" aria-label="Menú">
                 <span></span><span></span><span></span>
             </button>
         </div>
 
-        <!-- Mobile Menu -->
         <div class="mobile-menu" id="mobile-menu">
             <a href="#eventos">Eventos</a>
             <a href="#categorias">Categorías</a>
@@ -133,36 +122,33 @@
         </div>
     </header>
 
-    <!-- ======================== HERO SLIDER ======================== -->
     <section class="hero-section" id="hero">
         <div class="hero-slider" id="hero-slider">
-            <!-- Slide 1 -->
             <div class="hero-slide active" style="background-image: url('assets/images/hero_concert.png');">
                 <div class="hero-overlay"></div>
                 <div class="hero-content">
                     <div class="hero-badge"><i class="fas fa-fire"></i> DESTACADO</div>
-                    <h1>Noche de Rock<br /><span class="hero-highlight">Épica 2025</span></h1>
+                    <h1>Noche de Rock<br /><span class="hero-highlight">Épica 2026</span></h1>
                     <p>La experiencia de rock más grande del año te espera. Artistas internacionales en tarima única.
                     </p>
                     <div class="hero-meta">
-                        <span><i class="fas fa-calendar"></i> 15 Marzo 2025</span>
+                        <span><i class="fas fa-calendar"></i> 5 Septiembre 2026</span>
                         <span><i class="fas fa-map-marker-alt"></i> CDMX · Foro Sol</span>
                         <span><i class="fas fa-tag"></i> Desde $850 MXN</span>
                     </div>
                     <div class="hero-actions">
                         <button class="btn-hero-primary"
-                            onclick="openTicketModal('Noche de Rock Épica 2025','15 Marzo 2025','Foro Sol, CDMX','$850 MXN','estadio')">
+                            onclick="openTicketModal('Noche de Rock Épica 2026','5 Septiembre 2026','Foro Sol, CDMX','$850 MXN','estadio')">
                             <i class="fas fa-ticket"></i> Comprar Boletos
                         </button>
                         <button class="btn-hero-secondary"
-                            onclick="openTicketModal('Noche de Rock Épica 2025','15 Marzo 2025','Foro Sol, CDMX','$850 MXN','estadio')">
+                            onclick="openTicketModal('Noche de Rock Épica 2026','5 Septiembre 2026','Foro Sol, CDMX','$850 MXN','estadio')">
                             <i class="fas fa-info-circle"></i> Ver Detalles
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Slide 2 -->
             <div class="hero-slide" style="background-image: url('assets/images/hero_festival.png');">
                 <div class="hero-overlay"></div>
                 <div class="hero-content">
@@ -170,24 +156,23 @@
                     <h1>Festival<br /><span class="hero-highlight">SolMaX</span></h1>
                     <p>El festival más esperado del verano. 3 días, 30 artistas, experiencias únicas e irrepetibles.</p>
                     <div class="hero-meta">
-                        <span><i class="fas fa-calendar"></i> 20–22 Junio 2025</span>
+                        <span><i class="fas fa-calendar"></i> 19–21 Septiembre 2026</span>
                         <span><i class="fas fa-map-marker-alt"></i> Guadalajara · Expo</span>
                         <span><i class="fas fa-tag"></i> Desde $1,200 MXN</span>
                     </div>
                     <div class="hero-actions">
                         <button class="btn-hero-primary"
-                            onclick="openTicketModal('Festival SolMaX 2025','20–22 Junio 2025','Expo, Guadalajara','$1,200 MXN','festival')">
+                            onclick="openTicketModal('Festival SolMaX 2026','19–21 Septiembre 2026','Expo, Guadalajara','$1,200 MXN','festival')">
                             <i class="fas fa-ticket"></i> Comprar Boletos
                         </button>
                         <button class="btn-hero-secondary"
-                            onclick="openTicketModal('Festival SolMaX 2025','20–22 Junio 2025','Expo, Guadalajara','$1,200 MXN','festival')">
+                            onclick="openTicketModal('Festival SolMaX 2026','19–21 Septiembre 2026','Expo, Guadalajara','$1,200 MXN','festival')">
                             <i class="fas fa-info-circle"></i> Ver Detalles
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Slide 3 -->
             <div class="hero-slide" style="background-image: url('assets/images/hero_comedy.png');">
                 <div class="hero-overlay"></div>
                 <div class="hero-content">
@@ -195,17 +180,17 @@
                     <h1>Noche de<br /><span class="hero-highlight">Comedia</span></h1>
                     <p>Los mejores comediantes del país juntos en una noche que no podrás olvidar.</p>
                     <div class="hero-meta">
-                        <span><i class="fas fa-calendar"></i> 5 Abril 2025</span>
+                        <span><i class="fas fa-calendar"></i> 3 Octubre 2026</span>
                         <span><i class="fas fa-map-marker-alt"></i> Monterrey · Teatro</span>
                         <span><i class="fas fa-tag"></i> Desde $480 MXN</span>
                     </div>
                     <div class="hero-actions">
                         <button class="btn-hero-primary"
-                            onclick="openTicketModal('Noche de Comedia 2025','5 Abril 2025','Teatro, Monterrey','$480 MXN','teatro')">
+                            onclick="openTicketModal('Noche de Comedia 2026','3 Octubre 2026','Teatro, Monterrey','$480 MXN','teatro')">
                             <i class="fas fa-ticket"></i> Comprar Boletos
                         </button>
                         <button class="btn-hero-secondary"
-                            onclick="openTicketModal('Noche de Comedia 2025','5 Abril 2025','Teatro, Monterrey','$480 MXN','teatro')">
+                            onclick="openTicketModal('Noche de Comedia 2026','3 Octubre 2026','Teatro, Monterrey','$480 MXN','teatro')">
                             <i class="fas fa-info-circle"></i> Ver Detalles
                         </button>
                     </div>
@@ -213,13 +198,11 @@
             </div>
         </div>
 
-        <!-- Slider Controls -->
         <button class="hero-nav hero-prev" id="hero-prev" aria-label="Anterior"><i
                 class="fas fa-chevron-left"></i></button>
         <button class="hero-nav hero-next" id="hero-next" aria-label="Siguiente"><i
                 class="fas fa-chevron-right"></i></button>
 
-        <!-- Slider Dots -->
         <div class="hero-dots" id="hero-dots">
             <button class="hero-dot active" data-slide="0" aria-label="Ir al slide 1"></button>
             <button class="hero-dot" data-slide="1" aria-label="Ir al slide 2"></button>
@@ -227,7 +210,6 @@
         </div>
     </section>
 
-    <!-- ======================== STATS BAR ======================== -->
     <section class="stats-bar">
         <div class="stats-container">
             <div class="stat-item" data-count="250000">
@@ -252,7 +234,6 @@
         </div>
     </section>
 
-    <!-- ======================== CATEGORY FILTERS ======================== -->
     <section class="filters-section" id="categorias">
         <div class="filters-container">
             <div class="filters-label"><i class="fas fa-sliders"></i> Filtrar por:</div>
@@ -282,7 +263,6 @@
         </div>
     </section>
 
-    <!-- ======================== EVENTS GRID ======================== -->
     <section class="events-section" id="eventos">
         <div class="events-container">
             <div class="section-header">
@@ -295,7 +275,6 @@
 
             <div class="events-grid" id="events-grid">
 
-                <!-- Event Card 1 -->
                 <article class="event-card" data-category="musica" data-aos="fade-up">
                     <div class="event-card-image">
                         <img src="assets/images/event_banda.png" alt="Festival de Banda" loading="lazy" />
@@ -308,8 +287,8 @@
                     <div class="event-card-body">
                         <div class="event-card-header">
                             <div class="event-date-chip">
-                                <span class="chip-day">22</span>
-                                <span class="chip-month">MAR</span>
+                                <span class="chip-day">17</span>
+                                <span class="chip-month">OCT</span>
                             </div>
                             <div class="event-info">
                                 <h3 class="event-name">Gran Festival de Banda</h3>
@@ -322,14 +301,13 @@
                                 <span class="price-amount">$650 <small>MXN</small></span>
                             </div>
                             <button class="btn-ver-mas"
-                                onclick="openTicketModal('Gran Festival de Banda','22 Marzo 2025','Palenque Culiacán','$650 MXN','palenque')">
+                                onclick="openTicketModal('Gran Festival de Banda','17 Octubre 2026','Palenque Culiacán','$650 MXN','palenque')">
                                 <i class="fas fa-ticket"></i> VER MÁS
                             </button>
                         </div>
                     </div>
                 </article>
 
-                <!-- Event Card 2 -->
                 <article class="event-card" data-category="deportes" data-aos="fade-up" data-aos-delay="100">
                     <div class="event-card-image">
                         <img src="assets/images/event_lucha.png" alt="Lucha Libre" loading="lazy" />
@@ -343,8 +321,8 @@
                     <div class="event-card-body">
                         <div class="event-card-header">
                             <div class="event-date-chip event-date-chip-red">
-                                <span class="chip-day">08</span>
-                                <span class="chip-month">ABR</span>
+                                <span class="chip-day">31</span>
+                                <span class="chip-month">OCT</span>
                             </div>
                             <div class="event-info">
                                 <h3 class="event-name">Lucha Libre CMLL</h3>
@@ -363,7 +341,6 @@
                     </div>
                 </article>
 
-                <!-- Event Card 3 -->
                 <article class="event-card" data-category="teatro" data-aos="fade-up" data-aos-delay="200">
                     <div class="event-card-image">
                         <img src="assets/images/event_teatro.png" alt="Gran Teatro" loading="lazy" />
@@ -376,8 +353,8 @@
                     <div class="event-card-body">
                         <div class="event-card-header">
                             <div class="event-date-chip event-date-chip-gold">
-                                <span class="chip-day">30</span>
-                                <span class="chip-month">ABR</span>
+                                <span class="chip-day">14</span>
+                                <span class="chip-month">NOV</span>
                             </div>
                             <div class="event-info">
                                 <h3 class="event-name">El Fantasma de la Ópera</h3>
@@ -390,14 +367,13 @@
                                 <span class="price-amount">$900 <small>MXN</small></span>
                             </div>
                             <button class="btn-ver-mas"
-                                onclick="openTicketModal('El Fantasma de la Ópera','30 Abril 2025','Teatro Monterrey','$900 MXN','teatro')">
+                                onclick="openTicketModal('El Fantasma de la Ópera','14 Noviembre 2026','Teatro Monterrey','$900 MXN','teatro')">
                                 <i class="fas fa-ticket"></i> VER MÁS
                             </button>
                         </div>
                     </div>
                 </article>
 
-                <!-- Event Card 4 -->
                 <article class="event-card" data-category="musica" data-aos="fade-up">
                     <div class="event-card-image">
                         <img src="assets/images/event_reggaeton.png" alt="Noche Urbana" loading="lazy" />
@@ -411,8 +387,8 @@
                     <div class="event-card-body">
                         <div class="event-card-header">
                             <div class="event-date-chip event-date-chip-purple">
-                                <span class="chip-day">10</span>
-                                <span class="chip-month">MAY</span>
+                                <span class="chip-day">28</span>
+                                <span class="chip-month">NOV</span>
                             </div>
                             <div class="event-info">
                                 <h3 class="event-name">Noche Urbana GDL</h3>
@@ -425,14 +401,13 @@
                                 <span class="price-amount">$750 <small>MXN</small></span>
                             </div>
                             <button class="btn-ver-mas"
-                                onclick="openTicketModal('Noche Urbana GDL','10 Mayo 2025','C3 Stage, Guadalajara','$750 MXN','festival')">
+                                onclick="openTicketModal('Noche Urbana GDL','28 Noviembre 2026','C3 Stage, Guadalajara','$750 MXN','festival')">
                                 <i class="fas fa-ticket"></i> VER MÁS
                             </button>
                         </div>
                     </div>
                 </article>
 
-                <!-- Event Card 5 -->
                 <article class="event-card" data-category="feria" data-aos="fade-up" data-aos-delay="100">
                     <div class="event-card-image">
                         <img src="assets/images/event_feria.png" alt="Feria del Estado" loading="lazy" />
@@ -445,8 +420,8 @@
                     <div class="event-card-body">
                         <div class="event-card-header">
                             <div class="event-date-chip">
-                                <span class="chip-day">01</span>
-                                <span class="chip-month">JUN</span>
+                                <span class="chip-day">12</span>
+                                <span class="chip-month">DIC</span>
                             </div>
                             <div class="event-info">
                                 <h3 class="event-name">Feria del Estado CHH</h3>
@@ -459,14 +434,13 @@
                                 <span class="price-amount">$350 <small>MXN</small></span>
                             </div>
                             <button class="btn-ver-mas"
-                                onclick="openTicketModal('Feria del Estado CHH','1 Junio 2025','Recinto Ferial Chihuahua','$350 MXN','palenque')">
+                                onclick="openTicketModal('Feria del Estado CHH','12 Diciembre 2026','Recinto Ferial Chihuahua','$350 MXN','palenque')">
                                 <i class="fas fa-ticket"></i> VER MÁS
                             </button>
                         </div>
                     </div>
                 </article>
 
-                <!-- Event Card 6 - Comedy -->
                 <article class="event-card" data-category="comedia" data-aos="fade-up" data-aos-delay="200">
                     <div class="event-card-image">
                         <img src="assets/images/hero_comedy.png" alt="Comedia en Vivo" loading="lazy" />
@@ -479,8 +453,8 @@
                     <div class="event-card-body">
                         <div class="event-card-header">
                             <div class="event-date-chip event-date-chip-gold">
-                                <span class="chip-day">18</span>
-                                <span class="chip-month">JUN</span>
+                                <span class="chip-day">19</span>
+                                <span class="chip-month">DIC</span>
                             </div>
                             <div class="event-info">
                                 <h3 class="event-name">Comedy Night Puebla</h3>
@@ -493,18 +467,17 @@
                                 <span class="price-amount">$420 <small>MXN</small></span>
                             </div>
                             <button class="btn-ver-mas"
-                                onclick="openTicketModal('Comedy Night Puebla','18 Junio 2025','Auditorio Puebla','$420 MXN','teatro')">
+                                onclick="openTicketModal('Comedy Night Puebla','19 Diciembre 2026','Auditorio Puebla','$420 MXN','teatro')">
                                 <i class="fas fa-ticket"></i> VER MÁS
                             </button>
                         </div>
                     </div>
                 </article>
 
-            </div><!-- /events-grid -->
+            </div>
         </div>
     </section>
 
-    <!-- ======================== HOW IT WORKS ======================== -->
     <section class="how-section">
         <div class="how-container">
             <div class="section-header centered">
@@ -546,7 +519,6 @@
         </div>
     </section>
 
-    <!-- ======================== SECURITY SECTION ======================== -->
     <section class="security-section">
         <div class="security-container">
             <div class="security-content">
@@ -584,7 +556,6 @@
         </div>
     </section>
 
-    <!-- ======================== FURNITURE COLLAB ======================== -->
     <section class="collab-section" id="collab-muebles">
         <div class="collab-container">
             <div class="collab-header">
@@ -605,7 +576,6 @@
 
             <div class="collab-grid">
 
-                <!-- Product 1 -->
                 <div class="collab-card">
                     <div class="collab-card-img">
                         <img src="assets/images/furniture_sala.png" alt="Sala de Concierto en Casa" loading="lazy" />
@@ -635,7 +605,6 @@
                     </div>
                 </div>
 
-                <!-- Product 2 -->
                 <div class="collab-card collab-card-featured">
                     <div class="collab-card-img">
                         <img src="assets/images/furniture_gaming.png" alt="Silla Gamer" loading="lazy" />
@@ -664,7 +633,6 @@
                     </div>
                 </div>
 
-                <!-- Product 3 -->
                 <div class="collab-card">
                     <div class="collab-card-img">
                         <img src="assets/images/furniture_comedor.png" alt="Comedor" loading="lazy" />
@@ -695,7 +663,6 @@
                     </div>
                 </div>
 
-                <!-- Product 4 -->
                 <div class="collab-card">
                     <div class="collab-card-img">
                         <img src="assets/images/furniture_estudio.png" alt="Escritorio" loading="lazy" />
@@ -723,7 +690,7 @@
                     </div>
                 </div>
 
-            </div><!-- /collab-grid -->
+            </div>
 
             <div class="collab-footer-banner">
                 <i class="fas fa-tag"></i>
@@ -736,7 +703,6 @@
         </div>
     </section>
 
-    <!-- ======================== PUNTOS DE VENTA ======================== -->
     <section class="sales-points-section" id="puntos-venta">
         <div class="sales-points-container">
             <div class="section-header sales-points-header">
@@ -829,7 +795,6 @@
         </div>
     </section>
 
-    <!-- ======================== CENTRO DE CONFIANZA ======================== -->
     <section class="trust-center-section" id="centro-confianza">
         <div class="trust-center-container">
             <div class="section-header trust-center-header">
@@ -925,7 +890,6 @@
         </div>
     </section>
 
-    <!-- ======================== NEWSLETTER / CONTACTO ======================== -->
     <section class="newsletter-section" id="contacto-newsletter">
         <div class="newsletter-bg-shape"></div>
         <div class="newsletter-container">
@@ -949,7 +913,6 @@
         </div>
     </section>
 
-    <!-- ======================== FOOTER ======================== -->
     <footer class="main-footer" id="contacto">
         <div class="footer-top">
             <div class="footer-col footer-brand">
@@ -1014,7 +977,6 @@
         </div>
     </footer>
 
-    <!-- ======================== FLOATING HELP ======================== -->
     <div class="floating-help" id="floating-help">
         <div class="floating-help-content">
             <i class="fas fa-headset"></i>
@@ -1022,14 +984,10 @@
         </div>
     </div>
 
-    <!-- ======================== SCROLL TO TOP ======================== -->
     <button class="scroll-top" id="scroll-top" aria-label="Subir al inicio">
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- ======================== MODALS ======================== -->
-
-    <!-- Login Modal -->
     <div class="modal-overlay" id="login-modal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('login-modal')"><i class="fas fa-times"></i></button>
@@ -1072,7 +1030,6 @@
         </div>
     </div>
 
-    <!-- Register Modal -->
     <div class="modal-overlay" id="register-modal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('register-modal')"><i class="fas fa-times"></i></button>
@@ -1121,12 +1078,10 @@
         </div>
     </div>
 
-    <!-- Ticket Purchase Modal (Mapa de Asientos Interactivo) -->
     <div class="modal-overlay" id="ticket-modal">
         <div class="modal-box ticket-modal-box venue-modal-box">
             <button class="modal-close" onclick="closeModal('ticket-modal')"><i class="fas fa-times"></i></button>
 
-            <!-- Barra de progreso de 4 pasos -->
             <div class="steps-bar">
                 <div class="step-item active" id="step-1">
                     <div class="step-circle"><i class="fas fa-chair"></i></div>
@@ -1149,7 +1104,6 @@
                 </div>
             </div>
 
-            <!-- Header del evento -->
             <div class="modal-header venue-modal-header">
                 <div class="ticket-modal-kicker"><i class="fas fa-shield-halved"></i> Selección segura BoletaMax</div>
                 <div class="ticket-modal-title-row">
@@ -1163,7 +1117,6 @@
                 </div>
             </div>
 
-            <!-- Barra de precios por zona -->
             <div class="price-legend-bar">
                 <span class="plb-item"><span class="plb-dot plb-fan"></span>FAN: <strong
                         id="plb-fan">$1,700</strong></span>
@@ -1182,10 +1135,8 @@
                 <span class="plb-note">* Precios no incluyen cargo por servicio (14%)</span>
             </div>
 
-            <!-- Layout mapa + carrito -->
             <div class="seat-map-area">
 
-                <!-- MAPA SVG -->
                 <div class="seat-map-container" id="seat-map-container">
                     <div class="map-topbar">
                         <div>
@@ -1195,7 +1146,6 @@
                         <span class="map-tip"><i class="fas fa-magnifying-glass-plus"></i> Usa zoom para ver lugares</span>
                     </div>
 
-                    <!-- Tooltip flotante -->
                     <div class="seat-tooltip" id="seat-tooltip" style="display:none">
                         <div class="st-row"><span class="st-label">Área:</span><span id="st-area">—</span></div>
                         <div class="st-row"><span class="st-label">Fila:</span><span id="st-fila">—</span></div>
@@ -1204,7 +1154,6 @@
                                 id="st-precio">—</span></div>
                     </div>
 
-                    <!-- Controles zoom -->
                     <div class="map-zoom-controls">
                         <button class="mzc-btn" id="btn-map-home" title="Vista completa"><i
                                 class="fas fa-house"></i></button>
@@ -1212,7 +1161,6 @@
                         <button class="mzc-btn" id="btn-map-out" title="Alejar"><i class="fas fa-minus"></i></button>
                     </div>
 
-                    <!-- SVG del mapa -->
                     <svg id="venue-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 640"
                         preserveAspectRatio="xMidYMid meet">
                         <defs>
@@ -1227,10 +1175,8 @@
                             </filter>
                         </defs>
                         <g id="svg-pan-group">
-                            <!-- Fondo del recinto -->
                             <ellipse class="bg-ellipse" cx="360" cy="310" rx="310" ry="310" fill="#0b1320"
                                 opacity="0.96" />
-                            <!-- Escenario circular central -->
                             <ellipse class="stage-ellipse" cx="360" cy="310" rx="80" ry="80" fill="url(#stageGrad)"
                                 stroke="#d4af37" stroke-width="2.2" filter="url(#stageShadow)" />
                             <text class="stage-text1" x="360" y="304" text-anchor="middle" fill="#d9ba60"
@@ -1238,11 +1184,9 @@
                                 ESCENARIO</text>
                             <text class="stage-text2" x="360" y="320" text-anchor="middle" fill="#7e93b3" font-size="7"
                                 font-family="Manrope,sans-serif">360°</text>
-                            <!-- Asientos generados via JS -->
                         </g>
                     </svg>
 
-                    <!-- Leyenda inferior del mapa -->
                     <div class="map-legend">
                         <span class="ml-item"><span class="ml-dot" style="background:#8da2c4"></span>FAN</span>
                         <span class="ml-item"><span class="ml-dot" style="background:#d4af37"></span>VIP</span>
@@ -1254,7 +1198,6 @@
                     </div>
                 </div>
 
-                <!-- CARRITO LATERAL -->
                 <div class="cart-sidebar" id="cart-sidebar">
                     <div class="cart-header">
                         <i class="fas fa-shopping-cart"></i>
@@ -1293,11 +1236,10 @@
                     </div>
                 </div>
 
-            </div><!-- /seat-map-area -->
+            </div>
         </div>
     </div>
 
-    <!-- Furniture Quick View Modal -->
     <div class="modal-overlay" id="furniture-modal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('furniture-modal')"><i class="fas fa-times"></i></button>
@@ -1318,7 +1260,6 @@
         </div>
     </div>
 
-    <!-- Security Info Modal -->
     <div class="modal-overlay" id="security-modal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('security-modal')"><i class="fas fa-times"></i></button>
@@ -1354,7 +1295,6 @@
         </div>
     </div>
 
-    <!-- Mis Boletos Modal -->
     <div class="modal-overlay" id="account-modal">
         <div class="modal-box account-modal-box">
             <button class="modal-close" onclick="closeModal('account-modal')"><i class="fas fa-times"></i></button>
@@ -1369,7 +1309,6 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script type="module" src="/js/main.js"></script>

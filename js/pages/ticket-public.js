@@ -98,4 +98,3 @@
         }
 
         loadTicket();
-    

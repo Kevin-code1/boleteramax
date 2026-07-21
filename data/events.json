@@ -1,8 +1,9 @@
 [
   {
     "id": "rock-epica-2025",
-    "name": "Noche de Rock Épica 2025",
-    "date": "15 Marzo 2025",
+    "name": "Noche de Rock Épica 2026",
+    "date": "5 Septiembre 2026",
+    "startsAt": "2026-09-05T20:00:00-06:00",
     "city": "CDMX",
     "venue": "Foro Sol, CDMX",
     "price": 850,
@@ -15,8 +16,9 @@
   },
   {
     "id": "festival-solmax-2025",
-    "name": "Festival SolMaX 2025",
-    "date": "20–22 Junio 2025",
+    "name": "Festival SolMaX 2026",
+    "date": "19–21 Septiembre 2026",
+    "startsAt": "2026-09-19T20:30:00-06:00",
     "city": "Guadalajara",
     "venue": "Expo, Guadalajara",
     "price": 1200,
@@ -29,8 +31,9 @@
   },
   {
     "id": "comedia-monterrey-2025",
-    "name": "Noche de Comedia 2025",
-    "date": "5 Abril 2025",
+    "name": "Noche de Comedia 2026",
+    "date": "3 Octubre 2026",
+    "startsAt": "2026-10-03T19:00:00-06:00",
     "city": "Monterrey",
     "venue": "Teatro, Monterrey",
     "price": 480,
@@ -44,7 +47,8 @@
   {
     "id": "festival-banda-culiacan",
     "name": "Gran Festival de Banda",
-    "date": "22 Marzo 2025",
+    "date": "17 Octubre 2026",
+    "startsAt": "2026-10-17T21:00:00-06:00",
     "city": "Culiacán",
     "venue": "Palenque Culiacán",
     "price": 650,
@@ -58,7 +62,8 @@
   {
     "id": "lucha-libre-cmll",
     "name": "Lucha Libre CMLL",
-    "date": "8 Abril 2025",
+    "date": "31 Octubre 2026",
+    "startsAt": "2026-10-31T18:00:00-06:00",
     "city": "CDMX",
     "venue": "Arena México, CDMX",
     "price": null,
@@ -72,7 +77,8 @@
   {
     "id": "fantasma-opera",
     "name": "El Fantasma de la Ópera",
-    "date": "30 Abril 2025",
+    "date": "14 Noviembre 2026",
+    "startsAt": "2026-11-14T20:00:00-06:00",
     "city": "Monterrey",
     "venue": "Teatro Monterrey",
     "price": 900,
@@ -86,7 +92,8 @@
   {
     "id": "noche-urbana-gdl",
     "name": "Noche Urbana GDL",
-    "date": "10 Mayo 2025",
+    "date": "28 Noviembre 2026",
+    "startsAt": "2026-11-28T19:30:00-06:00",
     "city": "Guadalajara",
     "venue": "C3 Stage, Guadalajara",
     "price": 750,
@@ -100,7 +107,8 @@
   {
     "id": "feria-estado-chh",
     "name": "Feria del Estado CHH",
-    "date": "1 Junio 2025",
+    "date": "12 Diciembre 2026",
+    "startsAt": "2026-12-12T20:30:00-06:00",
     "city": "Chihuahua",
     "venue": "Recinto Ferial Chihuahua",
     "price": 350,
@@ -114,7 +122,8 @@
   {
     "id": "comedy-night-puebla",
     "name": "Comedy Night Puebla",
-    "date": "18 Junio 2025",
+    "date": "19 Diciembre 2026",
+    "startsAt": "2026-12-19T18:00:00-06:00",
     "city": "Puebla",
     "venue": "Auditorio Puebla",
     "price": 420,

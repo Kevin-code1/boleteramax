@@ -1,6 +1,3 @@
-/* Estilos principales de BoletaMax */
-
-/* ---------- CSS Variables ---------- */
 :root {
   --primary: #16181b;
   --primary-light: #1f2328;
@@ -23,7 +20,6 @@
   --font-display: 'Cormorant Garamond', serif;
 }
 
-/* ---------- Reset ---------- */
 *,
 *::before,
 *::after {
@@ -93,7 +89,6 @@ textarea {
   top: 16px;
 }
 
-/* ---------- Preloader ---------- */
 #preloader {
   position: fixed;
   inset: 0;
@@ -159,7 +154,6 @@ textarea {
   opacity: 0.6;
 }
 
-/* ---------- Trust Bar ---------- */
 .trust-bar {
   background: var(--primary);
   color: rgba(255, 255, 255, 0.85);
@@ -198,7 +192,6 @@ textarea {
   }
 }
 
-/* ---------- HEADER ---------- */
 #main-header {
   position: sticky;
   top: 0;
@@ -243,7 +236,6 @@ textarea {
   color: var(--accent);
 }
 
-/* Search */
 .header-search {
   flex: 1;
   max-width: 440px;
@@ -472,7 +464,6 @@ textarea {
   border-color: rgba(196, 160, 106, 0.35);
 }
 
-/* Nav */
 .main-nav {
   display: flex;
   gap: 4px;
@@ -493,7 +484,6 @@ textarea {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* CTA */
 .header-cta {
   display: flex;
   align-items: center;
@@ -535,7 +525,6 @@ textarea {
   transform: translateY(-1px);
 }
 
-/* Hamburger */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -570,7 +559,6 @@ textarea {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* Mobile Menu */
 .mobile-menu {
   display: none;
   flex-direction: column;
@@ -621,7 +609,6 @@ textarea {
   margin-top: 4px;
 }
 
-/* ========== HERO SECTION ========== */
 .hero-section {
   position: relative;
   height: 88vh;
@@ -780,7 +767,6 @@ textarea {
   transform: translateY(-2px);
 }
 
-/* Hero Nav Arrows */
 .hero-nav {
   position: absolute;
   top: 50%;
@@ -814,7 +800,6 @@ textarea {
   right: 24px;
 }
 
-/* Hero Dots */
 .hero-dots {
   position: absolute;
   bottom: 28px;
@@ -843,7 +828,6 @@ textarea {
   outline-offset: 5px;
 }
 
-/* ========== STATS BAR ========== */
 .stats-bar {
   background: linear-gradient(135deg, var(--primary) 0%, #1a3a6e 100%);
   padding: 32px 24px;
@@ -896,7 +880,6 @@ textarea {
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* ========== CATEGORY FILTERS ========== */
 .filters-section {
   background: var(--white);
   border-bottom: 1px solid #e2e8f0;
@@ -970,7 +953,6 @@ textarea {
   color: var(--primary);
 }
 
-/* Empty state when no events match a filter */
 .filter-empty-state {
   display: none;
   flex-direction: column;
@@ -1024,7 +1006,6 @@ textarea {
   box-shadow: 0 6px 18px var(--accent-glow);
 }
 
-/* ========== EVENTS SECTION ========== */
 .events-section {
   padding: 64px 24px;
   background: var(--light-bg);
@@ -1093,14 +1074,12 @@ textarea {
   gap: 10px;
 }
 
-/* Events Grid */
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 28px;
 }
 
-/* ========== EVENT CARD ========== */
 .event-card {
   background: var(--white);
   border-radius: var(--radius);
@@ -1228,7 +1207,6 @@ textarea {
   letter-spacing: 3px;
 }
 
-/* Card Body */
 .event-card-body {
   padding: 20px;
   flex: 1;
@@ -1392,7 +1370,6 @@ textarea {
   background: #94a3b8;
 }
 
-/* ========== HOW IT WORKS ========== */
 .how-section {
   padding: 80px 24px;
   background: var(--white);
@@ -1477,7 +1454,6 @@ textarea {
   opacity: 0.6;
 }
 
-/* ========== SECURITY SECTION ========== */
 .security-section {
   padding: 88px 24px;
   background: linear-gradient(135deg, var(--primary) 0%, #1a2d50 50%, #0e2244 100%);
@@ -1645,7 +1621,6 @@ textarea {
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* ========== NEWSLETTER ========== */
 .trust-center-section {
   padding: 96px 32px;
   scroll-margin-top: 160px;
@@ -2090,7 +2065,6 @@ textarea {
   font-size: 0.72rem;
 }
 
-/* ========== FOOTER ========== */
 .main-footer {
   background: var(--primary);
 }
@@ -2243,7 +2217,6 @@ textarea {
   border-radius: 4px;
 }
 
-/* ========== FLOATING HELP ========== */
 .floating-help {
   position: fixed;
   bottom: 24px;
@@ -2279,7 +2252,6 @@ textarea {
   font-size: 1.1rem;
 }
 
-/* Scroll Top */
 .scroll-top {
   position: fixed;
   bottom: 80px;
@@ -2312,7 +2284,6 @@ textarea {
   transform: translateY(-2px);
 }
 
-/* ========== MODALS ========== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -2603,7 +2574,6 @@ textarea {
   transition: all 0.4s;
 }
 
-/* Ticket Modal */
 .ticket-modal-event-name {
   font-family: var(--font-display);
   font-size: 1.4rem;
@@ -2777,7 +2747,6 @@ textarea {
   color: var(--green);
 }
 
-/* Security Modal Content */
 .security-modal-content {
   display: flex;
   flex-direction: column;
@@ -2813,7 +2782,6 @@ textarea {
   line-height: 1.6;
 }
 
-/* Toast */
 .toast {
   position: fixed;
   bottom: 90px;
@@ -2840,7 +2808,6 @@ textarea {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
   .security-container {
     grid-template-columns: 1fr;
@@ -2955,7 +2922,6 @@ textarea {
   }
 }
 
-/* Modal del recinto */
 .venue-modal-box {
   max-width: 860px !important;
   padding: 24px !important;
@@ -2992,7 +2958,6 @@ textarea {
   color: var(--accent);
 }
 
-/* The Map Canvas */
 .venue-map {
   background: linear-gradient(180deg, #0B1F3A 0%, #0e2244 100%);
   border-radius: 14px;
@@ -3005,7 +2970,6 @@ textarea {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Stage */
 .venue-stage {
   width: 80%;
   background: linear-gradient(135deg, #4a3000, #8b6000);
@@ -3029,7 +2993,6 @@ textarea {
   font-size: 1rem;
 }
 
-/* Zone blocks general */
 .venue-zone-block {
   width: 100%;
   border-radius: 10px;
@@ -3053,7 +3016,6 @@ textarea {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
 }
 
-/* Zone label on map */
 .zone-label-map {
   font-size: 0.7rem;
   font-weight: 800;
@@ -3070,7 +3032,6 @@ textarea {
   font-weight: 500;
 }
 
-/* VIP zone */
 .zone-vip-block {
   background: rgba(245, 166, 35, 0.12);
   border-color: rgba(245, 166, 35, 0.3);
@@ -3089,7 +3050,6 @@ textarea {
   background: rgba(245, 166, 35, 0.2);
 }
 
-/* VIP tables */
 .vip-tables {
   display: flex;
   gap: 10px;
@@ -3118,7 +3078,6 @@ textarea {
   transform: scale(1.1);
 }
 
-/* Preferente zone */
 .zone-pref-block {
   background: rgba(108, 63, 197, 0.12);
   border-color: rgba(108, 63, 197, 0.3);
@@ -3137,7 +3096,6 @@ textarea {
   background: rgba(108, 63, 197, 0.22);
 }
 
-/* Seat grids */
 .pref-seats,
 .gen-seats {
   display: flex;
@@ -3170,7 +3128,6 @@ textarea {
   transition: all 0.2s;
 }
 
-/* General row */
 .venue-general-row {
   display: flex;
   gap: 8px;
@@ -3212,7 +3169,6 @@ textarea {
   background: rgba(16, 185, 129, 0.4);
 }
 
-/* Floor center */
 .venue-floor-center {
   display: flex;
   flex-direction: column;
@@ -3239,7 +3195,6 @@ textarea {
   text-transform: uppercase;
 }
 
-/* Legend */
 .venue-legend {
   display: flex;
   gap: 16px;
@@ -3279,14 +3234,12 @@ textarea {
   background: #64748b;
 }
 
-/* Side Panel */
 .venue-side-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* Zone Info Card */
 .zone-info-card {
   background: var(--light-bg);
   border: 2px solid #e2e8f0;
@@ -3372,7 +3325,6 @@ textarea {
   font-size: 0.7rem;
 }
 
-/* Responsive venue map */
 @media (max-width: 700px) {
   .venue-layout {
     grid-template-columns: 1fr;
@@ -3391,7 +3343,6 @@ textarea {
   }
 }
 
-/* Sección de colaboración */
 .collab-section {
   padding: 72px 24px;
   background: linear-gradient(180deg, #fff 0%, var(--light-bg) 100%);
@@ -3504,7 +3455,6 @@ textarea {
   gap: 10px;
 }
 
-/* Product Grid */
 .collab-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -3735,7 +3685,6 @@ textarea {
   color: var(--accent);
 }
 
-/* Footer Banner */
 .collab-footer-banner {
   display: flex;
   align-items: center;
@@ -3781,7 +3730,6 @@ textarea {
   transform: translateY(-1px);
 }
 
-/* Furniture Quick View */
 .fv-price-row {
   display: flex;
   align-items: center;
@@ -3796,7 +3744,6 @@ textarea {
   white-space: nowrap;
 }
 
-/* Responsive collab */
 @media (max-width: 600px) {
   .collab-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -3814,9 +3761,6 @@ textarea {
   }
 }
 
-/* Mapa interactivo de asientos */
-
-/* --- Wider modal box --- */
 .ticket-modal-box {
   max-width: 1140px !important;
   width: 96vw !important;
@@ -3830,7 +3774,6 @@ textarea {
   flex-direction: column;
 }
 
-/* --- Ticket modal header --- */
 .venue-modal-header {
   padding: 16px 28px 12px;
   background: #1a2744;
@@ -3859,7 +3802,6 @@ textarea {
   margin-right: 4px;
 }
 
-/* --- Close button inside dark modal --- */
 .ticket-modal-box .modal-close {
   top: 14px;
   right: 18px;
@@ -3880,7 +3822,6 @@ textarea {
   color: #fff;
 }
 
-/* --- 4-Step Progress Bar --- */
 .steps-bar {
   display: flex;
   align-items: center;
@@ -3955,7 +3896,6 @@ textarea {
   margin-bottom: 14px;
 }
 
-/* --- Price Legend Bar --- */
 .price-legend-bar {
   display: flex;
   align-items: center;
@@ -4020,7 +3960,6 @@ textarea {
   margin-left: 4px;
 }
 
-/* --- Main seat map area --- */
 .seat-map-area {
   display: flex;
   flex: 1;
@@ -4028,7 +3967,6 @@ textarea {
   overflow: hidden;
 }
 
-/* --- SVG Map container --- */
 .seat-map-container {
   flex: 1;
   position: relative;
@@ -4051,7 +3989,6 @@ textarea {
   cursor: grabbing;
 }
 
-/* SVG seat circles */
 .svg-seat {
   cursor: pointer;
   transition: opacity 0.15s;
@@ -4076,7 +4013,6 @@ textarea {
   filter: drop-shadow(0 0 4px #22c55e);
 }
 
-/* --- Floating Seat Tooltip --- */
 .seat-tooltip {
   position: absolute;
   z-index: 200;
@@ -4114,7 +4050,6 @@ textarea {
   font-weight: 700;
 }
 
-/* --- Zoom Controls --- */
 .map-zoom-controls {
   position: absolute;
   right: 14px;
@@ -4149,7 +4084,6 @@ textarea {
   box-shadow: 0 0 12px rgba(245, 166, 35, 0.4);
 }
 
-/* --- Map legend at the bottom --- */
 .map-legend {
   display: flex;
   gap: 14px;
@@ -4177,7 +4111,6 @@ textarea {
   flex-shrink: 0;
 }
 
-/* --- Cart Sidebar --- */
 .cart-sidebar {
   width: 280px;
   flex-shrink: 0;
@@ -4247,7 +4180,6 @@ textarea {
   line-height: 1.5;
 }
 
-/* Individual cart ticket item */
 .cart-ticket-item {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -4314,7 +4246,6 @@ textarea {
   background: rgba(239, 68, 68, 0.25);
 }
 
-/* Cart totals */
 .cart-totals {
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   padding: 12px 16px;
@@ -4352,7 +4283,6 @@ textarea {
   font-family: var(--font-display);
 }
 
-/* Cart secure badge */
 .cart-secure-badge {
   display: flex;
   align-items: center;
@@ -4367,7 +4297,6 @@ textarea {
   letter-spacing: 0.2px;
 }
 
-/* COMPRAR button */
 .btn-comprar {
   margin: 10px 14px 4px;
   padding: 13px;
@@ -4417,7 +4346,6 @@ textarea {
   }
 }
 
-/* Payment icons in cart */
 .cart-payment-icons {
   display: flex;
   align-items: center;
@@ -4447,7 +4375,6 @@ textarea {
   letter-spacing: 1px;
 }
 
-/* --- Responsive for seat map --- */
 @media (max-width: 768px) {
   .seat-map-area {
     flex-direction: column;
@@ -4482,9 +4409,6 @@ textarea {
   }
 }
 
-/* Grupos, números y estado de asientos */
-
-/* SVG canvas */
 #venue-svg {
   cursor: grab;
   display: block;
@@ -4493,7 +4417,6 @@ textarea {
 }
 #venue-svg:active { cursor: grabbing; }
 
-/* Seat group */
 .seat-group {
   transition: transform 0.12s, filter 0.12s;
   transform-box: fill-box;
@@ -4505,7 +4428,6 @@ textarea {
   filter: brightness(1.35) drop-shadow(0 0 4px rgba(255,255,255,0.5));
 }
 
-/* The circle inside the group */
 .seat-group .svg-seat {
   transition: fill 0.18s;
 }
@@ -4521,7 +4443,6 @@ textarea {
   opacity: 0.4;
 }
 
-/* Seat number text – hidden by default; shown only when zoom-labels class active */
 .seat-num-text {
   opacity: 0;
   transition: opacity 0.2s;
@@ -4533,13 +4454,10 @@ textarea {
   opacity: 1;
 }
 
-/* Row label letters */
 .row-label {
   pointer-events: none;
   user-select: none;
 }
-
-/* Ajustes visuales */
 
 body {
   background:
@@ -5242,7 +5160,6 @@ body {
   }
 }
 
-/* Premium polish */
 #main-header {
   background: linear-gradient(180deg, rgba(17, 18, 21, 0.92) 0%, rgba(17, 18, 21, 0.8) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
@@ -5607,7 +5524,6 @@ body {
   }
 }
 
-/* Premium seat selector */
 .ticket-modal-box {
   max-width: 1180px !important;
   background:
@@ -6052,7 +5968,6 @@ body {
   }
 }
 
-/* Capa visual 2026 */
 :root {
   --bm-night: #070d16;
   --bm-blue: #0b1627;
@@ -6436,7 +6351,6 @@ body {
   }
 }
 
-/* Ajustes del selector de asientos */
 .modal-overlay {
   padding: 16px;
 }
@@ -6697,7 +6611,6 @@ body {
   }
 }
 
-/* Smooth checkout handoff */
 .checkout-transition {
   position: fixed;
   inset: 0;
@@ -6800,7 +6713,6 @@ body {
   }
 }
 
-/* Alineación del encabezado */
 #main-header {
   background:
     linear-gradient(180deg, rgba(13, 18, 27, 0.94), rgba(14, 15, 18, 0.88));
@@ -6991,7 +6903,6 @@ body {
   }
 }
 
-/* Ajustes visuales del inicio y el modal */
 :root {
   --bm-bg: #050b12;
   --bm-bg-2: #071018;
@@ -7393,7 +7304,6 @@ a:focus-visible,
   }
 }
 
-/* Ajustes editoriales de color y profundidad */
 .header,
 .navbar {
   box-shadow: none;

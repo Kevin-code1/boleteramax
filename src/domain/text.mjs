@@ -14,7 +14,6 @@ export function normalizeTextVariants(value = '') {
   try {
     variants.add(normalizeText(Buffer.from(raw, 'latin1').toString('utf8')));
   } catch (_) {
-    // Keep the raw normalized value when a string cannot be repaired.
   }
   return variants;
 }

@@ -1,5 +1,3 @@
-/* Pulido sobre style.css */
-
 :root {
   --bmx-gold: #d6b45f;
   --bmx-gold-soft: #f0d997;
@@ -8,7 +6,6 @@
   --bmx-line: rgba(214, 180, 95, 0.16);
 }
 
-/* Botones */
 .btn-login,
 .btn-register,
 .btn-hero-primary,
@@ -50,7 +47,6 @@
   transform: translateY(0) scale(0.97);
 }
 
-/* Foco */
 .btn-ver-mas:focus-visible,
 .btn-hero-primary:focus-visible,
 .btn-hero-secondary:focus-visible,
@@ -67,7 +63,6 @@
   outline-offset: 3px;
 }
 
-/* Agotado */
 .btn-agotado,
 .btn-ver-mas:disabled {
   background: rgba(255, 255, 255, 0.08) !important;
@@ -78,7 +73,6 @@
   transform: none !important;
 }
 
-/* Pie de tarjeta */
 .event-card-footer {
   display: flex;
   align-items: center;
@@ -97,7 +91,6 @@
   white-space: nowrap;
 }
 
-/* Nombre de evento */
 .event-name {
   white-space: normal;
   display: -webkit-box;
@@ -119,7 +112,6 @@
   min-width: 0;
 }
 
-/* Badges */
 .event-city-badge,
 .event-category-icon,
 .event-wishlist,
@@ -138,7 +130,6 @@
   transform: scale(0.88);
 }
 
-/* Hero y filtros */
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -170,7 +161,6 @@
   align-items: center;
 }
 
-/* Tarjetas */
 .event-card,
 .collab-card,
 .sales-point-card,
@@ -203,7 +193,6 @@
   transform: scale(1.05);
 }
 
-/* Eyebrows */
 .section-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -223,7 +212,6 @@
   background: linear-gradient(90deg, var(--bmx-gold-soft), transparent);
 }
 
-/* Inputs */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
@@ -232,14 +220,12 @@ select:focus-visible {
   box-shadow: 0 0 0 3px rgba(214, 180, 95, 0.22) !important;
 }
 
-/* Header */
 #main-header.scrolled,
 #main-header.is-scrolled {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   backdrop-filter: saturate(140%) blur(10px);
 }
 
-/* Scrollbar y selección */
 ::selection {
   background: rgba(214, 180, 95, 0.32);
   color: #fff;
@@ -285,7 +271,6 @@ select:focus-visible {
   color: var(--bmx-gold);
 }
 
-/* Flotantes */
 .floating-help,
 .scroll-top {
   z-index: 60;
@@ -299,7 +284,6 @@ select:focus-visible {
   transform: translateY(-3px);
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -311,7 +295,6 @@ select:focus-visible {
   }
 }
 
-/* Móvil */
 @media (max-width: 560px) {
   .event-card-footer {
     align-items: stretch;
@@ -329,7 +312,6 @@ select:focus-visible {
   }
 }
 
-/* Flechas del slider */
 .hero-nav {
   top: auto;
   bottom: 24px;
@@ -351,7 +333,6 @@ select:focus-visible {
   transform: scale(0.92);
 }
 
-/* Alianza (collab) */
 .collab-logo-main {
   color: #f4ecd8;
 }
@@ -390,7 +371,6 @@ select:focus-visible {
   margin-bottom: 14px;
 }
 
-/* Contraste de texto */
 input::placeholder,
 textarea::placeholder,
 .header-search input::placeholder,
@@ -407,14 +387,12 @@ textarea::placeholder,
   color: var(--bm-muted, #96a5bb);
 }
 
-/* Foco global */
 :where(a, button, input, textarea, select, [tabindex], [role="button"]):focus-visible {
   outline: 3px solid var(--bmx-ring, rgba(240, 217, 151, 0.55));
   outline-offset: 3px;
   border-radius: 6px;
 }
 
-/* Iconos */
 .logo-icon i {
   font-size: 1rem;
   line-height: 1;
@@ -433,7 +411,6 @@ textarea::placeholder,
   color: #e7b765;
 }
 
-/* Skeleton de búsqueda */
 .search-results-skeleton {
   display: flex;
   flex-direction: column;
@@ -486,7 +463,6 @@ textarea::placeholder,
   to { background-position: -220% 0; }
 }
 
-/* sr-only */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -499,7 +475,6 @@ textarea::placeholder,
   border: 0;
 }
 
-/* Header responsive */
 @media (max-width: 1040px) {
   .header-cta {
     display: none;
@@ -510,7 +485,6 @@ textarea::placeholder,
   }
 }
 
-/* Secciones ocultas */
 .trust-bar,
 .stats-bar,
 .collab-section,
@@ -518,7 +492,6 @@ textarea::placeholder,
   display: none !important;
 }
 
-/* Top */
 .hero-section {
   margin-top: 0;
 }
@@ -537,7 +510,6 @@ textarea::placeholder,
   padding-inline: 30px;
 }
 
-/* Buscador móvil */
 @media (max-width: 680px) {
   .header-container {
     grid-template-columns: auto minmax(0, 1fr) auto;

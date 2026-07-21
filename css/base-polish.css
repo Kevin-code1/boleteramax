@@ -1,13 +1,9 @@
-/* Base compartida: checkout, ticket, validate */
-
-/* Foco visible */
 :where(a, button, input, textarea, select, [tabindex], [role="button"]):focus-visible {
   outline: 3px solid var(--bmx-ring, rgba(240, 217, 151, 0.55));
   outline-offset: 3px;
   border-radius: 6px;
 }
 
-/* Scrollbar */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(214, 180, 95, 0.4) transparent;
@@ -30,13 +26,11 @@
   background-clip: padding-box;
 }
 
-/* Selección */
 ::selection {
   background: rgba(214, 180, 95, 0.32);
   color: #fff;
 }
 
-/* sr-only */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -49,7 +43,6 @@
   border: 0;
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

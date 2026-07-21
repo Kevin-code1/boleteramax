@@ -61,7 +61,6 @@ export async function withTransaction(task) {
     try {
       await client.query('ROLLBACK');
     } catch (_) {
-      // Preserve the original database error.
     }
     throw error;
   } finally {

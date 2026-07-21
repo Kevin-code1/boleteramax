@@ -8,19 +8,7 @@ import {
   SERVICE_FEE_RATE,
   SPEI_DISCOUNT_RATE,
 } from '../config/index.mjs';
-import { normalizeZoneLabel, safeEqualString, textValuesMatch } from './text.mjs';
-
-export const SERVER_EVENT_VENUE_MAP = {
-  'Gran Festival de Banda': 'palenque',
-  'El Fantasma de la Ópera': 'teatro',
-  'Noche Urbana GDL': 'festival',
-  'Feria del Estado CHH': 'palenque',
-  'Comedy Night Puebla': 'teatro',
-  'Lucha Libre CMLL': 'arena',
-  'Noche de Rock Épica 2025': 'estadio',
-  'Festival SolMaX 2025': 'festival',
-  'Festival SolMaX': 'festival',
-};
+import { normalizeZoneLabel, safeEqualString } from './text.mjs';
 
 export const SERVER_VENUE_PRICING = {
   palenque: {
@@ -70,18 +58,21 @@ export const SERVER_VENUE_PRICING = {
   },
 };
 
-export function getMappedVenueKey(name = '') {
-  const entry = Object.entries(SERVER_EVENT_VENUE_MAP).find(([eventName]) => textValuesMatch(eventName, name));
-  return entry?.[1] || null;
+export const VENUE_CAPACITY = {
+  palenque: 664,
+  arena: 602,
+  teatro: 508,
+  estadio: 508,
+  festival: 492,
+};
+const DEFAULT_VENUE_CAPACITY = 500;
+
+export function getVenueCapacity(venueKey = '') {
+  return VENUE_CAPACITY[String(venueKey || '').trim()] || DEFAULT_VENUE_CAPACITY;
 }
 
 export function resolveVenuePricingKey(event = {}, catalogEvent = null) {
-  return (
-    getMappedVenueKey(event.name) ||
-    getMappedVenueKey(catalogEvent?.name) ||
-    catalogEvent?.venueType ||
-    'palenque'
-  );
+  return catalogEvent?.venueType || event.venueType || 'palenque';
 }
 
 export function findPricingZone(venueKey, seat = {}) {
@@ -143,7 +134,6 @@ export function buildSeatKey(seat = {}) {
   return `${zone}|${fila}|A${seat.asiento || 1}`;
 }
 
-// active y used ocupan el asiento; los demás estados lo liberan.
 const SEAT_BLOCKING_STATUSES = new Set(['active', 'used']);
 
 export function getSoldSeatsForEvent(eventId, existingTickets) {
@@ -160,7 +150,6 @@ export function validateSeatInventory(eventId, seats, existingTickets) {
   return findSeatConflicts(seats, getSoldSeatsForEvent(eventId, existingTickets));
 }
 
-// Conflictos contra un set de llaves vendidas.
 export function findSeatConflicts(seats, soldSeats) {
   const conflicts = [];
   const seenInOrder = new Set();
@@ -168,14 +157,12 @@ export function findSeatConflicts(seats, soldSeats) {
   for (let i = 0; i < seats.length; i++) {
     const key = buildSeatKey(seats[i]);
 
-    // Verificar duplicados dentro de la misma orden
     if (seenInOrder.has(key)) {
       conflicts.push({ index: i, seat: seats[i], reason: 'duplicado en la misma orden' });
       continue;
     }
     seenInOrder.add(key);
 
-    // Verificar contra inventario existente
     if (soldSeats.has(key)) {
       conflicts.push({ index: i, seat: seats[i], reason: 'ya vendido' });
     }
@@ -187,7 +174,6 @@ export function findSeatConflicts(seats, soldSeats) {
 export function validatePurchaseRequest(purchase, catalogEvent) {
   const errors = [];
 
-  // 1. Evento debe existir en el catálogo
   if (!catalogEvent) {
     errors.push('El evento solicitado no existe en nuestro catalogo.');
   } else if (catalogEvent.available === false) {
@@ -196,19 +182,25 @@ export function validatePurchaseRequest(purchase, catalogEvent) {
     errors.push('El evento no tiene un precio valido configurado.');
   }
 
-  // 2. Validar cantidad de asientos
+  if (catalogEvent) {
+    const startsAtMs = Date.parse(catalogEvent.startsAt);
+    if (!Number.isFinite(startsAtMs)) {
+      errors.push('La fecha del evento no está disponible.');
+    } else if (startsAtMs <= Date.now()) {
+      errors.push('El evento ya se realizó.');
+    }
+  }
+
   if (!Array.isArray(purchase.seats) || purchase.seats.length === 0) {
     errors.push('Debes seleccionar al menos un asiento.');
   } else if (purchase.seats.length > MAX_TICKETS_PER_EVENT) {
     errors.push(`Maximo ${MAX_TICKETS_PER_EVENT} boletos por compra.`);
   }
 
-  // 3. Nombre de evento requerido
   if (!purchase.event?.name?.trim()) {
     errors.push('El nombre del evento es requerido.');
   }
 
-  // 4. Método de pago válido
   if (!PAYMENT_METHODS.has(purchase.paymentMethod)) {
     errors.push('Metodo de pago no valido.');
   }
@@ -303,17 +295,13 @@ export function getAuthoritativePurchase(purchase) {
   };
 }
 
-// Desglose en centavos desde la cotización firmada.
-// Invariante: subtotal + fee - discount = total.
 export function buildOrderPricingCents(authoritativePurchase, paymentMethod) {
   const toCents = value => Math.round(Number(value || 0) * 100);
 
   const subtotalCents = toCents(authoritativePurchase.subtotal);
   const baseFeeCents = toCents(authoritativePurchase.fee);
-  // OXXO suma su comisión fija al fee.
   const feeCents = paymentMethod === 'oxxo' ? baseFeeCents + toCents(OXXO_FEE) : baseFeeCents;
   const totalCents = toCents(authoritativePurchase.total);
-  // El ahorro SPEI se registra como descuento.
   const discountCents = Math.max(0, subtotalCents + feeCents - totalCents);
 
   return { subtotalCents, feeCents, discountCents, totalCents, currency: 'MXN' };

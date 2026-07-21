@@ -20,17 +20,15 @@
         }
     </style>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
         rel="stylesheet" />
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <style>
-        /* ---- Variables ---- */
+
         :root {
             --primary: #16181b;
             --primary-light: #1f2328;
@@ -77,7 +75,6 @@
             }
         }
 
-        /* ---- Header ---- */
         .co-header {
             background: rgba(11, 31, 58, 0.98);
             border-bottom: 1px solid rgba(255, 255, 255, 0.07);
@@ -125,7 +122,6 @@
             color: #22c55e;
         }
 
-        /* ---- Steps bar ---- */
         .co-steps {
             background: #0f172a;
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -200,14 +196,12 @@
             margin: 0 6px 14px;
         }
 
-        /* ---- Main layout ---- */
         .co-main {
             max-width: 1000px;
             margin: 0 auto;
             padding: 32px 20px 60px;
         }
 
-        /* ---- Timer banner ---- */
         .timer-banner {
             background: linear-gradient(90deg, rgba(245, 166, 35, 0.12), rgba(245, 166, 35, 0.05));
             border: 1px solid rgba(245, 166, 35, 0.3);
@@ -240,7 +234,6 @@
             color: rgba(255, 255, 255, 0.45);
         }
 
-        /* ---- Order summary box ---- */
         .order-summary {
             background: #1a2744;
             border: 1px solid rgba(255, 255, 255, 0.07);
@@ -432,7 +425,6 @@
             color: rgba(255, 255, 255, 0.85);
         }
 
-        /* ---- Payment methods grid ---- */
         .payment-title {
             font-family: var(--font-display);
             font-size: 1.3rem;
@@ -564,7 +556,6 @@
             font-weight: 500;
         }
 
-        /* Restrictions list */
         .pm-restrictions {
             flex: 1;
         }
@@ -640,7 +631,6 @@
             box-shadow: none;
         }
 
-        /* ---- Back link ---- */
         .co-back {
             display: flex;
             align-items: center;
@@ -657,7 +647,6 @@
             color: rgba(255, 255, 255, 0.85);
         }
 
-        /* ---- CONFIRMATION OVERLAY ---- */
         .confirmation-overlay {
             display: none;
             position: fixed;
@@ -744,7 +733,6 @@
             transform: translateY(-1px);
         }
 
-        /* ---- Footer ---- */
         .co-footer {
             margin-top: 48px;
             padding: 20px 24px;
@@ -798,7 +786,6 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
-        /* ---- Responsive ---- */
         @media (max-width: 700px) {
             .security-verify-card {
                 grid-template-columns: 1fr;
@@ -827,7 +814,6 @@
             }
         }
 
-        /* ---- Premium refinement ---- */
         body {
             background:
                 radial-gradient(circle at top, rgba(196, 160, 106, 0.12), transparent 24%),
@@ -956,7 +942,6 @@
             margin-top: 64px;
         }
 
-        /* Ajustes visuales del checkout */
         :root {
             --bm-bg: #050B12;
             --bm-bg-2: #071018;
@@ -1167,7 +1152,6 @@
             }
         }
 
-        /* Distribución editorial del checkout */
         .co-steps {
             background: rgba(5, 11, 18, 0.7);
             border-bottom-color: rgba(255, 255, 255, 0.06);
@@ -1278,7 +1262,6 @@
             display: none;
         }
 
-        /* Espacio para la etiqueta de ahorro SPEI */
         .pm-card.featured {
             padding-top: 36px;
         }
@@ -1418,7 +1401,6 @@
 
 <body>
 
-    <!-- ===== HEADER ===== -->
     <header class="co-header">
         <a href="index.html" class="co-logo">
             <span class="co-logo-icon">⚡</span>
@@ -1429,7 +1411,6 @@
         </div>
     </header>
 
-    <!-- ===== STEPS BAR ===== -->
     <div class="co-steps">
         <div class="step-item done">
             <div class="step-circle"><i class="fas fa-check"></i></div>
@@ -1452,18 +1433,15 @@
         </div>
     </div>
 
-    <!-- ===== MAIN ===== -->
     <main class="co-main">
 
-        <!-- Timer -->
         <div class="timer-banner">
             <i class="fas fa-clock"></i>
-            Boletos reservados por
-            <span id="timer-countdown">9:55</span>
-            <span class="timer-warning">⚠️ El tiempo agotado libera los asientos automáticamente</span>
+            La cotización expira en
+            <span id="timer-countdown">--:--</span>
+            <span class="timer-warning">Al expirar, deberás seleccionar nuevamente tus asientos.</span>
         </div>
 
-        <!-- Order summary -->
         <div class="order-summary">
             <div class="os-title"><i class="fas fa-ticket" style="margin-right:6px;color:var(--accent)"></i>Resumen de
                 tu Pedido</div>
@@ -1500,7 +1478,6 @@
             </div>
         </section>
 
-        <!-- Datos del comprador -->
         <section class="buyer-card" id="buyer-card" aria-labelledby="buyer-card-title">
             <div class="buyer-title" id="buyer-card-title"><i class="fas fa-user"></i> Datos del comprador</div>
             <p class="buyer-hint" id="buyer-hint">Tus boletos y la confirmación de compra quedarán asociados a estos
@@ -1524,7 +1501,6 @@
             <div class="buyer-error" id="buyer-error" role="alert" hidden></div>
         </section>
 
-        <!-- Payment methods -->
         <div class="payment-title">
             Selecciona tu Método de Pago
             <div class="payment-subtitle">Elige la opción que más te convenga</div>
@@ -1532,7 +1508,6 @@
 
         <div class="payment-grid">
 
-            <!-- Tarjeta -->
             <div class="pm-card" onclick="selectPayment('tarjeta',this)" data-payment-method="tarjeta" role="button"
                 tabindex="0" aria-pressed="false">
                 <div class="pm-icon"><i class="fas fa-credit-card" style="color:#60a5fa"></i></div>
@@ -1553,7 +1528,6 @@
                 </button>
             </div>
 
-            <!-- SPEI -->
             <div class="pm-card featured" data-savings="0" onclick="selectPayment('spei',this)"
                 data-payment-method="spei" role="button" tabindex="0" aria-pressed="false">
                 <div class="pm-icon">
@@ -1580,7 +1554,6 @@
                 </button>
             </div>
 
-            <!-- OXXO -->
             <div class="pm-card" onclick="selectPayment('oxxo',this)" data-payment-method="oxxo" role="button"
                 tabindex="0" aria-pressed="false">
                 <div class="pm-icon">
@@ -1608,16 +1581,14 @@
                 </button>
             </div>
 
-        </div><!-- /payment-grid -->
+        </div>
 
-        <!-- Back link -->
         <a class="co-back" href="index.html">
             <i class="fas fa-arrow-left"></i> Volver a selección de asientos
         </a>
 
-    </main><!-- /co-main -->
+    </main>
 
-    <!-- ===== CONFIRMATION OVERLAY ===== -->
     <div class="confirmation-overlay" id="confirm-overlay">
         <div class="confirm-card">
             <div class="confirm-icon">🎟️</div>
@@ -1633,7 +1604,6 @@
         </div>
     </div>
 
-    <!-- ===== FOOTER ===== -->
     <footer class="co-footer">
         <div class="co-footer-brand">© 2026 BoletaMax · Todos los derechos reservados</div>
         <div class="co-footer-icons">

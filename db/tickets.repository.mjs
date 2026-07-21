@@ -258,7 +258,6 @@ export async function findTicketByCode(ticketCode, dbClient = null) {
   return tickets[0] || null;
 }
 
-// Asientos ocupados de un evento; el dominio decide qué estados bloquean.
 export async function findSoldSeatTicketsByEvent(eventReference, dbClient = null) {
   const reference = cleanText(eventReference, null);
   if (!reference) return [];
@@ -295,7 +294,6 @@ export async function findSoldSeatTicketsByEvent(eventReference, dbClient = null
         asiento: positiveInt(row.seat_number),
         mesa: row.table_label || null,
         seatInMesa: positiveInt(row.table_seat_number),
-        // Solo para construir la llave de asiento.
         tableSize: row.table_label ? 2 : 1,
       },
     };
@@ -864,10 +862,6 @@ export async function markTicketUsedByCode(ticketCode, { usedAt = new Date().toI
   };
 }
 
-// ── Persistencia de compras del checkout ──
-// importLegacyTicket queda solo para la migración de tickets.json.
-
-// Conflicto de asiento dentro de la transacción de compra.
 export class TicketSeatConflictError extends Error {
   constructor() {
     super('Asientos no disponibles: uno de los asientos seleccionados acaba de venderse. Selecciona otros asientos.');
@@ -875,7 +869,6 @@ export class TicketSeatConflictError extends Error {
   }
 }
 
-// Get-or-create sin DO UPDATE; seguro ante inserciones concurrentes.
 async function getOrCreateId(dbClient, { insertSql, insertParams, selectSql, selectParams }) {
   const inserted = await run(dbClient, insertSql, insertParams);
   if (inserted.rowCount > 0) return inserted.rows[0].id;
@@ -971,7 +964,6 @@ async function getOrCreateTicketTypeId(dbClient, eventId, ticket) {
   });
 }
 
-// Marca el asiento como vendido; si ya está ocupado es conflicto.
 async function insertSoldSeat(dbClient, eventId, sectionId, ticket) {
   const seat = ticket.seat || {};
   const seatCode = getSeatCode(ticket);
@@ -1025,7 +1017,6 @@ async function insertSoldSeat(dbClient, eventId, sectionId, ticket) {
     throw new TicketSeatConflictError();
   }
 
-  // Asiento liberado por una venta cancelada: vuelve a venderse.
   await run(dbClient, `UPDATE seats SET status = 'sold', updated_at = now() WHERE id = $1`, [seatId]);
   return seatId;
 }
@@ -1138,7 +1129,6 @@ async function insertPaymentRow(dbClient, { orderUuid, order }) {
   );
 }
 
-// Una compra = una orden con items, boletos y pago, en una transacción.
 export async function insertPurchaseOrder({ order, tickets } = {}, options = {}) {
   const records = Array.isArray(tickets) ? tickets.filter(Boolean) : [];
   if (!order || !records.length) {

@@ -1,6 +1,5 @@
 import { insertPurchaseOrder, TicketSeatConflictError } from './tickets.repository.mjs';
 
-// Re-export para los consumidores de este módulo.
 export { TicketSeatConflictError };
 
 const VALID_WRITE_MODES = new Set(['json', 'dual-write', 'postgres-primary']);
@@ -56,7 +55,6 @@ export class TicketPurchasePrimaryWriteError extends Error {
   }
 }
 
-// Conflicto de asiento detectado por los índices únicos.
 function isSeatConflictError(error = {}) {
   return error?.code === '23505' && /seat/i.test(String(error?.constraint || ''));
 }

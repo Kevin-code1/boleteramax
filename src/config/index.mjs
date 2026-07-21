@@ -9,7 +9,6 @@ export const ROOT_DIR = path.join(path.dirname(__filename), '..', '..');
 
 export const PORT = Number(process.env.PORT) || 3000;
 export const EVENTS_PATH = path.join(ROOT_DIR, 'data', 'events.json');
-// Sobrescribible por entorno para aislar pruebas; producción usa data/tickets.json.
 export const TICKETS_PATH = String(process.env.TICKETS_PATH || '').trim()
   ? path.resolve(ROOT_DIR, String(process.env.TICKETS_PATH).trim())
   : path.join(ROOT_DIR, 'data', 'tickets.json');
@@ -43,7 +42,6 @@ if (
 
 export const ADMIN_API_KEY = String(process.env.ADMIN_API_KEY || '').trim();
 
-// ── Correo (verificación de cuenta) ──
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 export const APP_BASE_URL = String(process.env.APP_BASE_URL || process.env.PUBLIC_BASE_URL || '').trim();
 export const SMTP_CONFIG = {

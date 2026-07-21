@@ -3,15 +3,14 @@ import { promisify } from 'util';
 
 const scrypt = promisify(scryptCallback);
 
-// Parámetros scrypt
 const SCRYPT_N = 16384;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const SCRYPT_KEYLEN = 64;
 
-export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
+export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const SESSION_COOKIE_NAME = 'bm_session';
-export const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
+export const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export const PASSWORD_MIN_LENGTH = 8;
@@ -95,7 +94,6 @@ export function getSessionExpiry(now = Date.now()) {
   return new Date(now + SESSION_TTL_MS).toISOString();
 }
 
-// Verificación de correo
 export function createVerificationToken() {
   return randomBytes(32).toString('hex');
 }

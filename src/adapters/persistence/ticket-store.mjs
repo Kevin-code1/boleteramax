@@ -17,7 +17,6 @@ import {
   writeTicketPurchaseToPostgresIfEnabled,
 } from '../../../db/tickets.write-mode.mjs';
 
-// Mutex de escritura de tickets
 let _ticketsWriteLock = Promise.resolve();
 async function withTicketsWriteLock(task) {
   let release;
@@ -95,7 +94,6 @@ export function createTicketStore({ logger = console } = {}) {
         logger,
       }),
 
-    // Asientos vendidos según el modo de storage.
     getSoldSeatKeys: eventId =>
       getSoldSeatKeysFromStorage({
         eventId,

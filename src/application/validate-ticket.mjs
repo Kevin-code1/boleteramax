@@ -75,7 +75,6 @@ export function createValidateTicket({ ticketStore }) {
           };
         }
       }
-      // Sin token ni QR dinámico: validación manual por ticketId (staff).
 
       if (ticket.status === 'used' || ticket.usedAt) {
         return {

@@ -1,5 +1,3 @@
-/* auth.js: sesión del comprador (registro, login, logout, Mis boletos) */
-
 import { showToast } from './toast.js';
 import { openModal, closeModal } from './modals.js';
 
@@ -57,7 +55,6 @@ async function postJson(path, body) {
   return { response, payload };
 }
 
-// Último correo intentado, para el reenvío de verificación.
 let lastAuthEmail = '';
 
 function hideVerifyNotice() {
@@ -77,7 +74,6 @@ export function handleLogin(e) {
 
     const { response, payload } = await postJson('/api/auth/login', { email, password });
 
-    // Credenciales correctas pero correo sin verificar.
     if (response.status === 403 && payload.code === 'email_not_verified') {
       const notice = $('login-verify-notice');
       if (notice) notice.hidden = false;
@@ -115,7 +111,6 @@ export function handleRegister(e) {
       return;
     }
 
-    // El registro NO inicia sesión: la cuenta queda pendiente de verificación.
     e.target.reset?.();
     closeModal('register-modal');
     showToast('📧 Cuenta creada. Revisa tu correo para verificar tu cuenta.');
@@ -137,7 +132,6 @@ async function resendVerification() {
 
   try {
     const { payload } = await postJson('/api/auth/resend-verification', { email });
-    // Respuesta genérica (no revela si el correo existe).
     if (status) status.textContent = payload.message || 'Si tu correo está registrado, te enviamos un enlace.';
   } catch (_) {
     if (status) status.textContent = 'No se pudo reenviar. Intenta más tarde.';
@@ -150,7 +144,6 @@ async function logout() {
   try {
     await fetch('/api/auth/logout', { method: 'POST' });
   } catch (_) {
-    // La cookie igual se limpia del lado del servidor en el próximo request.
   }
   currentUser = null;
   updateHeaderUi();
@@ -245,7 +238,6 @@ $('btn-my-tickets')?.addEventListener('click', openMyTickets);
 $('mobile-my-tickets')?.addEventListener('click', openMyTickets);
 $('login-resend-btn')?.addEventListener('click', resendVerification);
 
-// verify-email.html envía a /?login=1 para abrir el login.
 if (new URLSearchParams(window.location.search).get('login') === '1') {
   openModal('login-modal');
 }

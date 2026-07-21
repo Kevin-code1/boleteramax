@@ -52,7 +52,6 @@
                 fillFromPayload(parsed);
                 return parsed;
             } catch (_) {
-                // Extrae el ticketId de la URL del QR o de un ID suelto.
                 const idMatch = raw.match(/BM-TKT-[A-Za-z0-9]+/);
                 if (idMatch) {
                     ticketIdInput.value = idMatch[0];
@@ -208,7 +207,6 @@
                 return;
             }
 
-            // Pedir la clave antes de mostrar "Validando..." (prompt es bloqueante).
             const adminKey = getAdminApiKey();
             if (!adminKey) {
                 renderResult({
@@ -233,7 +231,6 @@
 
                 const result = await response.json();
                 if (response.status === 401) {
-                    // Clave incorrecta: la limpiamos para volver a pedirla.
                     sessionStorage.removeItem('bm_admin_key');
                 }
                 renderResult(result);
@@ -278,4 +275,3 @@
 
         preloadFromQuery();
         renderResult();
-    

@@ -11,7 +11,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, '..');
 
-// JSON de tickets aislado por corrida de e2e.
 async function createTempTicketsPath(tag) {
   const dir = path.join(rootDir, '.tmp');
   await fs.mkdir(dir, { recursive: true });
@@ -30,7 +29,6 @@ function getFreeishPort() {
   return 41_000 + Math.floor(Math.random() * 2_000);
 }
 
-// El token de verificación solo aparece en el log del servidor (dev).
 async function waitForVerifyToken(getOutput, email, { timeoutMs = 5000 } = {}) {
   const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`Para:\\s*${escaped}[\\s\\S]*?token=([a-f0-9]+)`, 'g');
@@ -81,7 +79,6 @@ async function waitForServer(baseUrl, child, getOutput) {
       const response = await fetch(`${baseUrl}/api/security-config`);
       if (response.ok) return;
     } catch (_) {
-      // Keep polling until the server is ready.
     }
 
     await new Promise(resolve => setTimeout(resolve, 250));
@@ -119,7 +116,6 @@ async function cleanupOrder(orderNumber) {
 
 async function cleanupUser(email) {
   if (!email) return;
-  // user_sessions cae en cascada al borrar el usuario.
   await query('DELETE FROM users WHERE email_normalized = lower($1)', [email]);
 }
 
@@ -161,7 +157,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     const getOutput = () => output.join('');
     await waitForServer(baseUrl, child, getOutput);
 
-    // ── Registro: NO inicia sesión (pendiente de verificación) ──
     const register = await requestJson(baseUrl, '/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name: `E2E Cuenta ${suffix}`, email, password }),
@@ -173,7 +168,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     assert.equal(register.payload.devVerifyUrl, undefined, 'register must not leak a verify link');
     assert.equal(Object.hasOwn(register.payload, 'token'), false, 'register must not leak a token');
 
-    // ── Login antes de verificar → 403 email_not_verified, sin cookie ──
     const loginUnverified = await requestJson(baseUrl, '/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
@@ -182,20 +176,17 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     assert.equal(loginUnverified.payload.code, 'email_not_verified');
     assert.equal(extractSessionCookie(loginUnverified.response), null, 'unverified login must NOT set a cookie');
 
-    // ── Verificar el correo con el token leído del log del servidor ──
     const verifyToken = await waitForVerifyToken(getOutput, email);
     const verify = await requestJson(baseUrl, `/api/auth/verify-email?token=${encodeURIComponent(verifyToken)}`);
     assert.equal(verify.response.status, 200);
     assert.equal(verify.payload.ok, true);
 
-    // ── Registro duplicado → 409 ──
     const duplicate = await requestJson(baseUrl, '/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name: 'Otra', email, password }),
     });
     assert.equal(duplicate.response.status, 409);
 
-    // ── Login: contraseña incorrecta 401, correcta 200 (ya verificado) ──
     const badLogin = await requestJson(baseUrl, '/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password: 'incorrecta123' }),
@@ -212,7 +203,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     assert.match(sessionCookie.raw, /HttpOnly/i);
     assert.match(sessionCookie.raw, /SameSite=Lax/i);
 
-    // ── auth/me devuelve emailVerified true ──
     const meLoggedIn = await requestJson(baseUrl, '/api/auth/me', {
       headers: { Cookie: sessionCookie.header },
     });
@@ -224,7 +214,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     const meAnonymous = await requestJson(baseUrl, '/api/auth/me');
     assert.equal(meAnonymous.response.status, 401);
 
-    // ── Compras: invitado (sin cookie) y logueado (con cookie) ──
     const event = {
       name: 'Comedy Night Puebla',
       date: '18 Junio 2025',
@@ -261,7 +250,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
       return purchase.payload.tickets[0];
     }
 
-    // ── Flujo de invitado (una cotización: quote y compra comparten rate limit) ──
     const guestSeats = [{ zone: 'LUNETA', fila: `GUEST${suffix}`, asiento: 1, tableSize: 1 }];
     const guestQuote = await requestJson(baseUrl, '/api/checkout/quote', {
       method: 'POST',
@@ -281,7 +269,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
       });
     }
 
-    // Invitado sin datos de comprador → 400.
     const noBuyerPurchase = await requestJson(baseUrl, '/api/tickets', {
       method: 'POST',
       body: guestPurchaseBody(undefined),
@@ -301,13 +288,11 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     );
     orderIds.push(guestPurchase.payload.orderId);
     const guestTicket = guestPurchase.payload.tickets[0];
-    // Con sesión, el buyer del body se ignora.
     const ownedTicket = await buyTicket(sessionCookie.header, `USER${suffix}`, {
       name: 'Nombre Señuelo',
       email: 'senuelo@ignorado.test',
     });
 
-    // ── Órdenes en PostgreSQL: comprador real, user_id y desglose ──
     const guestOrder = (await query(
       `SELECT buyer_email, buyer_name, user_id, checkout_quote_id, status,
               subtotal_cents, fee_cents, total_cents, metadata
@@ -341,7 +326,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     assert.equal(userPayment.provider, 'simulated');
     assert.equal(userPayment.status, 'paid');
 
-    // ── Mis boletos: solo los del usuario ──
     const myTickets = await requestJson(baseUrl, '/api/account/tickets', {
       headers: { Cookie: sessionCookie.header },
     });
@@ -357,7 +341,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     const myTicketsAnonymous = await requestJson(baseUrl, '/api/account/tickets');
     assert.equal(myTicketsAnonymous.response.status, 401);
 
-    // ── Vista privada por sesión de dueño (sin token) ──
     const ownedDetail = await requestJson(
       baseUrl,
       `/api/tickets/${encodeURIComponent(ownedTicket.ticketId)}`,
@@ -372,7 +355,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     );
     assert.equal(foreignDetail.response.status, 403, 'session must not open tickets it does not own');
 
-    // ── QR dinámico por sesión de dueño ──
     const dynamicQr = await requestJson(
       baseUrl,
       `/api/tickets/${encodeURIComponent(ownedTicket.ticketId)}/dynamic-qr`,
@@ -382,7 +364,6 @@ test('buyer account flow: register, login, sessions, guest vs logged purchases, 
     assert.equal(dynamicQr.payload.active, true);
     assert.ok(dynamicQr.payload.dynamicToken);
 
-    // ── Staff independiente de la sesión de comprador ──
     const validateWithoutKey = await requestJson(baseUrl, '/api/validate-ticket', {
       method: 'POST',
       headers: { Cookie: sessionCookie.header },

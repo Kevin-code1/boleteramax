@@ -2,7 +2,6 @@ import QRCode from 'qrcode';
 
 export function createQrCodeGenerator() {
   return {
-    // QR estático impreso en el boleto (apunta a la URL pública).
     ticketQrDataUrl: payload =>
       QRCode.toDataURL(payload, {
         errorCorrectionLevel: 'M',
@@ -13,7 +12,6 @@ export function createQrCodeGenerator() {
         },
       }),
 
-    // QR dinámico rotativo mostrado en la vista privada del boleto.
     dynamicQrDataUrl: payloadJson =>
       QRCode.toDataURL(payloadJson, {
         errorCorrectionLevel: 'M',

@@ -123,7 +123,6 @@
                             </div>
                         </div>
                         <div class="ticket-actions">
-                            <a class="btn" href="validate.html?ticketId=${encodeURIComponent(ticketId)}&eventId=${encodeURIComponent(eventId)}">Abrir validador</a>
                             <button class="btn copy-qr-btn" type="button" data-ticket-id="${esc(ticketId)}" data-event-id="${esc(eventId)}" disabled>Copiar contenido QR</button>
                         </div>
                     </div>
@@ -161,7 +160,6 @@
             return card;
         }
 
-        // Modo cuenta (?mine=1): boletos y QR se autorizan por sesión.
         async function loadAccountTickets() {
             const params = new URLSearchParams(window.location.search);
             const wanted = (params.get('ticketIds') || '')
@@ -600,4 +598,3 @@
         });
 
         loadTickets();
-    

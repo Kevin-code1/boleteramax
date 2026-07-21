@@ -1,9 +1,6 @@
-/* ui.js: preloader, slider, header, menú, filtros, wishlist, newsletter */
-
 import { showToast } from './toast.js';
 import { openModal } from './modals.js';
 
-// =================== PRELOADER ===================
 const preloaderEl = document.getElementById('preloader');
 window.addEventListener('load', () => {
   setTimeout(() => {
@@ -12,7 +9,6 @@ window.addEventListener('load', () => {
   }, preloaderEl ? 220 : 0);
 });
 
-// =================== HERO SLIDER ===================
 let currentSlide = 0;
 let sliderTimer = null;
 const slides = document.querySelectorAll('.hero-slide');
@@ -64,7 +60,6 @@ if (slides.length && dots.length && heroPrevBtn && heroNextBtn) {
   startSlider();
 }
 
-// =================== STICKY HEADER ===================
 const header = document.getElementById('main-header');
 const scrollTopBtn = document.getElementById('scroll-top');
 let scrollRaf = 0;
@@ -84,7 +79,6 @@ if (scrollTopBtn) {
   scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
 
-// =================== HAMBURGER ===================
 const hamburger = document.getElementById('hamburger');
 const mobileMenu = document.getElementById('mobile-menu');
 if (hamburger && mobileMenu) {
@@ -101,13 +95,11 @@ if (hamburger && mobileMenu) {
   }));
 }
 
-// =================== CATEGORY FILTERS ===================
 const filterBtns = document.querySelectorAll('.filter-btn');
 const eventCards = document.querySelectorAll('.event-card');
 const eventsGrid = document.getElementById('events-grid');
 
 if (filterBtns.length && eventCards.length) {
-  // Create the empty state element
   const emptyState = document.createElement('div');
   emptyState.className = 'filter-empty-state';
   emptyState.innerHTML = `
@@ -161,7 +153,6 @@ if (filterBtns.length && eventCards.length) {
   });
 }
 
-// =================== POINTS OF SALE FILTERS ===================
 const posFilters = document.querySelectorAll('.pos-filter');
 const salesPointCards = document.querySelectorAll('.sales-point-card');
 if (posFilters.length && salesPointCards.length) {
@@ -187,7 +178,6 @@ if (posFilters.length && salesPointCards.length) {
   });
 }
 
-// =================== WISHLIST ===================
 function bindWishlistButtons(selector, itemLabel) {
   document.querySelectorAll(selector).forEach(btn => {
     btn.addEventListener('click', () => {
@@ -208,7 +198,6 @@ function bindWishlistButtons(selector, itemLabel) {
 bindWishlistButtons('.event-wishlist', 'Evento');
 bindWishlistButtons('.collab-wishlist', 'Producto');
 
-// =================== STATS COUNTER ===================
 function animateCounter(el, target) {
   let start = 0;
   const step = target / (2000 / 16);
@@ -225,8 +214,6 @@ function initCounters() {
   });
 }
 
-// =================== LOGIN / REGISTER ===================
-// handleLogin/handleRegister reales viven en auth.js (sesión con backend).
 export function togglePass(id) { const input = document.getElementById(id); input.type = input.type === 'password' ? 'text' : 'password'; }
 
 const regPass = document.getElementById('reg-pass');
@@ -248,7 +235,6 @@ document.querySelectorAll('img[loading="lazy"]').forEach(img => {
   img.fetchPriority = 'low';
 });
 
-// =================== FURNITURE QUICK VIEW ===================
 export function showFurnitureQuickView(name, desc, price) {
   document.getElementById('fv-name').textContent = name;
   document.getElementById('fv-desc').textContent = desc;
@@ -256,7 +242,6 @@ export function showFurnitureQuickView(name, desc, price) {
   openModal('furniture-modal');
 }
 
-// =================== NEWSLETTER ===================
 export function subscribeNewsletter(e) {
   e.preventDefault();
   const email = document.getElementById('newsletter-email').value;
@@ -264,10 +249,8 @@ export function subscribeNewsletter(e) {
   document.getElementById('newsletter-email').value = '';
 }
 
-// =================== FLOATING HELP ===================
 document.getElementById('floating-help').addEventListener('click', () => showToast('Abriendo chat de soporte...'));
 
-// =================== SMOOTH SCROLL ===================
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const targetId = a.getAttribute('href');
@@ -283,7 +266,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-// =================== FADE ANIMATIONS ===================
 const observer = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {

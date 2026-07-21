@@ -2,7 +2,6 @@ import { resolveVenuePricingKey, SERVER_VENUE_PRICING } from '../domain/pricing.
 import { buildEventId } from '../domain/tickets.mjs';
 
 export function createAvailability({ catalog, ticketStore }) {
-  // Disponibilidad por descriptor (name/date/venue).
   async function byDescriptor(rawEvent = {}) {
     const event = {
       name: String(rawEvent.name || '').trim(),
@@ -19,7 +18,6 @@ export function createAvailability({ catalog, ticketStore }) {
       return { outcome: 'not_found' };
     }
 
-    // Mismo eventId que la cotización (datos del catálogo).
     const eventId = buildEventId({
       name: catalogEvent.name,
       date: catalogEvent.date,

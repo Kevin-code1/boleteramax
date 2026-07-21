@@ -1,8 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Evitar el fail-fast de postgres-primary al importar src/config
-// en entornos sin DATABASE_URL.
 process.env.TICKETS_STORAGE = 'json';
 process.env.TICKETS_WRITE_MODE = 'json';
 

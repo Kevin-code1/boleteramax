@@ -1,5 +1,3 @@
-/* BoletaMax – toast.js: notificaciones flotantes */
-
 let toastTimer = null;
 
 export function showToast(msg, type = 'success') {

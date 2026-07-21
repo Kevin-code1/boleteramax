@@ -69,7 +69,6 @@ export function createAuth({ userStore, emailService }) {
     await issueVerification(user, { name: String(name).trim(), buildVerifyUrl });
     console.log('BoletaMax Auth: cuenta creada (pendiente de verificación)', { userId: user.id });
 
-    // No inicia sesión: requiere verificar el correo.
     return { outcome: 'ok' };
   }
 
@@ -86,7 +85,6 @@ export function createAuth({ userStore, emailService }) {
       return { outcome: 'invalid_credentials' };
     }
 
-    // El estado de verificación solo se revela tras validar la contraseña.
     if (!isUserVerified(user)) {
       return { outcome: 'email_not_verified' };
     }
@@ -121,14 +119,12 @@ export function createAuth({ userStore, emailService }) {
       return { outcome: 'ok' };
     }
 
-    // Categoriza el motivo del fallo para el mensaje.
     const existing = await userStore.findVerificationToken(tokenHash);
     if (!existing) return { outcome: 'invalid' };
     if (existing.usedAt) return { outcome: 'used' };
     return { outcome: 'expired' };
   }
 
-  // Anti-enumeración: respuesta genérica; solo envía si existe y sin verificar.
   async function resendVerification({ email, buildVerifyUrl }) {
     const user = await userStore.findUserByEmail(normalizeEmail(email));
 

@@ -1,5 +1,3 @@
-/* BoletaMax – modals.js: apertura/cierre de modales, focus trap y transición a checkout */
-
 let lastFocusedElement = null;
 
 export function openModal(id) {
@@ -36,7 +34,7 @@ export function showCheckoutTransition() {
       <div class="checkout-transition-card">
         <div class="checkout-transition-mark"><i class="fas fa-shield-halved"></i></div>
         <span>Preparando checkout seguro</span>
-        <strong>Reservando tus boletos...</strong>
+        <strong>Preparando tu compra...</strong>
         <div class="checkout-transition-bar"><span></span></div>
       </div>
     `;
@@ -56,7 +54,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
 });
 
-// Focus-trap dentro del modal abierto (Tab / Shift+Tab).
 document.addEventListener('keydown', e => {
   if (e.key !== 'Tab') return;
   const overlay = document.querySelector('.modal-overlay.open');
@@ -64,7 +61,7 @@ document.addEventListener('keydown', e => {
 
   const focusables = [...overlay.querySelectorAll(
     'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-  )].filter(el => el.offsetParent !== null); // solo visibles
+  )].filter(el => el.offsetParent !== null);
   if (!focusables.length) return;
 
   const first = focusables[0];
