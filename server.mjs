@@ -28,7 +28,7 @@ ticketStore.ensureTicketsFile();
 const services = {
   searchEvents: createSearchEvents({ aiFilters, catalog }),
   availability: createAvailability({ catalog, ticketStore }),
-  checkout: createCheckout({ catalog, ticketStore, captcha, qr }),
+  checkout: createCheckout({ catalog, ticketStore, captcha }),
   ticketQueries: createTicketQueries({ ticketStore, qr }),
   validateTicket: createValidateTicket({ ticketStore }),
   auth: createAuth({ userStore, emailService }),

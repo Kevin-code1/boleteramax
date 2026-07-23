@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { TICKETS_PATH, TICKETS_STORAGE_MODE, TICKETS_WRITE_MODE } from '../../config/index.mjs';
+import { readJsonArraySync, writeJsonFileAtomic } from './atomic-json.mjs';
 import { buildPublicTicketPath } from '../../domain/tickets.mjs';
 import { getSoldSeatsForEvent } from '../../domain/pricing.mjs';
 import {
@@ -59,12 +60,22 @@ function ensureJsonFile(filePath, defaultValue) {
 }
 
 function readTickets() {
-  ensureJsonFile(TICKETS_PATH, []);
-  return JSON.parse(fs.readFileSync(TICKETS_PATH, 'utf8'));
+  return readJsonArraySync(TICKETS_PATH);
 }
 
-function writeTickets(tickets) {
-  fs.writeFileSync(TICKETS_PATH, JSON.stringify(tickets, null, 2));
+function writeTicketsAtomic(tickets) {
+  return writeJsonFileAtomic(TICKETS_PATH, tickets);
+}
+
+function mutateTicketsUnderLock(mutator) {
+  return withTicketsWriteLock(async () => {
+    const current = readTickets();
+    const { next, result } = mutator(current);
+    if (next !== current) {
+      await writeTicketsAtomic(next);
+    }
+    return result;
+  });
 }
 
 export function createTicketStore({ logger = console } = {}) {
@@ -74,7 +85,6 @@ export function createTicketStore({ logger = console } = {}) {
 
     ensureTicketsFile: () => ensureJsonFile(TICKETS_PATH, []),
     readTickets,
-    writeTickets,
     withWriteLock: withTicketsWriteLock,
     withValidationLock: withTicketValidationLock,
 
@@ -109,8 +119,7 @@ export function createTicketStore({ logger = console } = {}) {
         ticketId,
         mode: TICKETS_STORAGE_MODE,
         usedAt,
-        readJsonTickets: readTickets,
-        writeJsonTickets: writeTickets,
+        mutateJsonTickets: mutateTicketsUnderLock,
         logger,
       }),
 
@@ -133,17 +142,22 @@ export function createTicketStore({ logger = console } = {}) {
       return findTicketsByUserId(cleanUserId);
     },
 
-    saveNewTickets: async ({ existingTickets, newTickets, order = null }) => {
+    saveNewTickets: async ({ newTickets, order = null }) => {
+      const appendBackup = async () => {
+        const existingTickets = readTickets();
+        await writeTicketsAtomic([...existingTickets, ...newTickets]);
+      };
+
       if (TICKETS_WRITE_MODE === 'postgres-primary') {
         await persistTicketPurchaseByWriteMode({
           ticketRecords: newTickets,
           order,
           mode: TICKETS_WRITE_MODE,
-          saveJsonBackup: () => writeTickets([...existingTickets, ...newTickets]),
+          saveJsonBackup: appendBackup,
           logger,
         });
       } else {
-        writeTickets([...existingTickets, ...newTickets]);
+        await appendBackup();
       }
     },
 

@@ -18,8 +18,8 @@ import {
   createTicketToken,
 } from '../domain/tickets.mjs';
 
-export function createCheckout({ catalog, ticketStore, captcha, qr }) {
-  async function buildTicketRecord({ orderId, event, seat, totalPaid, paymentMethod, orderSeatCount, publicBaseUrl, userId }) {
+export function createCheckout({ catalog, ticketStore, captcha }) {
+  function buildTicketRecord({ orderId, event, seat, totalPaid, paymentMethod, orderSeatCount, publicBaseUrl, userId }) {
     const eventId = buildEventId(event);
     const ticketId = createTicketId();
     const token = createTicketToken();
@@ -50,7 +50,6 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
       usedAt: null,
       cancelledAt: null,
       qrPayload,
-      qrDataUrl: await qr.ticketQrDataUrl(qrPayload),
     };
   }
 
@@ -133,23 +132,19 @@ export function createCheckout({ catalog, ticketStore, captcha, qr }) {
         throw new Error('El evento ha alcanzado su capacidad maxima.');
       }
 
-      const existingTickets = ticketStore.readTickets();
-
-      const newTickets = await Promise.all(
-        authoritativePurchase.seats.map(seat =>
-          buildTicketRecord({
-            orderId,
-            event: authoritativePurchase.event,
-            seat,
-            totalPaid: authoritativePurchase.total,
-            paymentMethod: purchaseRequest.paymentMethod,
-            orderSeatCount,
-            publicBaseUrl,
-            userId: buyer.userId,
-          }),
-        ),
+      const newTickets = authoritativePurchase.seats.map(seat =>
+        buildTicketRecord({
+          orderId,
+          event: authoritativePurchase.event,
+          seat,
+          totalPaid: authoritativePurchase.total,
+          paymentMethod: purchaseRequest.paymentMethod,
+          orderSeatCount,
+          publicBaseUrl,
+          userId: buyer.userId,
+        }),
       );
-      await ticketStore.saveNewTickets({ existingTickets, newTickets, order });
+      await ticketStore.saveNewTickets({ newTickets, order });
       return newTickets;
     });
 

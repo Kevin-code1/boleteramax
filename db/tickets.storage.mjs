@@ -266,58 +266,55 @@ export function verifyTicketPrivateToken(ticket = {}, token = '') {
   return false;
 }
 
-function markJsonTicketUsed({ ticketId, usedAt, readJsonTickets: readJsonTicketsFn, writeJsonTickets }) {
-  const tickets = readJsonTickets(readJsonTicketsFn);
-  const ticketIndex = tickets.findIndex(item => item.ticketId === ticketId);
+function markJsonTicketUsed({ ticketId, usedAt, mutateJsonTickets }) {
+  return mutateJsonTickets(currentTickets => {
+    const tickets = Array.isArray(currentTickets) ? currentTickets : [];
+    const ticketIndex = tickets.findIndex(item => item.ticketId === ticketId);
 
-  if (ticketIndex === -1) {
-    return {
-      updated: false,
-      reason: 'not_found',
-      ticket: null,
+    if (ticketIndex === -1) {
+      return {
+        next: tickets,
+        result: { updated: false, reason: 'not_found', ticket: null },
+      };
+    }
+
+    const ticket = tickets[ticketIndex];
+    if (ticket.status === 'used' || ticket.usedAt) {
+      return {
+        next: tickets,
+        result: { updated: false, reason: 'already_used', ticket },
+      };
+    }
+
+    if (ticket.status === 'cancelled') {
+      return {
+        next: tickets,
+        result: { updated: false, reason: 'cancelled', ticket },
+      };
+    }
+
+    if (ticket.status !== 'active') {
+      return {
+        next: tickets,
+        result: { updated: false, reason: 'not_active', ticket },
+      };
+    }
+
+    const updatedTicket = {
+      ...ticket,
+      status: 'used',
+      usedAt,
+      validationCount: Number(ticket.validationCount || 0) + 1,
     };
-  }
 
-  const ticket = tickets[ticketIndex];
-  if (ticket.status === 'used' || ticket.usedAt) {
+    const next = tickets.slice();
+    next[ticketIndex] = updatedTicket;
+
     return {
-      updated: false,
-      reason: 'already_used',
-      ticket,
+      next,
+      result: { updated: true, reason: 'used', ticket: updatedTicket },
     };
-  }
-
-  if (ticket.status === 'cancelled') {
-    return {
-      updated: false,
-      reason: 'cancelled',
-      ticket,
-    };
-  }
-
-  if (ticket.status !== 'active') {
-    return {
-      updated: false,
-      reason: 'not_active',
-      ticket,
-    };
-  }
-
-  const updatedTicket = {
-    ...ticket,
-    status: 'used',
-    usedAt,
-    validationCount: Number(ticket.validationCount || 0) + 1,
-  };
-
-  tickets[ticketIndex] = updatedTicket;
-  writeJsonTickets(tickets);
-
-  return {
-    updated: true,
-    reason: 'used',
-    ticket: updatedTicket,
-  };
+  });
 }
 
 function logJsonBackupWarning(logger, ticketId, error) {
@@ -336,8 +333,7 @@ export async function markTicketUsedInStorage({
   ticketId,
   mode = getTicketsStorageMode(),
   usedAt = new Date().toISOString(),
-  readJsonTickets: readJsonTicketsFn,
-  writeJsonTickets,
+  mutateJsonTickets,
   repository,
   logger = console,
 }) {
@@ -349,8 +345,7 @@ export async function markTicketUsedInStorage({
     return markJsonTicketUsed({
       ticketId: cleanTicketId,
       usedAt,
-      readJsonTickets: readJsonTicketsFn,
-      writeJsonTickets,
+      mutateJsonTickets,
     });
   }
 
@@ -363,13 +358,12 @@ export async function markTicketUsedInStorage({
   if (shouldUsePostgres) {
     const result = await repo.markTicketUsedByCode(cleanTicketId, { usedAt });
 
-    if (result.updated && writeJsonTickets && readJsonTicketsFn) {
+    if (result.updated && mutateJsonTickets) {
       try {
-        markJsonTicketUsed({
+        await markJsonTicketUsed({
           ticketId: cleanTicketId,
           usedAt,
-          readJsonTickets: readJsonTicketsFn,
-          writeJsonTickets,
+          mutateJsonTickets,
         });
       } catch (error) {
         logJsonBackupWarning(logger, cleanTicketId, error);
@@ -382,8 +376,7 @@ export async function markTicketUsedInStorage({
   return markJsonTicketUsed({
     ticketId: cleanTicketId,
     usedAt,
-    readJsonTickets: readJsonTicketsFn,
-    writeJsonTickets,
+    mutateJsonTickets,
   });
 }
 

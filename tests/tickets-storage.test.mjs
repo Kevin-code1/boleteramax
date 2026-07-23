@@ -101,16 +101,19 @@ test('default validation write marks PostgreSQL first and updates JSON backup', 
   const postgresTicket = makePostgresTicket();
   const usedAt = '2026-05-23T01:00:00.000Z';
   const calls = [];
-  let writtenTickets = null;
+  let storedTickets = [jsonTicket];
 
   const result = await markTicketUsedInStorage({
     ticket: postgresTicket,
     ticketId: postgresTicket.ticketId,
     usedAt,
-    readJsonTickets: () => [jsonTicket],
-    writeJsonTickets: tickets => {
-      calls.push('json');
-      writtenTickets = tickets;
+    mutateJsonTickets: async mutator => {
+      const { next, result: mutationResult } = mutator(storedTickets);
+      if (next !== storedTickets) {
+        calls.push('json');
+        storedTickets = next;
+      }
+      return mutationResult;
     },
     repository: {
       markTicketUsedByCode: async (ticketId, options) => {
@@ -134,23 +137,26 @@ test('default validation write marks PostgreSQL first and updates JSON backup', 
   assert.deepEqual(calls, ['postgres', 'json']);
   assert.equal(result.updated, true);
   assert.equal(result.ticket.status, 'used');
-  assert.equal(writtenTickets[0].status, 'used');
-  assert.equal(writtenTickets[0].validationCount, 1);
+  assert.equal(storedTickets[0].status, 'used');
+  assert.equal(storedTickets[0].validationCount, 1);
 });
 
 test('explicit json validation rollback does not call PostgreSQL', async () => {
   const jsonTicket = makeJsonTicket();
   const usedAt = '2026-05-23T01:05:00.000Z';
-  let writtenTickets = null;
+  let storedTickets = [jsonTicket];
 
   const result = await markTicketUsedInStorage({
     ticket: jsonTicket,
     ticketId: jsonTicket.ticketId,
     mode: 'json',
     usedAt,
-    readJsonTickets: () => [jsonTicket],
-    writeJsonTickets: tickets => {
-      writtenTickets = tickets;
+    mutateJsonTickets: async mutator => {
+      const { next, result: mutationResult } = mutator(storedTickets);
+      if (next !== storedTickets) {
+        storedTickets = next;
+      }
+      return mutationResult;
     },
     repository: {
       markTicketUsedByCode: async () => {
@@ -161,7 +167,7 @@ test('explicit json validation rollback does not call PostgreSQL', async () => {
 
   assert.equal(result.updated, true);
   assert.equal(result.ticket.status, 'used');
-  assert.equal(writtenTickets[0].usedAt, usedAt);
+  assert.equal(storedTickets[0].usedAt, usedAt);
 });
 
 test('postgres storage mode returns tickets from repository', async () => {

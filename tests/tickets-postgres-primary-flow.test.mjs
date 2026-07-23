@@ -267,6 +267,15 @@ test('postgres-primary purchase, read, dynamic QR, and staff validation flow', {
     assert.equal(privateListResult.payload.tickets[0].ticketId, ticket.ticketId);
     assert.equal(Object.hasOwn(privateListResult.payload.tickets[0], 'token'), false);
 
+    const backupBeforeReset = JSON.parse(await fs.readFile(ticketsPath, 'utf8'));
+    assert.ok(
+      backupBeforeReset.some(record => record.ticketId === ticket.ticketId),
+      'JSON backup must contain the purchased ticket',
+    );
+    for (const record of backupBeforeReset) {
+      assert.equal(Object.hasOwn(record, 'qrDataUrl'), false);
+    }
+
     await fs.writeFile(ticketsPath, '[]');
 
     const availabilityResult = await requestJson(baseUrl, '/api/events/availability', {

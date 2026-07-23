@@ -216,3 +216,37 @@ test('postgres-primary keeps purchase successful if JSON backup fails after Post
   assert.equal(warnings.length, 1);
   assert.equal(JSON.stringify(warnings).includes(ticketRecords[0].token), false);
 });
+
+test('postgres-primary reports jsonBackupFailed when async backup rejects after PostgreSQL success', async () => {
+  const calls = [];
+  const warnings = [];
+
+  const result = await persistTicketPurchaseByWriteMode({
+    ticketRecords,
+    order,
+    mode: 'postgres-primary',
+    saveJsonBackup: async () => {
+      calls.push('json');
+      await Promise.resolve();
+      const error = new Error(`async backup failed with ${ticketRecords[0].token}`);
+      error.code = 'EACCES';
+      throw error;
+    },
+    repository: {
+      insertPurchaseOrder: async () => {
+        calls.push('postgres');
+        return { attempted: 1, inserted: 1, skipped: 0 };
+      },
+    },
+    logger: {
+      warn: (message, payload) => warnings.push({ message, payload }),
+    },
+  });
+
+  assert.deepEqual(calls, ['postgres', 'json']);
+  assert.equal(result.failed, false);
+  assert.equal(result.inserted, 1);
+  assert.equal(result.jsonBackupFailed, true);
+  assert.equal(warnings.length, 1);
+  assert.equal(JSON.stringify(warnings).includes(ticketRecords[0].token), false);
+});
